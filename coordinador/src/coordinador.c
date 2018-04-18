@@ -46,7 +46,6 @@ int main(){
 
 	getaddrinfo(NULL, PUERTO, &hints, &serverInfo); // Notar que le pasamos NULL como IP, ya que le indicamos que use localhost en AI_PASSIVE
 
-
 	/*
 	 * 	Descubiertos los misterios de la vida (por lo menos, para la conexion de red actual), necesito enterarme de alguna forma
 	 * 	cuales son las conexiones que quieren establecer conmigo.
@@ -77,6 +76,7 @@ int main(){
 	 * 	Solo me queda decirle que vaya y escuche!
 	 *
 	 */
+	puts("Listo para escuchar a cualquier Cliente...");
 	listen(listenningSocket, BACKLOG);		// IMPORTANTE: listen() es una syscall BLOQUEANTE.
 
 	/*
