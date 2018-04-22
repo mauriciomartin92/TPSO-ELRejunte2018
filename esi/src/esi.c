@@ -21,8 +21,12 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <commons/log.h>
 #include "../../mySocket/src/socket.h"
 
-int main(){
-	conectarComoCliente();
+int main() {
+	t_log* logger_esi = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
+	conectarComoCliente("127.0.0.1", "8000");
+	return 0;
 }

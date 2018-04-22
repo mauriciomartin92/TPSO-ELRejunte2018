@@ -21,13 +21,13 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <commons/log.h>
 #include "../../mySocket/src/socket.h"
 
-#define IP "127.0.0.1"
-#define PUERTO "8000"
-#define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
-
-int main(){
-	conectarComoCliente();
+int main() {
+	t_log* logger_instancia = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
+	conectarComoCliente("127.0.0.1", "8000");
+	return 0;
 }
 
