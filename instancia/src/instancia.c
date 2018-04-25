@@ -26,8 +26,10 @@
 #include "../../mySocket/src/socket.h"
 
 int main() {
-	t_log* logger_instancia = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
-	conectarComoCliente("127.0.0.1", "8000");
+	t_log* logger = log_create("instancia.log", "Instancia", true,
+			LOG_LEVEL_INFO);
+	int socketServidor = conectarComoCliente(logger, "127.0.0.1", "8000");
+	enviarMensaje(logger, socketServidor, 1024);
 	return 0;
 }
 

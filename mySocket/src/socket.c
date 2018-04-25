@@ -15,10 +15,23 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <commons/log.h>
 
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 
-void conectarComoServidor(const char* ip, const char* puerto, int backlog) {
+int finalizarSocket(int socket) { // FUNCION COMUN A SERVIDOR Y CLIENTE
+	return close(socket);
+}
+
+/*
+ * -----------------------------------------------------------------------------------------------------------------
+ *
+ * 										FUNCIONES DE SOCKETS PARA UN SERVIDOR
+ *
+ * -----------------------------------------------------------------------------------------------------------------
+ */
+
+int conectarComoServidor(t_log* logger, const char* ip, const char* puerto, int backlog) {
 
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?
@@ -36,7 +49,7 @@ void conectarComoServidor(const char* ip, const char* puerto, int backlog) {
 	hints.ai_flags = atoi(ip);		// Asigna el address que le envia el proceso
 	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
 
-	getaddrinfo(ip, puerto, &hints, &serverInfo); // Notar que le pasamos NULL como IP, ya que le indicamos que use localhost en AI_PASSIVE
+	getaddrinfo(ip, puerto, &hints, &serverInfo);
 
 	/*
 	 * 	Descubiertos los misterios de la vida (por lo menos, para la conexion de red actual), necesito enterarme de alguna forma
@@ -65,12 +78,14 @@ void conectarComoServidor(const char* ip, const char* puerto, int backlog) {
 
 	/*
 	 * 	Ya tengo un medio de comunicacion (el socket) y le dije por que "telefono" tiene que esperar las llamadas.
-	 *
-	 * 	Solo me queda decirle que vaya y escuche!
-	 *
 	 */
-	puts("Listo para escuchar a cualquier Cliente...");
-	listen(listenningSocket, backlog);// IMPORTANTE: listen() es una syscall BLOQUEANTE.
+	log_info(logger, "Servidor conectado.");
+	return listenningSocket;
+}
+
+int escucharCliente(t_log* logger, int listenningSocket, int backlog) {
+	log_info(logger, "Listo para escuchar a cualquier Cliente...");
+	listen(listenningSocket, backlog); // IMPORTANTE: listen() es una syscall BLOQUEANTE.
 
 	/*
 	 * 	El sistema esperara hasta que reciba una conexion entrante...
@@ -88,12 +103,16 @@ void conectarComoServidor(const char* ip, const char* puerto, int backlog) {
 	 *				En este ejemplo nos dedicamos unicamente a trabajar con el cliente y no escuchamos mas conexiones.
 	 *
 	 */
-	struct sockaddr_in addr;// Esta estructura contendra los datos de la conexion del cliente. IP, puerto, etc.
+	struct sockaddr_in addr; // Esta estructura contendra los datos de la conexion del cliente. IP, puerto, etc.
 	socklen_t addrlen = sizeof(addr);
 
 	int socketCliente = accept(listenningSocket, (struct sockaddr *) &addr,
 			&addrlen);
 
+	return socketCliente;
+}
+
+void recibirMensaje(t_log* logger, int socketCliente, int packagesize) {
 	/*
 	 * 	Ya estamos listos para recibir paquetes de nuestro cliente...
 	 *
@@ -101,30 +120,26 @@ void conectarComoServidor(const char* ip, const char* puerto, int backlog) {
 	 *
 	 *	Cuando el cliente cierra la conexion, recv() devolvera 0.
 	 */
-	char package[PACKAGESIZE];
+	char package[packagesize];
 	int status = 1;		// Estructura que manjea el status de los recieve.
 
-	printf("Cliente conectado. Esperando mensajes:\n");
+	log_info(logger, "Esperando mensajes:\n");
 
 	while (status != 0) {
-		status = recv(socketCliente, (void*) package, PACKAGESIZE, 0);
-		if (status != 0)
-			printf("%s", package);
-
+		//status = recv(socketCliente, (void*) package, packagesize, 0);
+		if (status != 0) printf("%s", package);
 	}
-
-	/*
-	 * 	Terminado el intercambio de paquetes, cerramos todas las conexiones y nos vamos a mirar Game of Thrones, que seguro nos vamos a divertir mas...
-	 *
-	 *
-	 * 																					~ Divertido es Disney ~
-	 *
-	 */
-	close(socketCliente);
-	close(listenningSocket);
 }
 
-void conectarComoCliente(const char* ip, const char* puerto) {
+/*
+ * -----------------------------------------------------------------------------------------------------------------
+ *
+ * 										FUNCIONES DE SOCKETS PARA UN CLIENTE
+ *
+ * -----------------------------------------------------------------------------------------------------------------
+ */
+
+int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?
@@ -163,9 +178,14 @@ void conectarComoCliente(const char* ip, const char* puerto) {
 	freeaddrinfo(serverInfo);	// No lo necesitamos mas
 
 	/*
-	 *	Estoy conectado! Ya solo me queda una cosa:
-	 *
-	 *	Enviar datos!
+	 *	Estoy conectado!
+	 */
+	log_info(logger, "Cliente conectado.");
+	return serverSocket;
+}
+
+void enviarMensaje(t_log* logger, int serverSocket, int packagesize) {
+	/*	Enviar datos!
 	 *
 	 *	Vamos a crear un paquete (en este caso solo un conjunto de caracteres) de size PACKAGESIZE, que le enviare al servidor.
 	 *
@@ -174,17 +194,15 @@ void conectarComoCliente(const char* ip, const char* puerto) {
 	 *
 	 */
 	int enviar = 1;
-	char message[PACKAGESIZE];
+	char message[packagesize];
 
-	printf(
-			"Conectado al servidor. Bienvenido al sistema, ya puede enviar mensajes. Escriba 'exit' para salir\n");
+	log_info(logger, "Ya puede enviar mensajes. Escriba 'exit' para salir.");
 
 	while (enviar) {
-		fgets(message, PACKAGESIZE, stdin);	// Lee una linea en el stdin (lo que escribimos en la consola) hasta encontrar un \n (y lo incluye) o llegar a PACKAGESIZE.
+		fgets(message, packagesize, stdin);	// Lee una linea en el stdin (lo que escribimos en la consola) hasta encontrar un \n (y lo incluye) o llegar a PACKAGESIZE.
 		if (!strcmp(message, "exit\n"))
 			enviar = 0;			// Chequeo que el usuario no quiera salir
-		if (enviar)
-			send(serverSocket, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
+		if (enviar) send(serverSocket, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
 	}
 
 	/*
@@ -192,6 +210,5 @@ void conectarComoCliente(const char* ip, const char* puerto) {
 	 *
 	 *	Asique ahora solo me queda cerrar la conexion con un close();
 	 */
-
-	close(serverSocket);
 }
+

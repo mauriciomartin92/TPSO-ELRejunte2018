@@ -93,8 +93,9 @@ void imprimir_menu() {
 }
 
 int main() {
-	//t_log* logger_planificador = log_create("planificador.log", "Planificador", true, LOG_LEVEL_INFO);
-	//conectarComoCliente("127.0.0.1", "8000");
+	t_log* logger = log_create("planificador.log", "Planificador", true, LOG_LEVEL_INFO);
+	//int socketServidor = conectarComoCliente(logger, "127.0.0.1", "8000");
+	//enviarMensaje(logger, socketServidor, packagesize);
 	imprimir_menu();
 	return 0;
 }

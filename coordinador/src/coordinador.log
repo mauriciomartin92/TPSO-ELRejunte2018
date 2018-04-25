@@ -1,0 +1,41 @@
+[ERROR] 02:12:13:170 Coordinador/(6616:6616): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 02:12:13:172 Coordinador/(6616:6616): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 02:12:13:173 Coordinador/(6616:6616): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 02:13:27:5 Coordinador/(6653:6653): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 02:13:27:8 Coordinador/(6653:6653): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 02:13:27:10 Coordinador/(6653:6653): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[INFO] 02:13:27:11 Coordinador/(6653:6653): Como no anda nada lo conecto a manopla.
+[ERROR] 03:10:05:318 Coordinador/(8624:8624): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:10:05:320 Coordinador/(8624:8624): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:10:05:321 Coordinador/(8624:8624): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 03:10:05:322 Coordinador/(8624:8624): No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.
+[ERROR] 03:10:25:324 Coordinador/(8633:8633): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:10:25:326 Coordinador/(8633:8633): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:10:25:328 Coordinador/(8633:8633): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 03:10:25:329 Coordinador/(8633:8633): No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.
+[INFO] 03:10:25:330 Coordinador/(8633:8633): Como no anda nada lo conecto a manopla.
+[ERROR] 03:15:21:144 Coordinador/(8919:8919): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:15:21:146 Coordinador/(8919:8919): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:15:21:148 Coordinador/(8919:8919): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 03:15:21:150 Coordinador/(8919:8919): No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.
+[INFO] 03:15:21:152 Coordinador/(8919:8919): Como no anda nada lo conecto a manopla.
+[ERROR] 03:27:52:581 Coordinador/(9571:9571): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:27:52:582 Coordinador/(9571:9571): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:27:52:583 Coordinador/(9571:9571): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 03:27:52:584 Coordinador/(9571:9571): No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.
+[INFO] 03:27:52:586 Coordinador/(9571:9571): Como no anda nada lo conecto a manopla.
+[ERROR] 03:31:18:179 Coordinador/(9865:9865): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:31:18:181 Coordinador/(9865:9865): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:31:18:182 Coordinador/(9865:9865): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 03:31:18:183 Coordinador/(9865:9865): No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.
+[INFO] 03:31:18:185 Coordinador/(9865:9865): Como no anda nada lo conecto a manopla.
+[ERROR] 03:33:26:515 Coordinador/(10005:10005): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:33:26:517 Coordinador/(10005:10005): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:33:26:519 Coordinador/(10005:10005): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 03:33:26:520 Coordinador/(10005:10005): No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.
+[INFO] 03:33:26:521 Coordinador/(10005:10005): Como no anda nada lo conecto a manopla.
+[ERROR] 03:34:47:285 Coordinador/(10149:10149): No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:34:47:287 Coordinador/(10149:10149): No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.
+[ERROR] 03:34:47:288 Coordinador/(10149:10149): No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.
+[ERROR] 03:34:47:289 Coordinador/(10149:10149): No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.
+[INFO] 03:34:47:289 Coordinador/(10149:10149): Como no anda nada lo conecto a manopla.
