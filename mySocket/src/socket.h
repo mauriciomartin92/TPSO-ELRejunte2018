@@ -14,7 +14,8 @@
  * Funciones de sockets que definen a los procesos como Servidor o Cliente
  * obs: backlog = cant. maxima de procesos que puede aceptar el Servidor en simultaneo
  */
-int conectarComoServidor(t_log* logger, const char* ip, const char* puerto, int backlog);
+int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
+		int backlog);
 int escucharCliente(t_log* logger, int listenningSocket, int backlog);
 void recibirMensaje(t_log* logger, int socketCliente, int packagesize);
 

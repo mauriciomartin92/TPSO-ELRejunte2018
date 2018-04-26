@@ -31,7 +31,8 @@ int finalizarSocket(int socket) { // FUNCION COMUN A SERVIDOR Y CLIENTE
  * -----------------------------------------------------------------------------------------------------------------
  */
 
-int conectarComoServidor(t_log* logger, const char* ip, const char* puerto, int backlog) {
+int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
+		int backlog) {
 
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?
@@ -121,13 +122,14 @@ void recibirMensaje(t_log* logger, int socketCliente, int packagesize) {
 	 *	Cuando el cliente cierra la conexion, recv() devolvera 0.
 	 */
 	char package[packagesize];
-	int status = 1;		// Estructura que manjea el status de los recieve.
+	int status = 1;		// Estructura que maneja el status de los recieve.
 
 	log_info(logger, "Esperando mensajes:\n");
 
 	while (status != 0) {
-		//status = recv(socketCliente, (void*) package, packagesize, 0);
-		if (status != 0) printf("%s", package);
+		status = recv(socketCliente, (void*) package, packagesize, 0);
+		if (status != 0)
+			printf("%s", package);
 	}
 }
 
@@ -193,16 +195,18 @@ void enviarMensaje(t_log* logger, int serverSocket, int packagesize) {
 	 *	Ademas, contamos con la verificacion de que el usuario escriba "exit" para dejar de transmitir.
 	 *
 	 */
-	int enviar = 1;
+	bool enviar = true;
 	char message[packagesize];
 
 	log_info(logger, "Ya puede enviar mensajes. Escriba 'exit' para salir.");
 
 	while (enviar) {
 		fgets(message, packagesize, stdin);	// Lee una linea en el stdin (lo que escribimos en la consola) hasta encontrar un \n (y lo incluye) o llegar a PACKAGESIZE.
-		if (!strcmp(message, "exit\n"))
-			enviar = 0;			// Chequeo que el usuario no quiera salir
-		if (enviar) send(serverSocket, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
+		if (strcmp(message, "exit\n") == 0) {
+			enviar = false;			// Chequeo que el usuario no quiera salir
+		}
+		if (enviar)
+			send(serverSocket, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
 	}
 
 	/*

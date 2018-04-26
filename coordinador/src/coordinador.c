@@ -29,33 +29,36 @@ void inicializar_estructuras_basicas() {
 
 }
 
-int main() { // Habria que hacer funciones que clarifiquen el main
-	const char* ip;
-	const char* puerto;
+int main() { // ip y puerto son char* porque en la biblioteca mySocket se los necesita de ese tipo
+	char* ip;
+	char* puerto;
 	int backlog, packagesize;
+	bool error_config = false;
 	/*
 	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
 	 * comunicar distintos tipos de mensajes que emite el S.O. como ser: WARNINGS, ERRORS, INFO.
 	 */
-	t_log* logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_INFO);
-	bool error = false;
+	t_log* logger = log_create("coordinador.log", "Coordinador", true,
+			LOG_LEVEL_INFO);
 
 	/*
-	 * Se crea en la carpeta Coordinador un archivo "config_coordinador.xml", la idea es que utilizando la biblioteca
-	 * "config.h" se maneje ese XML con el fin de que el proceso Coordinador obtenga la información necesaria para
-	 * establecer su socket. El XML contiene los campos IP, PUERTO, BACKLOG, PACKAGESIZE.
+	 * Se crea en la carpeta Coordinador un archivo "config_coordinador.cfg", la idea es que utilizando la
+	 * biblioteca "config.h" se maneje ese CFG con el fin de que el proceso Coordinador obtenga la información
+	 * necesaria para establecer su socket. El CFG contiene los campos IP, PUERTO, BACKLOG, PACKAGESIZE.
 	 */
 
-	// Se crea una estructura de datos que contendra todos lo datos de mi XML que lea la funcion config_create
-	t_config* config_coordinador = config_create("../config_coordinador.xml");
-	// Si no puede leer mi XML lanza error
-	if (!config_coordinador) log_error(logger, "No se encuentra el archivo de configuracion.");
+	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
+	t_config* config_coordinador = config_create("../config_coordinador.cfg");
+	// Si no puede leer mi CFG lanza error
+	if (!config_coordinador)
+		log_error(logger, "No se encuentra el archivo de configuracion.");
 
 	if (config_has_property(config_coordinador, "IP")) { // Che config_coordinador, en lo que leiste, ¿tenes el campo IP?
 		ip = config_get_string_value(config_coordinador, "IP"); // Ah si, ¿lo tenes? entonces guardamelo en "ip"
 	} else {
-		error = true;
-		log_error(logger, "No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.");
+		error_config = true;
+		log_error(logger,
+				"No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.");
 	}
 	// Ahh, pero si no lo tenes no te olvides de lanzar error con el logger!
 	// Hace lo mismo para PUERTO y BACKLOG por favor!
@@ -63,33 +66,33 @@ int main() { // Habria que hacer funciones que clarifiquen el main
 	if (config_has_property(config_coordinador, "PUERTO")) {
 		puerto = config_get_string_value(config_coordinador, "PUERTO");
 	} else {
-		error = true;
-		log_error(logger, "No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.");
+		error_config = true;
+		log_error(logger,
+				"No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.");
 	}
 
 	if (config_has_property(config_coordinador, "BACKLOG")) {
 		backlog = config_get_int_value(config_coordinador, "BACKLOG");
 	} else {
-		error = true;
-		log_error(logger, "No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.");
+		error_config = true;
+		log_error(logger,
+				"No se pudo detectar la cantidad maxima de conexiones que se pueden establecer, revise su archivo de configuracion.");
 	}
 
 	if (config_has_property(config_coordinador, "PACKAGESIZE")) {
 		packagesize = config_get_int_value(config_coordinador, "PACKAGESIZE");
 	} else {
-		error = true;
-		log_error(logger, "No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.");
+		error_config = true;
+		log_error(logger,
+				"No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.");
 	}
 
 	//if (error) return -1; // Si hubo error se corta la ejecucion.
+	if (!error_config)
+		log_warning(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
 
-	// conectarComoServidor(ip, puerto, backlog);
-
-	/*
-	 * Como por ahora no puedo hacer funcionar el archivo XML, establezco la conexion a mano...
-	 */
-	log_info(logger, "Como no anda nada lo conecto a manopla.");
-	int socketDeEscucha = conectarComoServidor(logger, "127.0.0.1", "8000", 3);
+	log_info(logger, "Como no me reconoce el puerto lo establezco a manopla.");
+	int socketDeEscucha = conectarComoServidor(logger, ip, "8000", backlog);
 	int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
 	recibirMensaje(logger, socketCliente, packagesize);
 	finalizarSocket(socketCliente);
@@ -98,5 +101,4 @@ int main() { // Habria que hacer funciones que clarifiquen el main
 	log_destroy(logger);
 	return 0;
 }
-
 

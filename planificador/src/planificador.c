@@ -42,58 +42,59 @@ void imprimir_menu() {
 	printf("\n");
 
 	switch (seleccion) {
-		case 1:
-			printf("Pausar/Continuar ACTIVADO");
-			printf("\nGracias, se esta procesando su solicitud...");
-			break;
+	case 1:
+		printf("Pausar/Continuar ACTIVADO");
+		printf("\nGracias, se esta procesando su solicitud...");
+		break;
 
-		case 2:
-			printf("Bloquear ACTIVADO");
-			printf("\nIngrese clave: ");
-			scanf("%d", &clave);
-			printf("Ingrese ID: ");
-			scanf("%d", &id);
-			printf("Gracias, se esta procesando su solicitud...");
-			break;
+	case 2:
+		printf("Bloquear ACTIVADO");
+		printf("\nIngrese clave: ");
+		scanf("%d", &clave);
+		printf("Ingrese ID: ");
+		scanf("%d", &id);
+		printf("Gracias, se esta procesando su solicitud...");
+		break;
 
-		case 3:
-			printf("Desbloquear ACTIVADO");
-			printf("Ingrese clave: ");
-			scanf("%d", &clave);
-			printf("Gracias, se esta procesando su solicitud...");
-			break;
+	case 3:
+		printf("Desbloquear ACTIVADO");
+		printf("Ingrese clave: ");
+		scanf("%d", &clave);
+		printf("Gracias, se esta procesando su solicitud...");
+		break;
 
-		case 4:
-			printf("Listar ACTIVADO");
-			printf("Ingrese recurso: ");
-			scanf("%d", &recurso);
-			printf("Gracias, se esta procesando su solicitud...");
-			break;
+	case 4:
+		printf("Listar ACTIVADO");
+		printf("Ingrese recurso: ");
+		scanf("%d", &recurso);
+		printf("Gracias, se esta procesando su solicitud...");
+		break;
 
-		case 5:
-			printf("Kill ACTIVADO");
-			printf("Ingrese ID: ");
-			scanf("%d", &id);
-			printf("Gracias, se esta procesando su solicitud...");
-			break;
+	case 5:
+		printf("Kill ACTIVADO");
+		printf("Ingrese ID: ");
+		scanf("%d", &id);
+		printf("Gracias, se esta procesando su solicitud...");
+		break;
 
-		case 6:
-			printf("Status ACTIVADO");
-			printf("\nIngrese clave: ");
-			scanf("%d", &clave);
-			printf("Gracias, se esta procesando su solicitud...");
-			break;
+	case 6:
+		printf("Status ACTIVADO");
+		printf("\nIngrese clave: ");
+		scanf("%d", &clave);
+		printf("Gracias, se esta procesando su solicitud...");
+		break;
 
-		case 7:
-			printf("Deadlock ACTIVADO");
-			printf("\nGracias, se esta procesando su solicitud...");
-			break;
+	case 7:
+		printf("Deadlock ACTIVADO");
+		printf("\nGracias, se esta procesando su solicitud...");
+		break;
 	}
 	printf("\n");
 }
 
 int main() {
-	t_log* logger = log_create("planificador.log", "Planificador", true, LOG_LEVEL_INFO);
+	t_log* logger = log_create("planificador.log", "Planificador", true,
+			LOG_LEVEL_INFO);
 	//int socketServidor = conectarComoCliente(logger, "127.0.0.1", "8000");
 	//enviarMensaje(logger, socketServidor, packagesize);
 	imprimir_menu();
