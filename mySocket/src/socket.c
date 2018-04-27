@@ -19,10 +19,6 @@
 
 #define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
 
-int finalizarSocket(int socket) { // FUNCION COMUN A SERVIDOR Y CLIENTE
-	return close(socket);
-}
-
 /*
  * -----------------------------------------------------------------------------------------------------------------
  *
@@ -113,25 +109,7 @@ int escucharCliente(t_log* logger, int listenningSocket, int backlog) {
 	return socketCliente;
 }
 
-void recibirMensaje(t_log* logger, int socketCliente, int packagesize) {
-	/*
-	 * 	Ya estamos listos para recibir paquetes de nuestro cliente...
-	 *
-	 * 	Vamos a ESPERAR (ergo, funcion bloqueante) que nos manden los paquetes, y los imprimieremos por pantalla.
-	 *
-	 *	Cuando el cliente cierra la conexion, recv() devolvera 0.
-	 */
-	char package[packagesize];
-	int status = 1;		// Estructura que maneja el status de los recieve.
 
-	log_info(logger, "Esperando mensajes:\n");
-
-	while (status != 0) {
-		status = recv(socketCliente, (void*) package, packagesize, 0);
-		if (status != 0)
-			printf("%s", package);
-	}
-}
 
 /*
  * -----------------------------------------------------------------------------------------------------------------
@@ -186,6 +164,14 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 	return serverSocket;
 }
 
+/*
+ * -----------------------------------------------------------------------------------------------------------------
+ *
+ * 										FUNCIONES DE SOCKETS COMUNES
+ *
+ * -----------------------------------------------------------------------------------------------------------------
+ */
+
 void enviarMensaje(t_log* logger, int serverSocket, int packagesize) {
 	/*	Enviar datos!
 	 *
@@ -214,5 +200,29 @@ void enviarMensaje(t_log* logger, int serverSocket, int packagesize) {
 	 *
 	 *	Asique ahora solo me queda cerrar la conexion con un close();
 	 */
+}
+
+void recibirMensaje(t_log* logger, int socketCliente, int packagesize) {
+	/*
+	 * 	Ya estamos listos para recibir paquetes de nuestro cliente...
+	 *
+	 * 	Vamos a ESPERAR (ergo, funcion bloqueante) que nos manden los paquetes, y los imprimieremos por pantalla.
+	 *
+	 *	Cuando el cliente cierra la conexion, recv() devolvera 0.
+	 */
+	char package[packagesize];
+	int status = 1;		// Estructura que maneja el status de los recieve.
+
+	log_info(logger, "Esperando mensajes:\n");
+
+	while (status != 0) {
+		status = recv(socketCliente, (void*) package, packagesize, 0);
+		if (status != 0)
+			printf("%s", package);
+	}
+}
+
+int finalizarSocket(int socket) { // FUNCION COMUN A SERVIDOR Y CLIENTE
+	return close(socket);
 }
 

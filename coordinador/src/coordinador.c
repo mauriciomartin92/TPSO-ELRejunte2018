@@ -17,23 +17,20 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include "../../mySocket/src/socket.h"
-
-void inicializar_estructuras_basicas() {
-
-}
 
 int main() { // ip y puerto son char* porque en la biblioteca mySocket se los necesita de ese tipo
 	char* ip;
 	char* puerto;
 	int backlog, packagesize;
 	bool error_config = false;
+
 	/*
 	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
 	 * comunicar distintos tipos de mensajes que emite el S.O. como ser: WARNINGS, ERRORS, INFO.

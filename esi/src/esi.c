@@ -18,13 +18,58 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <parsi/parser.h>
 #include "../../mySocket/src/socket.h"
+
+void _obtenerScript(int argc, char *argv) {
+	FILE * fp;
+	char * line = NULL;
+	size_t len = 0;
+	ssize_t read;
+
+	fp = fopen(argv, "r");
+	if (fp == NULL) {
+		perror("Error al abrir el archivo: ");
+		exit(EXIT_FAILURE);
+	}
+
+	while ((read = getline(&line, &len, fp)) != -1) {
+		t_esi_operacion parsed = parse(line);
+
+		if (parsed.valido) {
+			switch (parsed.keyword) {
+			case GET:
+				printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
+				break;
+			case SET:
+				printf("SET\tclave: <%s>\tvalor: <%s>\n",
+						parsed.argumentos.SET.clave,
+						parsed.argumentos.SET.valor);
+				break;
+			case STORE:
+				printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
+				break;
+			default:
+				fprintf(stderr, "No pude interpretar <%s>\n", line);
+				exit(EXIT_FAILURE);
+			}
+
+			destruir_operacion(parsed);
+		} else {
+			fprintf(stderr, "La linea <%s> no es valida\n", line);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	fclose(fp);
+	if (line)
+		free(line);
+}
 
 int main() {
 	char* ip;
@@ -71,6 +116,7 @@ int main() {
 		log_warning(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
 
 	int socketServidor = conectarComoCliente(logger, ip, "8000");
-	enviarMensaje(logger, socketServidor, packagesize);
+	//enviarMensaje(logger, socketServidor, packagesize);
+	_obtenerScript(1, "../script.esi");
 	return 0;
 }
