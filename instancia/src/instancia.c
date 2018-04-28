@@ -34,7 +34,7 @@ int main() {
 	t_log* logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config_instancia = config_create("../config_instancia.cfg");
+	t_config* config_instancia = config_create("../config_coordinador_instancia.cfg");
 	// Si no puede leer mi CFG lanza error
 	if (!config_instancia)
 		log_error(logger, "No se encuentra el archivo de configuracion.");
