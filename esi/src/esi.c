@@ -25,6 +25,7 @@
 #include <commons/config.h>
 #include <parsi/parser.h>
 #include "../../mySocket/src/socket.h"
+#include "../../mySocket/src/accesoConfiguracion.h"
 
 t_esi_operacion _parsearLineaScript(FILE* fp) {
 	char * line = NULL;
@@ -35,84 +36,63 @@ t_esi_operacion _parsearLineaScript(FILE* fp) {
 	t_esi_operacion parsed = parse(line);
 
 	/*while ((read = getline(&line, &len, fp)) != -1) {
-		t_esi_operacion parsed = parse(line);
+	 t_esi_operacion parsed = parse(line);
 
-		/*if (parsed.valido) {
-			switch (parsed.keyword) {
-			case GET:
-				printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
-				break;
-			case SET:
-				printf("SET\tclave: <%s>\tvalor: <%s>\n",
-						parsed.argumentos.SET.clave,
-						parsed.argumentos.SET.valor);
-				break;
-			case STORE:
-				printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
-				break;
-			default:
-				fprintf(stderr, "No pude interpretar <%s>\n", line);
-				exit(EXIT_FAILURE);
-			}
+	 if (parsed.valido) {
+	 switch (parsed.keyword) {
+	 case GET:
+	 printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
+	 break;
+	 case SET:
+	 printf("SET\tclave: <%s>\tvalor: <%s>\n",
+	 parsed.argumentos.SET.clave,
+	 parsed.argumentos.SET.valor);
+	 break;
+	 case STORE:
+	 printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
+	 break;
+	 default:
+	 fprintf(stderr, "No pude interpretar <%s>\n", line);
+	 exit(EXIT_FAILURE);
+	 }
 
-			destruir_operacion(parsed);
-		} else {
-			fprintf(stderr, "La linea <%s> no es valida\n", line);
-			exit(EXIT_FAILURE);
-		}
-	}*/
+	 destruir_operacion(parsed);
+	 } else {
+	 fprintf(stderr, "La linea <%s> no es valida\n", line);
+	 exit(EXIT_FAILURE);
+	 }
+	 }*/
 
 	if (line)
-			free(line);
+		free(line);
 
 	return parsed;
 }
 
 int main() {
 	char* ip;
-	char* puerto;
+	char* port;
 	int packagesize;
 	bool error_config = false;
 
 	t_log* logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config_esi = config_create("../config_coordinador_esi.cfg");
-	// Si no puede leer mi CFG lanza error
-	if (!config_esi)
-		log_error(logger, "No se encuentra el archivo de configuracion.");
+	t_config* config_esi = conectarAlArchivo(logger,
+			"../config_coordinador_esi.cfg", &error_config);
 
-	if (config_has_property(config_esi, "IP")) { // Che config_coordinador, en lo que leiste, ¿tenes el campo IP?
-		ip = config_get_string_value(config_esi, "IP"); // Ah si, ¿lo tenes? entonces guardamelo en "ip"
-	} else {
-		error_config = true;
-		log_error(logger,
-				"No se pudo detectar la IP para establecer una conexion, revise su archivo de configuracion.");
-	}
-	// Ahh, pero si no lo tenes no te olvides de lanzar error con el logger!
-	// Hace lo mismo para PUERTO y BACKLOG por favor!
+	ip = obtenerCampoString(logger, config_esi, "IP", &error_config);
+	port = obtenerCampoString(logger, config_esi, "PORT", &error_config);
+	packagesize = obtenerCampoInt(logger, config_esi, "PACKAGESIZE",
+			&error_config);
 
-	if (config_has_property(config_esi, "PUERTO")) {
-		puerto = config_get_string_value(config_esi, "PUERTO");
+	if (!error_config) {
+		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
 	} else {
-		error_config = true;
-		log_error(logger,
-				"No se pudo detectar el PUERTO para establecer una conexion, revise su archivo de configuracion.");
+		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
-	if (config_has_property(config_esi, "PACKAGESIZE")) {
-		packagesize = config_get_int_value(config_esi, "PACKAGESIZE");
-	} else {
-		error_config = true;
-		log_error(logger,
-				"No se pudo detectar el tamaño maximo de para un paquete, revise su archivo de configuracion.");
-	}
-
-	//if (error_config) return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
-	if (!error_config)
-		log_warning(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
-
-	int socketServidor = conectarComoCliente(logger, ip, "8000");
+	int socketServidor = conectarComoCliente(logger, ip, port);
 	//enviarMensaje(logger, socketServidor, packagesize);
 
 	// Abro el fichero del script
@@ -123,7 +103,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
-	while (!eof(fp)) {
+	while (!feof(fp)) {
 		t_esi_operacion lineaParseada = _parsearLineaScript(fp);
 		//enviarMensaje(logger, /*server_socket*/, /*paquete*/);
 	}

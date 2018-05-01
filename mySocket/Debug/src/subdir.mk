@@ -4,12 +4,15 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../src/accesoConfiguracion.c \
 ../src/socket.c 
 
 OBJS += \
+./src/accesoConfiguracion.o \
 ./src/socket.o 
 
 C_DEPS += \
+./src/accesoConfiguracion.d \
 ./src/socket.d 
 
 

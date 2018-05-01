@@ -6,7 +6,7 @@
  */
 
 #include "socket.c"
-#include <commons/log.h>
+
 #ifndef SOCKET_H_
 #define SOCKET_H_
 

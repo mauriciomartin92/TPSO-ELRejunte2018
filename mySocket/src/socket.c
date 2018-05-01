@@ -17,8 +17,6 @@
 #include <unistd.h>
 #include <commons/log.h>
 
-#define PACKAGESIZE 1024	// Define cual va a ser el size maximo del paquete a enviar
-
 /*
  * -----------------------------------------------------------------------------------------------------------------
  *

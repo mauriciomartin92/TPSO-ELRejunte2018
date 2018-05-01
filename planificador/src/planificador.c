@@ -22,7 +22,9 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <commons/log.h>
+#include <commons/config.h>
 #include "../../mySocket/src/socket.h"
+#include "../../mySocket/src/accesoConfiguracion.h"
 
 void imprimir_menu() {
 	int seleccion, clave, id, recurso;
@@ -92,10 +94,32 @@ void imprimir_menu() {
 }
 
 int main() {
-	t_log* logger = log_create("coordinador_planificador.log", "Planificador", true,
-			LOG_LEVEL_INFO);
-	//int socketServidor = conectarComoCliente(logger, "127.0.0.1", "8000");
+	char* ip;
+	char* port;
+	int packagesize;
+	bool error_config = false;
+
+	t_log* logger = log_create("coordinador_planificador.log", "Planificador",
+	true, LOG_LEVEL_INFO);
+
+	// Importo los datos del archivo de configuracion
+	t_config* config_esi = conectarAlArchivo(logger,
+			"../config_coordinador_planificador.cfg", &error_config);
+
+	ip = obtenerCampoString(logger, config_esi, "IP", &error_config);
+	port = obtenerCampoString(logger, config_esi, "PORT", &error_config);
+	packagesize = obtenerCampoInt(logger, config_esi, "PACKAGESIZE",
+			&error_config);
+
+	// Valido si hubo errores
+	if (!error_config) {
+		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
+	} else {
+		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+	}
+
+	//int socketServidor = conectarComoCliente(logger, "127.0.0.1", port);
 	//enviarMensaje(logger, socketServidor, packagesize);
 	imprimir_menu();
-	return 0;
+	return EXIT_SUCCESS;
 }
