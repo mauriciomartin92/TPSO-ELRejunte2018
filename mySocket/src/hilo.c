@@ -15,6 +15,7 @@ void* saludar(void* arg) {
 }
 
 // link de ayuda: https://www.youtube.com/watch?v=RHZ5_yWKh-0
+// otro: http://www2.electron.frba.utn.edu.ar/~mdoallo/presentaciones.save.2010/clase-20100916-threads
 void crear_hilo(int i) {
 	pthread_t unHilo;
 	pthread_create(&unHilo, NULL, &saludar, (void*) &i);

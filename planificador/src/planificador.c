@@ -26,6 +26,10 @@
 #include "../../mySocket/src/accesoConfiguracion.h"
 #include "../../mySocket/src/socket.h"
 
+void estimar() {
+	// Hay que implementarlo
+}
+
 void imprimir_menu() {
 	int seleccion, clave, id, recurso;
 
@@ -99,15 +103,21 @@ int main() {
 	int packagesize;
 	bool error_config = false;
 
+	/* Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
+	lista_t* listos;
+	lista_t* bloqueados;
+	lista_t* terminados;
+	*/
+
 	t_log* logger = log_create("coordinador_planificador.log", "Planificador",
 	true, LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion
 	t_config* config = conectarAlArchivo(logger,
-			"../config_coordinador_planificador.cfg", &error_config);
+			"../config_planificador.cfg", &error_config);
 
-	ip = obtenerCampoString(logger, config, "IP", &error_config);
-	port = obtenerCampoString(logger, config, "PORT", &error_config);
+	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
+	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
 			&error_config);
 

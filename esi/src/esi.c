@@ -80,10 +80,10 @@ int main() {
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
 	t_config* config = conectarAlArchivo(logger,
-			"../config_coordinador_esi.cfg", &error_config);
+			"../config_esi.cfg", &error_config);
 
-	ip = obtenerCampoString(logger, config, "IP", &error_config);
-	port = obtenerCampoString(logger, config, "PORT", &error_config);
+	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
+	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
 			&error_config);
 
