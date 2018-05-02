@@ -5,9 +5,7 @@
  *      Author: utnso
  */
 
-#include <stdio.h>
-#include <commons/log.h>
-#include <commons/config.h>
+#include "miAccesoConfiguracion.h"
 
 t_config* conectarAlArchivo(t_log* logger, char* path, bool* error_config) {
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create

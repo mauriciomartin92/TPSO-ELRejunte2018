@@ -41,17 +41,22 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	if (!error_config) {
 		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
 	} else {
+		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
 		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
-	/*
-	 int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
-	 int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
+
+	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
+	/*int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
 	 recibirMensaje(logger, socketCliente, packagesize);
 	 finalizarSocket(socketCliente);
 	 finalizarSocket(socketDeEscucha);
 	 */
+	t_parametros* parametros;
+	parametros->logger = logger;
+	parametros->socketDeEscucha = socketDeEscucha;
+	parametros->backlog = backlog;
 
-	crear_hilo(backlog);
+	crear_hilo(&establecerComunicacion, (void*) parametros);
 
 	log_destroy(logger);
 	return EXIT_SUCCESS;

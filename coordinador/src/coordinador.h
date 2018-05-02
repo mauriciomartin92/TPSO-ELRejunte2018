@@ -23,4 +23,10 @@
 
 t_log* logger;
 
+typedef struct {
+	t_log* logger;
+	int socketDeEscucha;
+	int backlog;
+} __attribute__((packed)) t_parametros;
+
 #endif /* COORDINADOR_H_ */

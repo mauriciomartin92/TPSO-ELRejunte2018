@@ -38,6 +38,7 @@ int main() {
 	if (!error_config) {
 		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
 	} else {
+		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
 		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 

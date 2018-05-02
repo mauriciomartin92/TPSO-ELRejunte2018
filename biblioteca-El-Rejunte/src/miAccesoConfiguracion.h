@@ -5,7 +5,9 @@
  *      Author: utnso
  */
 
-#include "miAccesoConfiguracion.c"
+#include <stdio.h>
+#include <commons/log.h>
+#include <commons/config.h>
 
 #ifndef SRC_ACCESOCONFIGURACION_H_
 #define SRC_ACCESOCONFIGURACION_H_

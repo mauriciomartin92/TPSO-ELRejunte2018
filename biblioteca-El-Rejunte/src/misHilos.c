@@ -5,10 +5,7 @@
  *      Author: utnso
  */
 
-#include <unistd.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "misHilos.h"
 
 void* saludar(void* arg) {
 	int i = atoi((char*) arg);
@@ -21,16 +18,10 @@ void* saludar(void* arg) {
 
 // link de ayuda: https://www.youtube.com/watch?v=RHZ5_yWKh-0
 // otro: http://www2.electron.frba.utn.edu.ar/~mdoallo/presentaciones.save.2010/clase-20100916-threads
-void crear_hilo(int backlog) {
-	pthread_t hilo1;
-	pthread_t hilo2;
-	pthread_t hilo3;
+void crear_hilo(void* (*unaFuncion) (void*), void* parametros) {
+	pthread_t unHilo;
 
-	pthread_create(&hilo1, NULL, &saludar, "1");
-	pthread_create(&hilo2, NULL, &saludar, "2");
-	pthread_create(&hilo3, NULL, &saludar, "3");
+	pthread_create(&unHilo, NULL, &saludar, parametros);
 
-	pthread_join(hilo1, NULL); // Espera a que se ejecute el hilo
-	pthread_join(hilo2, NULL); // Espera a que se ejecute el hilo
-	pthread_join(hilo3, NULL); // Espera a que se ejecute el hilo
+	pthread_join(unHilo, NULL); // Espera a que se ejecute el hilo
 }

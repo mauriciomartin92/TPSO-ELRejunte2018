@@ -8,14 +8,7 @@
  ============================================================================
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <commons/log.h>
+#include "misSockets.h"
 
 /*
  * -----------------------------------------------------------------------------------------------------------------
@@ -34,7 +27,7 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
 	 *  Estas y otras preguntas existenciales son resueltas getaddrinfo();
 	 *
 	 *  Obtiene los datos de la direccion de red y lo guarda en serverInfo.
-	 *
+	 *#include "misHilos.c"
 	 */
 	struct addrinfo hints;
 	struct addrinfo *serverInfo;
@@ -78,6 +71,12 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
 	return listenningSocket;
 }
 
+void* establecerComunicacion(void* parametros_sinCastear) {
+	t_parametros* parametros = (t_parametros*) parametros_sinCastear;
+	escucharCliente(parametros->logger, parametros->socketDeEscucha, parametros->backlog);
+	return NULL;
+}
+
 int escucharCliente(t_log* logger, int listenningSocket, int backlog) {
 	log_info(logger, "Listo para escuchar a cualquier Cliente...");
 	listen(listenningSocket, backlog); // IMPORTANTE: listen() es una syscall BLOQUEANTE.
@@ -107,8 +106,6 @@ int escucharCliente(t_log* logger, int listenningSocket, int backlog) {
 	return socketCliente;
 }
 
-
-
 /*
  * -----------------------------------------------------------------------------------------------------------------
  *
@@ -131,7 +128,7 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 	struct addrinfo *serverInfo;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;// Permite que la maquina se encargue de verificar si usamos IPv4 o IPv6
+	hints.ai_family = AF_UNSPEC; // Permite que la maquina se encargue de verificar si usamos IPv4 o IPv6
 	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
 
 	getaddrinfo(ip, puerto, &hints, &serverInfo);// Carga en serverInfo los datos de la conexion
@@ -143,8 +140,7 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 	 * 	Obtiene un socket (un file descriptor -todo en linux es un archivo-), utilizando la estructura serverInfo que generamos antes.
 	 *
 	 */
-	int serverSocket;
-	serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
+	int serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
 			serverInfo->ai_protocol);
 
 	/*
@@ -152,8 +148,11 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 	 * 	Ahora me conecto!
 	 *
 	 */
-	connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
+	int res = connect(serverSocket, serverInfo->ai_addr,
+			serverInfo->ai_addrlen);
 	freeaddrinfo(serverInfo);	// No lo necesitamos mas
+
+	if (res < 0) log_error(logger, "No me pude conectar al servidor");
 
 	/*
 	 *	Estoy conectado!
