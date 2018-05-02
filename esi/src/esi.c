@@ -79,13 +79,13 @@ int main() {
 	t_log* logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config = conectarAlArchivo(logger,
-			"../config_esi.cfg", &error_config);
+	t_config* config = conectarAlArchivo(logger, "../config_esi.cfg",
+			&error_config);
 
 	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
-	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
-	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
+	port = obtenerCampoString(logger, config, "PORT_COORDINADOR",
 			&error_config);
+	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	if (!error_config) {
 		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");

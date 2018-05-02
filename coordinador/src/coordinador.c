@@ -46,14 +46,13 @@ int main() { // ip y puerto son char* porque en la biblioteca mySocket se los ne
 	 */
 
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger,
-			"../config_coordinador.cfg", &error_config);
+	t_config* config = conectarAlArchivo(logger, "../config_coordinador.cfg",
+			&error_config);
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
 	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
-	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
-			&error_config);
+	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	// Valido si hubo errores
 	if (!error_config) {
@@ -61,14 +60,15 @@ int main() { // ip y puerto son char* porque en la biblioteca mySocket se los ne
 	} else {
 		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
-/*
-	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
-	int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
-	recibirMensaje(logger, socketCliente, packagesize);
-	finalizarSocket(socketCliente);
-	finalizarSocket(socketDeEscucha);
-*/
-	for (int i = 0; i < backlog; i++) crear_hilo(i);
+	/*
+	 int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
+	 int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
+	 recibirMensaje(logger, socketCliente, packagesize);
+	 finalizarSocket(socketCliente);
+	 finalizarSocket(socketDeEscucha);
+	 */
+
+	crear_hilo(backlog);
 
 	log_destroy(logger);
 	return EXIT_SUCCESS;

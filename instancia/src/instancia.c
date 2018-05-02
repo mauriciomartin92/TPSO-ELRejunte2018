@@ -37,13 +37,13 @@ int main() {
 			LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger,
-			"../config_instancia.cfg", &error_config);
+	t_config* config = conectarAlArchivo(logger, "../config_instancia.cfg",
+			&error_config);
 
 	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
-	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
-	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
+	port = obtenerCampoString(logger, config, "PORT_COORDINADOR",
 			&error_config);
+	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	// Valido si hubo errores
 	if (!error_config) {
