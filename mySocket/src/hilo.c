@@ -8,16 +8,15 @@
 #include <pthread.h>
 #include <stdio.h>
 
-void* saludar(void* args) {
-	while (1) {
-		printf("Hola soy un hilo.\n");
-	}
+void* saludar(void* arg) {
+	int i = *((int*) arg);
+	printf("Hola, soy el hilo %d.\n", i);
 	return NULL;
 }
 
 // link de ayuda: https://www.youtube.com/watch?v=RHZ5_yWKh-0
-void crear_hilo() {
+void crear_hilo(int i) {
 	pthread_t unHilo;
-	pthread_create(&unHilo, NULL, saludar, NULL);
+	pthread_create(&unHilo, NULL, &saludar, (void*) &i);
 	pthread_join(unHilo, NULL); // Espera a que se ejecute el hilo
 }

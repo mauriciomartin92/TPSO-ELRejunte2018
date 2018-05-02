@@ -68,7 +68,7 @@ int main() { // ip y puerto son char* porque en la biblioteca mySocket se los ne
 	finalizarSocket(socketCliente);
 	finalizarSocket(socketDeEscucha);
 */
-	crear_hilo();
+	for (int i = 0; i < backlog; i++) crear_hilo(i);
 
 	log_destroy(logger);
 	return EXIT_SUCCESS;
