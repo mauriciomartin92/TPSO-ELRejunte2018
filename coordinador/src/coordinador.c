@@ -20,11 +20,11 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <stdbool.h>
-#include <pthread.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include "../../mySocket/src/socket.h"
 #include "../../mySocket/src/accesoConfiguracion.h"
+#include "../../mySocket/src/socket.h"
+#include "../../mySocket/src/hilo.h"
 
 int main() { // ip y puerto son char* porque en la biblioteca mySocket se los necesita de ese tipo
 	char* ip;
@@ -61,12 +61,14 @@ int main() { // ip y puerto son char* porque en la biblioteca mySocket se los ne
 	} else {
 		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
-
+/*
 	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 	int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
 	recibirMensaje(logger, socketCliente, packagesize);
 	finalizarSocket(socketCliente);
 	finalizarSocket(socketDeEscucha);
+*/
+	crear_hilo();
 
 	log_destroy(logger);
 	return EXIT_SUCCESS;

@@ -23,8 +23,8 @@
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include "../../mySocket/src/socket.h"
 #include "../../mySocket/src/accesoConfiguracion.h"
+#include "../../mySocket/src/socket.h"
 
 void imprimir_menu() {
 	int seleccion, clave, id, recurso;

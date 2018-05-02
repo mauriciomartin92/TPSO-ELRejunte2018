@@ -24,10 +24,10 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <parsi/parser.h>
-#include "../../mySocket/src/socket.h"
 #include "../../mySocket/src/accesoConfiguracion.h"
+#include "../../mySocket/src/socket.h"
 
-t_esi_operacion _parsearLineaScript(FILE* fp) {
+t_esi_operacion parsearLineaScript(FILE* fp) {
 	char * line = NULL;
 	size_t len = 0;
 	ssize_t read;
@@ -105,7 +105,7 @@ int main() {
 	}
 
 	while (!feof(fp)) {
-		t_esi_operacion lineaParseada = _parsearLineaScript(fp);
+		t_esi_operacion lineaParseada = parsearLineaScript(fp);
 		//enviarMensaje(logger, /*server_socket*/, /*paquete*/);
 	}
 
