@@ -33,6 +33,7 @@ t_esi_operacion _parsearLineaScript(FILE* fp) {
 	ssize_t read;
 
 	read = getline(&line, &len, fp);
+	printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
 	/*while ((read = getline(&line, &len, fp)) != -1) {
@@ -78,12 +79,12 @@ int main() {
 	t_log* logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config_esi = conectarAlArchivo(logger,
+	t_config* config = conectarAlArchivo(logger,
 			"../config_coordinador_esi.cfg", &error_config);
 
-	ip = obtenerCampoString(logger, config_esi, "IP", &error_config);
-	port = obtenerCampoString(logger, config_esi, "PORT", &error_config);
-	packagesize = obtenerCampoInt(logger, config_esi, "PACKAGESIZE",
+	ip = obtenerCampoString(logger, config, "IP", &error_config);
+	port = obtenerCampoString(logger, config, "PORT", &error_config);
+	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
 			&error_config);
 
 	if (!error_config) {

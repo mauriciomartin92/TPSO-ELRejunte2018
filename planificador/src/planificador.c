@@ -103,12 +103,12 @@ int main() {
 	true, LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion
-	t_config* config_esi = conectarAlArchivo(logger,
+	t_config* config = conectarAlArchivo(logger,
 			"../config_coordinador_planificador.cfg", &error_config);
 
-	ip = obtenerCampoString(logger, config_esi, "IP", &error_config);
-	port = obtenerCampoString(logger, config_esi, "PORT", &error_config);
-	packagesize = obtenerCampoInt(logger, config_esi, "PACKAGESIZE",
+	ip = obtenerCampoString(logger, config, "IP", &error_config);
+	port = obtenerCampoString(logger, config, "PORT", &error_config);
+	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
 			&error_config);
 
 	// Valido si hubo errores

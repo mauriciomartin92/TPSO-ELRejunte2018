@@ -46,13 +46,13 @@ int main() { // ip y puerto son char* porque en la biblioteca mySocket se los ne
 	 */
 
 	// Importo los datos del archivo de configuracion
-	t_config* config_esi = conectarAlArchivo(logger,
+	t_config* config = conectarAlArchivo(logger,
 			"../config_coordinador.cfg", &error_config);
 
-	ip = obtenerCampoString(logger, config_esi, "IP", &error_config);
-	port = obtenerCampoString(logger, config_esi, "PORT", &error_config);
-	backlog = obtenerCampoInt(logger, config_esi, "BACKLOG", &error_config);
-	packagesize = obtenerCampoInt(logger, config_esi, "PACKAGESIZE",
+	ip = obtenerCampoString(logger, config, "IP", &error_config);
+	port = obtenerCampoString(logger, config, "PORT", &error_config);
+	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
+	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE",
 			&error_config);
 
 	// Valido si hubo errores
