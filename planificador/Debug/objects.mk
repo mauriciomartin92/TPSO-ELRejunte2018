@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lcommons -lmySocket
+LIBS := -lcommons -lbiblioteca-El-Rejunte
 

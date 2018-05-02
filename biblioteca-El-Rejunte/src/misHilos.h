@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "hilo.c"
+#include "misHilos.c"
 
 #ifndef SRC_HILO_H_
 #define SRC_HILO_H_

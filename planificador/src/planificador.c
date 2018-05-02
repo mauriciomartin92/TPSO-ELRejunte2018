@@ -14,17 +14,7 @@
  * 	No se contemplan el manejo de errores en el sistema por una cuestion didactica. Tener en cuenta esto al desarrollar.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include "../../mySocket/src/accesoConfiguracion.h"
-#include "../../mySocket/src/socket.h"
+#include "planificador.h"
 
 void estimar() {
 	// Hay que implementarlo
@@ -109,7 +99,7 @@ int main() {
 	 lista_t* terminados;
 	 */
 
-	t_log* logger = log_create("coordinador_planificador.log", "Planificador",
+	logger = log_create("coordinador_planificador.log", "Planificador",
 	true, LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion

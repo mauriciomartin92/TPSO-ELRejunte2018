@@ -29,7 +29,7 @@ all: coordinador
 coordinador: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L/home/utnso/workspace/tp-2018-1c-El-Rejunte/mySocket/Debug -o "coordinador" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L/home/utnso/workspace/tp-2018-1c-El-Rejunte/biblioteca-El-Rejunte/Debug -o "coordinador" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

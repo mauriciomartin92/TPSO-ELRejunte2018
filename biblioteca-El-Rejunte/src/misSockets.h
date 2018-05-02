@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 
-#include "socket.c"
+#include "misSockets.c"
 
 #ifndef SOCKET_H_
 #define SOCKET_H_

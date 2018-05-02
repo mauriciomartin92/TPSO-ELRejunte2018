@@ -14,17 +14,7 @@
  * 	No se contemplan el manejo de errores en el sistema por una cuestion didactica. Tener en cuenta esto al desarrollar.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include "../../mySocket/src/accesoConfiguracion.h"
-#include "../../mySocket/src/socket.h"
+#include "instancia.h"
 
 int main() {
 	char* ip;
@@ -33,8 +23,7 @@ int main() {
 	bool error_config = false;
 
 	// Creo el logger
-	t_log* logger = log_create("instancia.log", "Instancia", true,
-			LOG_LEVEL_INFO);
+	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion
 	t_config* config = conectarAlArchivo(logger, "../config_instancia.cfg",

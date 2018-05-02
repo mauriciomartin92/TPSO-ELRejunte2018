@@ -14,18 +14,7 @@
  * 	No se contemplan el manejo de errores en el sistema por una cuestion didactica. Tener en cuenta esto al desarrollar.
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <parsi/parser.h>
-#include "../../mySocket/src/accesoConfiguracion.h"
-#include "../../mySocket/src/socket.h"
+#include "esi.h"
 
 t_esi_operacion parsearLineaScript(FILE* fp) {
 	char * line = NULL;
@@ -76,7 +65,7 @@ int main() {
 	int packagesize;
 	bool error_config = false;
 
-	t_log* logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
+	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
 	t_config* config = conectarAlArchivo(logger, "../config_esi.cfg",

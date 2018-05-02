@@ -32,10 +32,10 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1717358609" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
 								<option id="gnu.c.link.option.libs.1042201057" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="commons"/>
-									<listOptionValue builtIn="false" value="mySocket"/>
+									<listOptionValue builtIn="false" value="biblioteca-El-Rejunte"/>
 								</option>
 								<option id="gnu.c.link.option.paths.1668642992" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/home/utnso/workspace/tp-2018-1c-El-Rejunte/mySocket/Debug"/>
+									<listOptionValue builtIn="false" value="/home/utnso/workspace/tp-2018-1c-El-Rejunte/biblioteca-El-Rejunte/Debug"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1159047292" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
