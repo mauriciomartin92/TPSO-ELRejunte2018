@@ -29,7 +29,6 @@ typedef struct {
  */
 int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
 		int backlog);
-void* establecerComunicacion(void* parametros_sinCastear);
 int escucharCliente(t_log* logger, int listenningSocket, int backlog);
 void recibirMensaje(t_log* logger, int socketCliente, int packagesize);
 

@@ -19,14 +19,11 @@
 #include <commons/config.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
-#include "../../biblioteca-El-Rejunte/src/misHilos.h"
 
 t_log* logger;
-
-typedef struct {
-	t_log* logger;
-	int socketDeEscucha;
-	int backlog;
-} __attribute__((packed)) t_parametros;
+char* ip;
+char* port;
+int backlog, packagesize;
+int socketDeEscucha;
 
 #endif /* COORDINADOR_H_ */

@@ -10,10 +10,13 @@
 
 #include "coordinador.h"
 
+void establecerComunicacion() {
+	int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
+	recibirMensaje(logger, socketCliente, packagesize);
+	finalizarSocket(socketCliente);
+}
+
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
-	char* ip;
-	char* port;
-	int backlog, packagesize;
 	bool error_config = false;
 
 	/*
@@ -45,18 +48,13 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
-	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
-	/*int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
-	 recibirMensaje(logger, socketCliente, packagesize);
-	 finalizarSocket(socketCliente);
-	 finalizarSocket(socketDeEscucha);
-	 */
-	t_parametros* parametros;
-	parametros->logger = logger;
-	parametros->socketDeEscucha = socketDeEscucha;
-	parametros->backlog = backlog;
+	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 
-	crear_hilo(&establecerComunicacion, (void*) parametros);
+	pthread_t unHilo;
+	pthread_create(&unHilo, NULL, (void*) establecerComunicacion, NULL);
+	pthread_detach(unHilo);
+
+	finalizarSocket(socketDeEscucha);
 
 	log_destroy(logger);
 	return EXIT_SUCCESS;

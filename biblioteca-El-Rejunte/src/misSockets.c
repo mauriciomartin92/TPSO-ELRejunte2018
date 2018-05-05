@@ -71,12 +71,6 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
 	return listenningSocket;
 }
 
-void* establecerComunicacion(void* parametros_sinCastear) {
-	t_parametros* parametros = (t_parametros*) parametros_sinCastear;
-	escucharCliente(parametros->logger, parametros->socketDeEscucha, parametros->backlog);
-	return NULL;
-}
-
 int escucharCliente(t_log* logger, int listenningSocket, int backlog) {
 	log_info(logger, "Listo para escuchar a cualquier Cliente...");
 	listen(listenningSocket, backlog); // IMPORTANTE: listen() es una syscall BLOQUEANTE.
