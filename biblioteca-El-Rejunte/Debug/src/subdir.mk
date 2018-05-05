@@ -4,13 +4,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/instancia.c 
+../src/miAccesoConfiguracion.c \
+../src/misSockets.c 
 
 OBJS += \
-./src/instancia.o 
+./src/miAccesoConfiguracion.o \
+./src/misSockets.o 
 
 C_DEPS += \
-./src/instancia.d 
+./src/miAccesoConfiguracion.d \
+./src/misSockets.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

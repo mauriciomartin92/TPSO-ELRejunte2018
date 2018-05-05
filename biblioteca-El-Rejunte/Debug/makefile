@@ -23,19 +23,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: coordinador
+all: libbiblioteca-El-Rejunte.so
 
 # Tool invocations
-coordinador: $(OBJS) $(USER_OBJS)
+libbiblioteca-El-Rejunte.so: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc -L/home/utnso/workspace/tp-2018-1c-El-Rejunte/biblioteca-El-Rejunte/Debug -o "coordinador" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -shared -o "libbiblioteca-El-Rejunte.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) coordinador
+	-$(RM) $(LIBRARIES)$(OBJS)$(C_DEPS) libbiblioteca-El-Rejunte.so
 	-@echo ' '
 
 .PHONY: all clean dependents
