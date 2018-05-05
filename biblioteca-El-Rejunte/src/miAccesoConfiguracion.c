@@ -11,9 +11,10 @@ t_config* conectarAlArchivo(t_log* logger, char* path, bool* error_config) {
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
 	t_config* config = config_create(path);
 	// Si no puede leer mi CFG lanza error
-	if (!config)
+	if (!config) {
 		log_error(logger, "No se encuentra el archivo de configuracion.");
-	*error_config = true;
+		*error_config = true;
+	}
 	return config;
 }
 

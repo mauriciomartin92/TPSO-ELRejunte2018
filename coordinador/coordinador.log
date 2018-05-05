@@ -10,3 +10,7 @@
 [INFO] 15:50:25:234 Coordinador/(5520:5520): Servidor conectado.
 [ERROR] 15:51:17:80 Coordinador/(5579:5579): NO SE PUDO CONECTAR CORRECTAMENTE.
 [INFO] 15:51:17:84 Coordinador/(5579:5579): Servidor conectado.
+[ERROR] 17:36:29:83 Coordinador/(4904:4904): No se encuentra el archivo de configuracion.
+[ERROR] 17:38:29:406 Coordinador/(4979:4979): No se encuentra el archivo de configuracion.
+[ERROR] 17:41:57:822 Coordinador/(5137:5137): No se encuentra el archivo de configuracion.
+[ERROR] 17:43:12:278 Coordinador/(5010:5010): No se encuentra el archivo de configuracion.
