@@ -146,12 +146,14 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 			serverInfo->ai_addrlen);
 	freeaddrinfo(serverInfo);	// No lo necesitamos mas
 
-	if (res < 0) log_error(logger, "No me pude conectar al servidor");
-
-	/*
-	 *	Estoy conectado!
-	 */
-	log_info(logger, "Cliente conectado.");
+	if (res < 0) {
+		log_error(logger, "No me pude conectar al servidor %s", ip);
+	} else {
+		/*
+		 *	Estoy conectado!
+		 */
+		log_info(logger, "Cliente conectado al servidor %s", ip);
+	}
 	return serverSocket;
 }
 

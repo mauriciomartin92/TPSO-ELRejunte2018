@@ -79,9 +79,7 @@ int main() {
 			&error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
-	if (!error_config) {
-		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
-	} else {
+	if (error_config) {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
@@ -89,7 +87,7 @@ int main() {
 	// Abro el fichero del script
 	FILE *fp;
 	fp = fopen("../script.esi", "r");
-	if (fp == NULL) {
+	if (!fp) {
 		perror("Error al abrir el archivo: ");
 		exit(EXIT_FAILURE);
 	}
@@ -99,11 +97,14 @@ int main() {
 	int socketPlanificador = conectarComoCliente(logger, ip_planificador,
 			port_planificador);
 
-	recibirMensaje(logger, socketPlanificador, packagesize);
-	//enviarMensaje(logger, socketCoordinador, packagesize); NO PUEDE ENVIAR SI A COORDINADOR SI ESTA RECIBIENDO DE PLANIFICADOR
+	char* seleccion = "1";
+	char mensaje[packagesize];
+	recv(socketPlanificador, (void*) mensaje, packagesize, 0);
 
-	if (!feof(fp)) {
-		t_esi_operacion lineaParseada = parsearLineaScript(fp);
+	if ((strcmp(seleccion, mensaje) == 0) && (!feof(fp))) {
+		free(mensaje);
+		log_info(logger, "El planificador solicita una instruccion");
+		t_esi_operacion lineaParseada = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
 	}
 
 	fclose(fp);

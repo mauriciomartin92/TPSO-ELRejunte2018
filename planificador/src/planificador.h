@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
@@ -25,5 +26,7 @@ char* port;
 int packagesize, backlog;
 bool error_config;
 t_log* logger;
+
+int imprimir_menu();
 
 #endif /* PLANIFICADOR_H_ */

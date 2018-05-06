@@ -20,7 +20,7 @@ void estimar() {
 	// Hay que implementarlo
 }
 
-void imprimir_menu() {
+int imprimir_menu() {
 	int seleccion, clave, id, recurso;
 
 	printf("\nSeleccione una operacion (1-7):\n");
@@ -39,7 +39,7 @@ void imprimir_menu() {
 	switch (seleccion) {
 	case 1:
 		printf("Pausar/Continuar ACTIVADO");
-		printf("\nGracias, se esta procesando su solicitud...");
+		printf("\nGracias, se esta procesando su solicitud...\n");
 		break;
 
 	case 2:
@@ -48,43 +48,44 @@ void imprimir_menu() {
 		scanf("%d", &clave);
 		printf("Ingrese ID: ");
 		scanf("%d", &id);
-		printf("Gracias, se esta procesando su solicitud...");
+		printf("Gracias, se esta procesando su solicitud...\n");
 		break;
 
 	case 3:
 		printf("Desbloquear ACTIVADO");
 		printf("Ingrese clave: ");
 		scanf("%d", &clave);
-		printf("Gracias, se esta procesando su solicitud...");
+		printf("Gracias, se esta procesando su solicitud...\n");
 		break;
 
 	case 4:
 		printf("Listar ACTIVADO");
 		printf("Ingrese recurso: ");
 		scanf("%d", &recurso);
-		printf("Gracias, se esta procesando su solicitud...");
+		printf("Gracias, se esta procesando su solicitud...\n");
 		break;
 
 	case 5:
 		printf("Kill ACTIVADO");
 		printf("Ingrese ID: ");
 		scanf("%d", &id);
-		printf("Gracias, se esta procesando su solicitud...");
+		printf("Gracias, se esta procesando su solicitud...\n");
 		break;
 
 	case 6:
 		printf("Status ACTIVADO");
 		printf("\nIngrese clave: ");
 		scanf("%d", &clave);
-		printf("Gracias, se esta procesando su solicitud...");
+		printf("Gracias, se esta procesando su solicitud...\n");
 		break;
 
 	case 7:
 		printf("Deadlock ACTIVADO");
-		printf("\nGracias, se esta procesando su solicitud...");
+		printf("\nGracias, se esta procesando su solicitud...\n");
 		break;
 	}
-	printf("\n");
+	printf("%d\n", seleccion);
+	return seleccion;
 }
 
 int main() {
@@ -109,20 +110,23 @@ int main() {
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	// Valido si hubo errores
-	if (!error_config) {
-		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
-	} else {
+	if (error_config) {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
 	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
-	int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
-	log_info(logger, "Cliente conectado");
-	enviarMensaje(logger, socketCliente, packagesize);
-	finalizarSocket(socketCliente);
+	int socketESI = escucharCliente(logger, socketDeEscucha, backlog);
+	log_info(logger, "ESI conectado");
+
+	while (1) {
+		char* seleccion = malloc(sizeof(int));
+		sprintf(seleccion, "%d", imprimir_menu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
+		send(socketESI, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
+	}
+
+	finalizarSocket(socketESI);
 	finalizarSocket(socketDeEscucha);
 
-	//imprimir_menu();
 	return EXIT_SUCCESS;
 }

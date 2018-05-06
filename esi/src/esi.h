@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>

@@ -35,9 +35,7 @@ int main() {
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	// Valido si hubo errores
-	if (!error_config) {
-		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
-	} else {
+	if (error_config) {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
