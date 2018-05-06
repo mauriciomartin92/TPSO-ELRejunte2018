@@ -54,7 +54,8 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	while (1) {
 		int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
 		pthread_t unHilo;
-		pthread_create(&unHilo, NULL, establecerConexion, (void*) &socketCliente);
+		pthread_create(&unHilo, NULL, establecerConexion,
+				(void*) &socketCliente);
 		sleep(2); // sleep para poder ver algo
 	}
 

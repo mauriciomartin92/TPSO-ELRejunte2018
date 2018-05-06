@@ -88,10 +88,7 @@ void imprimir_menu() {
 }
 
 int main() {
-	char* ip;
-	char* port;
-	int packagesize;
-	bool error_config = false;
+	error_config = false;
 
 	/* Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
 	 lista_t* listos;
@@ -106,9 +103,9 @@ int main() {
 	t_config* config = conectarAlArchivo(logger, "../config_planificador.cfg",
 			&error_config);
 
-	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
-	port = obtenerCampoString(logger, config, "PORT_COORDINADOR",
-			&error_config);
+	ip = obtenerCampoString(logger, config, "IP", &error_config);
+	port = obtenerCampoString(logger, config, "PORT", &error_config);
+	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	// Valido si hubo errores
@@ -119,8 +116,13 @@ int main() {
 		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
-	//int socketServidor = conectarComoCliente(logger, "127.0.0.1", port);
-	//enviarMensaje(logger, socketServidor, packagesize);
-	imprimir_menu();
+	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
+	int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
+	log_info(logger, "Cliente conectado");
+	enviarMensaje(logger, socketCliente, packagesize);
+	finalizarSocket(socketCliente);
+	finalizarSocket(socketDeEscucha);
+
+	//imprimir_menu();
 	return EXIT_SUCCESS;
 }

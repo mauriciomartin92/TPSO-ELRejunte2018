@@ -20,6 +20,10 @@
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
+char* ip;
+char* port;
+int packagesize, backlog;
+bool error_config;
 t_log* logger;
 
 #endif /* PLANIFICADOR_H_ */

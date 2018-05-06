@@ -71,8 +71,8 @@ int main() {
 	t_config* config = conectarAlArchivo(logger, "../config_esi.cfg",
 			&error_config);
 
-	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
-	port = obtenerCampoString(logger, config, "PORT_COORDINADOR",
+	ip = obtenerCampoString(logger, config, "IP_PLANIFICADOR", &error_config);
+	port = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",
 			&error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
@@ -83,9 +83,6 @@ int main() {
 		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
-	int socketServidor = conectarComoCliente(logger, ip, port);
-	//enviarMensaje(logger, socketServidor, packagesize);
-
 	// Abro el fichero del script
 	FILE *fp;
 	fp = fopen("../script.esi", "r");
@@ -94,10 +91,11 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
-	while (!feof(fp)) {
+	int socketPlanificador = conectarComoCliente(logger, ip, port);
+	recibirMensaje(logger, socketPlanificador, packagesize);
+
+	if (!feof(fp))
 		t_esi_operacion lineaParseada = parsearLineaScript(fp);
-		//enviarMensaje(logger, /*server_socket*/, /*paquete*/);
-	}
 
 	fclose(fp);
 	return EXIT_SUCCESS;
