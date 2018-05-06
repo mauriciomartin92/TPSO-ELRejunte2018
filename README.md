@@ -10,3 +10,10 @@ Para compilar un proceso, por ejemplo coordinador, hay que hacer esto:
 
 Observación: para ver a donde quiere linkear la biblioteca utilizar
 > ldd coordinador
+
+REEDIT: CONFIGURÉ EL .bashrc PARA QUE NO HAGA FALTA EL "EXPORT", LO OTRO SÍ. ENTONCES QUEDA:
+
+> cd workspace/tp-2018-1c-El-Rejunte/coordinador/Debug/
+> make clean
+> make
+> ./coordinador
