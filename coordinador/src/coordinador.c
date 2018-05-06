@@ -10,14 +10,15 @@
 
 #include "coordinador.h"
 
-void establecerComunicacion() {
-	int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
-	recibirMensaje(logger, socketCliente, packagesize);
-	finalizarSocket(socketCliente);
+void* establecerConexion(void* socketCliente) {
+	log_info(logger, "Cliente conectado");
+	recibirMensaje(logger, *(int*) socketCliente, packagesize);
+	finalizarSocket(*(int*) socketCliente);
+	return NULL;
 }
 
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
-	bool error_config = false;
+	error_config = false;
 
 	/*
 	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
@@ -50,9 +51,12 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 
-	pthread_t unHilo;
-	pthread_create(&unHilo, NULL, (void*) establecerComunicacion, NULL);
-	pthread_detach(unHilo);
+	while (1) {
+		int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
+		pthread_t unHilo;
+		pthread_create(&unHilo, NULL, establecerConexion, (void*) &socketCliente);
+		sleep(2); // sleep para poder ver algo
+	}
 
 	finalizarSocket(socketDeEscucha);
 
