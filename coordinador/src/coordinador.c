@@ -46,7 +46,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
 	} else {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
-		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);

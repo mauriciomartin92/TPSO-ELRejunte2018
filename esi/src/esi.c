@@ -60,10 +60,7 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 }
 
 int main() {
-	char* ip;
-	char* port;
-	int packagesize;
-	bool error_config = false;
+	error_config = false;
 
 	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
@@ -71,8 +68,14 @@ int main() {
 	t_config* config = conectarAlArchivo(logger, "../config_esi.cfg",
 			&error_config);
 
-	ip = obtenerCampoString(logger, config, "IP_PLANIFICADOR", &error_config);
-	port = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",
+	// Obtiene los datos para conectarse al coordinador y al planificador
+	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR",
+			&error_config);
+	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR",
+			&error_config);
+	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR",
+			&error_config);
+	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",
 			&error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
@@ -80,7 +83,7 @@ int main() {
 		log_info(logger, "ENCONTRO LOS DATOS DE CONFIG !!!");
 	} else {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
-		//return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
 	// Abro el fichero del script
@@ -91,11 +94,17 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
-	int socketPlanificador = conectarComoCliente(logger, ip, port);
-	recibirMensaje(logger, socketPlanificador, packagesize);
+	int socketCoordinador = conectarComoCliente(logger, ip_coordinador,
+			port_coordinador);
+	int socketPlanificador = conectarComoCliente(logger, ip_planificador,
+			port_planificador);
 
-	if (!feof(fp))
+	recibirMensaje(logger, socketPlanificador, packagesize);
+	//enviarMensaje(logger, socketCoordinador, packagesize); NO PUEDE ENVIAR SI A COORDINADOR SI ESTA RECIBIENDO DE PLANIFICADOR
+
+	if (!feof(fp)) {
 		t_esi_operacion lineaParseada = parsearLineaScript(fp);
+	}
 
 	fclose(fp);
 	return EXIT_SUCCESS;

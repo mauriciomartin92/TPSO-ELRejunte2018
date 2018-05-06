@@ -21,6 +21,10 @@
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
+char* ip_coordinador; char* ip_planificador;
+char* port_coordinador; char* port_planificador;
+int packagesize;
+bool error_config = false;
 t_log* logger;
 
 #endif /* ESI_H_ */
