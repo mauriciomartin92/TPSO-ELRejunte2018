@@ -79,6 +79,7 @@ int main() {
 			&error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
+	// Valido posibles errores
 	if (error_config) {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
@@ -92,16 +93,17 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
+	// Me conecto como Cliente al Coordinador y al Planificador
 	int socketCoordinador = conectarComoCliente(logger, ip_coordinador,
 			port_coordinador);
 	int socketPlanificador = conectarComoCliente(logger, ip_planificador,
 			port_planificador);
 
-	char* seleccion = "1";
-	char mensaje[packagesize];
-	recv(socketPlanificador, (void*) mensaje, packagesize, 0);
+	char* seleccion = "1"; // Es lo que espero recibir
+	char mensaje[packagesize]; // Es donde lo voy a recibir
+	recv(socketPlanificador, (void*) mensaje, packagesize, 0); // Lo recibo
 
-	if ((strcmp(seleccion, mensaje) == 0) && (!feof(fp))) {
+	if ((strcmp(seleccion, mensaje) == 0) && (!feof(fp))) { // ¿Es lo que esperaba?
 		free(mensaje);
 		log_info(logger, "El planificador solicita una instruccion");
 		t_esi_operacion lineaParseada = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR

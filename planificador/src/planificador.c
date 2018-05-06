@@ -115,11 +115,12 @@ int main() {
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 	}
 
+	// Se conecta como Servidor y espera a que el ESI se conecte
 	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 	int socketESI = escucharCliente(logger, socketDeEscucha, backlog);
 	log_info(logger, "ESI conectado");
 
-	while (1) {
+	while (1) { // Vaya leyendo la seleccion del menu y la envia a ESI (por ahora solo entiende "1")
 		char* seleccion = malloc(sizeof(int));
 		sprintf(seleccion, "%d", imprimir_menu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
 		send(socketESI, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
