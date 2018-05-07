@@ -37,12 +37,12 @@ int imprimir_menu() {
 	printf("\n");
 
 	switch (seleccion) {
-	case '1':
+	case 1:
 			printf("Pausar/Continuar ACTIVADO");
 			printf("\nGracias, se esta procesando su solicitud...\n");
 			break;
 
-	case '2':
+	case 2:
 			printf("Bloquear ACTIVADO");
 			printf("\nIngrese clave: ");
 			scanf("%d", &clave);
@@ -51,35 +51,35 @@ int imprimir_menu() {
 			printf("Gracias, se esta procesando su solicitud...\n");
 			break;
 
-	case '3':
+	case 3:
 			printf("Desbloquear ACTIVADO");
 			printf("Ingrese clave: ");
 			scanf("%d", &clave);
 			printf("Gracias, se esta procesando su solicitud...\n");
 			break;
 
-	case '4':
+	case 4:
 			printf("Listar ACTIVADO");
 			printf("Ingrese recurso: ");
 			scanf("%d", &recurso);
 			printf("Gracias, se esta procesando su solicitud...\n");
 			break;
 
-	case '5':
+	case 5:
 			printf("Kill ACTIVADO");
 			printf("Ingrese ID: ");
 			scanf("%d", &id);
 			printf("Gracias, se esta procesando su solicitud...\n");
 			break;
 
-	case '6':
+	case 6:
 			printf("Status ACTIVADO");
 			printf("\nIngrese clave: ");
 			scanf("%d", &clave);
 			printf("Gracias, se esta procesando su solicitud...\n");
 			break;
 
-	case '7':
+	case 7:
 			printf("Deadlock ACTIVADO");
 			printf("\nGracias, se esta procesando su solicitud...\n");
 			break;
