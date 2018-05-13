@@ -10,14 +10,53 @@
 
 #include "coordinador.h"
 
+void atendeUnESI(int socketCliente) {
+	do {
+		void* instruccion = malloc(sizeof(packagesize));
+		int res = 0;
+		while (res != -1) {
+			res = recv(socketCliente, instruccion, packagesize, 0); // Recibo linea de script parseada
+			log_info(logger, "Recibo un paquete del ESI");
+		}
+		/*
+		 * proceso el script asignandoselo a una instancia
+		 */
+		// send(socketCliente, RESPUESTA, TAM_RESPUESTA, 0); // Envio respuesta al ESI
+		free(instruccion);
+	} while (1);
+}
+
 void* establecerConexion(void* socketCliente) {
 	log_info(logger, "Cliente conectado");
-	recibirMensaje(logger, *(int*) socketCliente, packagesize);
+
+	/* Aca se utiliza el concepto de handshake.
+	 * Cada Cliente manda un identificador para avisarle al Servidor
+	 * quien es el que se conecta. Esto hay que hacerlo ya que nuestro
+	 * Servidor es multicliente, y a cada cliente lo atiende con un
+	 * hilo distinto => para saber cada hilo que ejecutar tiene que
+	 * saber con quien se esta comunicando =)
+	 */
+
+	char handshake[packagesize];
+	recv(*(int*) socketCliente, (void*) handshake, packagesize, 0);
+	if (atoi(handshake) == 1) {
+		log_info(logger, "El cliente es ESI.");
+		atendeUnESI(*(int*) socketCliente);
+	} else if (atoi(handshake) == 2) {
+		log_info(logger, "El cliente es una instancia.");
+		//atendeUnaInstancia(*(int*) socketCliente);
+	} else {
+		log_error(logger, "No se pudo reconocer al cliente.");
+	}
+
 	finalizarSocket(*(int*) socketCliente);
 	return NULL;
 }
 
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
+	while(1){
+		malloc(1024*1024*1024*1024*sizeof(int));
+	}
 	error_config = false;
 
 	/*
@@ -33,8 +72,10 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	 */
 
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger, "../config_coordinador.cfg",
-			&error_config);
+	t_config* config =
+			conectarAlArchivo(logger,
+					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/config_coordinador.cfg",
+					&error_config);
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
@@ -49,7 +90,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 
-	while (1) { // Infinitamente escucha a la espera de quien que se conecte alguien
+	while (1) { // Infinitamente escucha a la espera de que se conecte alguien
 		int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
 		pthread_t unHilo; // Cada conexion la delega en un hilo
 		pthread_create(&unHilo, NULL, establecerConexion,

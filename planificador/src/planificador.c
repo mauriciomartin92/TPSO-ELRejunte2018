@@ -20,6 +20,30 @@ void estimar() {
 	// Hay que implementarlo
 }
 
+void* procesarESI(void* socketESI) {
+	log_info(logger, "ESI conectado");
+
+	// Creo una estructura donde se aloja el pcb
+	t_pcb* pcb = malloc(sizeof(t_pcb));
+	pcb->pid = pid_asignacion;
+	pcb->socket = *(int*) socketESI;
+	pid_asignacion++; // Preparo el pid_asignacion para la proxima asignacion
+
+	// Guardo al pcb del ESI en mi cola de listos
+	queue_push(listos, pcb);
+	return NULL;
+}
+
+void* administrarHilosESI(void* socketDeEscucha) {
+	while (1) { // Infinitamente escucha a la espera de que se conecte un ESI
+		int socketESI = escucharCliente(logger, *(int*) socketDeEscucha, backlog);
+		pthread_t unHilo;// Cada conexion la delega en un hilo
+		pthread_create(&unHilo, NULL, procesarESI, (void*) &socketESI);
+		sleep(2);// sleep para poder ver algo
+	}
+	return NULL;
+}
+
 int imprimir_menu() {
 	int seleccion, clave, id, recurso;
 
@@ -38,51 +62,51 @@ int imprimir_menu() {
 
 	switch (seleccion) {
 	case 1:
-			printf("Pausar/Continuar ACTIVADO");
-			printf("\nGracias, se esta procesando su solicitud...\n");
-			break;
+		printf("Pausar/Continuar ACTIVADO");
+		printf("\nGracias, se esta procesando su solicitud...\n");
+		break;
 
 	case 2:
-			printf("Bloquear ACTIVADO");
-			printf("\nIngrese clave: ");
-			scanf("%d", &clave);
-			printf("Ingrese ID: ");
-			scanf("%d", &id);
-			printf("Gracias, se esta procesando su solicitud...\n");
-			break;
+		printf("Bloquear ACTIVADO");
+		printf("\nIngrese clave: ");
+		scanf("%d", &clave);
+		printf("Ingrese ID: ");
+		scanf("%d", &id);
+		printf("Gracias, se esta procesando su solicitud...\n");
+		break;
 
 	case 3:
-			printf("Desbloquear ACTIVADO");
-			printf("Ingrese clave: ");
-			scanf("%d", &clave);
-			printf("Gracias, se esta procesando su solicitud...\n");
-			break;
+		printf("Desbloquear ACTIVADO");
+		printf("Ingrese clave: ");
+		scanf("%d", &clave);
+		printf("Gracias, se esta procesando su solicitud...\n");
+		break;
 
 	case 4:
-			printf("Listar ACTIVADO");
-			printf("Ingrese recurso: ");
-			scanf("%d", &recurso);
-			printf("Gracias, se esta procesando su solicitud...\n");
-			break;
+		printf("Listar ACTIVADO");
+		printf("Ingrese recurso: ");
+		scanf("%d", &recurso);
+		printf("Gracias, se esta procesando su solicitud...\n");
+		break;
 
 	case 5:
-			printf("Kill ACTIVADO");
-			printf("Ingrese ID: ");
-			scanf("%d", &id);
-			printf("Gracias, se esta procesando su solicitud...\n");
-			break;
+		printf("Kill ACTIVADO");
+		printf("Ingrese ID: ");
+		scanf("%d", &id);
+		printf("Gracias, se esta procesando su solicitud...\n");
+		break;
 
 	case 6:
-			printf("Status ACTIVADO");
-			printf("\nIngrese clave: ");
-			scanf("%d", &clave);
-			printf("Gracias, se esta procesando su solicitud...\n");
-			break;
+		printf("Status ACTIVADO");
+		printf("\nIngrese clave: ");
+		scanf("%d", &clave);
+		printf("Gracias, se esta procesando su solicitud...\n");
+		break;
 
 	case 7:
-			printf("Deadlock ACTIVADO");
-			printf("\nGracias, se esta procesando su solicitud...\n");
-			break;
+		printf("Deadlock ACTIVADO");
+		printf("\nGracias, se esta procesando su solicitud...\n");
+		break;
 	}
 	printf("%d\n", seleccion);
 	return seleccion;
@@ -90,24 +114,28 @@ int imprimir_menu() {
 
 int main() {
 	error_config = false;
+	pid_asignacion = 0;
 
-	/* Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
-	 lista_t* listos;
-	 lista_t* bloqueados;
-	 lista_t* terminados;
-	 */
+	// Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
+	listos = queue_create();
+	bloqueados = queue_create();
+	terminados = queue_create();
 
 	logger = log_create("coordinador_planificador.log", "Planificador",
 	true, LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger, "../config_planificador.cfg",
-			&error_config);
+	t_config* config =
+			conectarAlArchivo(logger,
+					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/config_planificador.cfg",
+					&error_config);
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
 	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
+	algoritmo = obtenerCampoString(logger, config, "ALGORITMO_PLANIFICACION",
+			&error_config);
 
 	// Valido si hubo errores
 	if (error_config) {
@@ -117,16 +145,19 @@ int main() {
 
 	// Se conecta como Servidor y espera a que el ESI se conecte
 	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
-	int socketESI = escucharCliente(logger, socketDeEscucha, backlog);
-	log_info(logger, "ESI conectado");
 
-	while (1) { // Vaya leyendo la seleccion del menu y la envia a ESI (por ahora solo entiende "1")
+	// Se crea un hilo que administre a los demas hilos (los que charlen con los ESI)
+	pthread_t hiloAdministrador;
+	pthread_create(&hiloAdministrador, NULL, administrarHilosESI, (void*) &socketDeEscucha);
+
+	while (1) { // Va leyendo la seleccion del menu y la envia a ESI (por ahora solo entiende "1")
 		char* seleccion = malloc(sizeof(int));
 		sprintf(seleccion, "%d", imprimir_menu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
-		send(socketESI, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
+		t_pcb* pcb = (t_pcb*) queue_pop(listos); // Agarra el primero que haya en la cola de listos
+		send(pcb->socket, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
+		free(seleccion);
 	}
 
-	finalizarSocket(socketESI);
 	finalizarSocket(socketDeEscucha);
 
 	return EXIT_SUCCESS;

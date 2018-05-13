@@ -59,13 +59,14 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	return parsed;
 }
 
-int main() {
+int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
 	error_config = false;
 
 	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config = conectarAlArchivo(logger, "../config_esi.cfg",
+	t_config* config = conectarAlArchivo(logger,
+			"/home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/config_esi.cfg",
 			&error_config);
 
 	// Obtiene los datos para conectarse al coordinador y al planificador
@@ -87,7 +88,7 @@ int main() {
 
 	// Abro el fichero del script
 	FILE *fp;
-	fp = fopen("../script.esi", "r");
+	fp = fopen(argv[1], "r");
 	if (!fp) {
 		perror("Error al abrir el archivo: ");
 		exit(EXIT_FAILURE);
@@ -96,6 +97,8 @@ int main() {
 	// Me conecto como Cliente al Coordinador y al Planificador
 	int socketCoordinador = conectarComoCliente(logger, ip_coordinador,
 			port_coordinador);
+	char* handshake = "1";
+	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
 	int socketPlanificador = conectarComoCliente(logger, ip_planificador,
 			port_planificador);
 
@@ -104,9 +107,11 @@ int main() {
 	recv(socketPlanificador, (void*) mensaje, packagesize, 0); // Lo recibo
 
 	if ((strcmp(seleccion, mensaje) == 0) && (!feof(fp))) { // ¿Es lo que esperaba?
-		free(mensaje);
 		log_info(logger, "El planificador solicita una instruccion");
 		t_esi_operacion lineaParseada = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
+		/*
+		 * CHIQUI YA HIZO ESTO
+		 */
 	}
 
 	fclose(fp);

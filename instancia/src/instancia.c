@@ -26,8 +26,10 @@ int main() {
 	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger, "../config_instancia.cfg",
-			&error_config);
+	t_config* config =
+			conectarAlArchivo(logger,
+					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg",
+					&error_config);
 
 	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	port = obtenerCampoString(logger, config, "PORT_COORDINADOR",
@@ -41,8 +43,9 @@ int main() {
 	}
 
 	// Me conecto con el Servidor y le mando mensajes
-	int socketServidor = conectarComoCliente(logger, ip, port);
-	enviarMensaje(logger, socketServidor, packagesize);
+	int socketCoordinador = conectarComoCliente(logger, ip, port);
+	char* handshake = "2";
+	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
 	return EXIT_SUCCESS;
 }
 
