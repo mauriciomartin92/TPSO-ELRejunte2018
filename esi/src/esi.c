@@ -109,9 +109,17 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	if ((strcmp(seleccion, mensaje) == 0) && (!feof(fp))) { // ¿Es lo que esperaba?
 		log_info(logger, "El planificador solicita una instruccion");
 		t_esi_operacion lineaParseada = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
-		/*
-		 * CHIQUI YA HIZO ESTO
-		 */
+
+		//enviarMensaje(logger, socketCoordinador, packagesize);
+		if ((send(socketCoordinador, &lineaParseada, packagesize, 0)) < 0){
+			//Hubo error al enviar la linea parseada
+			perror("Error al enviar script ");
+			exit(EXIT_FAILURE);
+		} else {
+			//Esperar respuesta coordinador.
+			char resCoordinador[packagesize];
+			recv(socketCoordinador, (void*) resCoordinador, packagesize, 0);
+		}
 	}
 
 	fclose(fp);
