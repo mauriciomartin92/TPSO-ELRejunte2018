@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		//enviarMensaje(logger, socketCoordinador, packagesize);
 		if ((send(socketCoordinador, &lineaParseada, packagesize, 0)) < 0){
 			//Hubo error al enviar la linea parseada
-			perror("Error al enviar script ");
+			log_error(logger, "Error al enviar script");
 			exit(EXIT_FAILURE);
 		} else {
 			//Esperar respuesta coordinador.
