@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 

@@ -111,9 +111,10 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		t_esi_operacion lineaParseada = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
 
 		//enviarMensaje(logger, socketCoordinador, packagesize);
-		if ((send(socketCoordinador, &lineaParseada, packagesize, 0)) < 0){
+		log_info(logger, "Envio la instruccion al coordinador");
+		if ((send(socketCoordinador, &lineaParseada, sizeof(t_esi_operacion), 0)) < 0){
 			//Hubo error al enviar la linea parseada
-			log_error(logger, "Error al enviar script");
+			log_error(logger, "Error al enviar instruccion de script");
 			exit(EXIT_FAILURE);
 		} else {
 			//Esperar respuesta coordinador.

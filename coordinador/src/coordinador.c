@@ -12,16 +12,20 @@
 
 void atendeUnESI(int socketCliente) {
 	do {
-		void* instruccion = malloc(sizeof(packagesize));
-		int res = 0;
-		while (res != -1) {
-			res = recv(socketCliente, instruccion, packagesize, 0); // Recibo linea de script parseada
+		void* instruccion = malloc(sizeof(t_esi_operacion));
+
+		// Recibo linea de script parseada
+		if (recv(socketCliente, instruccion, sizeof(t_esi_operacion), 0) < 0) {
+			//Hubo error al recibir la linea parseada
+			log_error(logger, "Error al recibir instruccion de script");
+		} else {
 			log_info(logger, "Recibo un paquete del ESI");
+			/*
+			 * proceso el script asignandoselo a una instancia
+			 */
+			// send(socketCliente, RESPUESTA, TAM_RESPUESTA, 0); // Envio respuesta al ESI
 		}
-		/*
-		 * proceso el script asignandoselo a una instancia
-		 */
-		// send(socketCliente, RESPUESTA, TAM_RESPUESTA, 0); // Envio respuesta al ESI
+
 		free(instruccion);
 	} while (1);
 }
@@ -54,9 +58,6 @@ void* establecerConexion(void* socketCliente) {
 }
 
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
-	while(1){
-		malloc(1024*1024*1024*1024*sizeof(int));
-	}
 	error_config = false;
 
 	/*
