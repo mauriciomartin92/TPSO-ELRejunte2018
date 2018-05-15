@@ -46,6 +46,12 @@ int main() {
 	int socketCoordinador = conectarComoCliente(logger, ip, port);
 	char* handshake = "2";
 	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
+
+	//Creo la tabla de entradas de la instancia, que consiste en una lista.
+	tabla_entradas = list_create();
+
+
+
 	return EXIT_SUCCESS;
 }
 

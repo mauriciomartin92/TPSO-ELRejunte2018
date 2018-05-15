@@ -17,9 +17,18 @@
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/collections/list.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
 t_log* logger;
+
+t_list* tabla_entradas;
+
+typedef struct {
+	char* clave;
+	int entrada_asociada;
+	int size_valor_almacenado;
+} t_entrada;
 
 #endif /* INSTANCIA_H_ */
