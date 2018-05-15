@@ -36,15 +36,16 @@ void* procesarESI(void* socketESI) {
 
 void* administrarHilosESI(void* socketDeEscucha) {
 	while (1) { // Infinitamente escucha a la espera de que se conecte un ESI
-		int socketESI = escucharCliente(logger, *(int*) socketDeEscucha, backlog);
-		pthread_t unHilo;// Cada conexion la delega en un hilo
+		int socketESI = escucharCliente(logger, *(int*) socketDeEscucha,
+				backlog);
+		pthread_t unHilo; // Cada conexion la delega en un hilo
 		pthread_create(&unHilo, NULL, procesarESI, (void*) &socketESI);
-		sleep(2);// sleep para poder ver algo
+		sleep(2); // sleep para poder ver algo
 	}
 	return NULL;
 }
 
-int imprimir_menu() {
+int imprimirMenu() {
 	int seleccion, clave, id, recurso;
 
 	printf("\nSeleccione una operacion (1-7):\n");
@@ -112,17 +113,8 @@ int imprimir_menu() {
 	return seleccion;
 }
 
-int main() {
+int cargarConfiguracion() {
 	error_config = false;
-	pid_asignacion = 0;
-
-	// Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
-	listos = queue_create();
-	bloqueados = queue_create();
-	terminados = queue_create();
-
-	logger = log_create("coordinador_planificador.log", "Planificador",
-	true, LOG_LEVEL_INFO);
 
 	// Importo los datos del archivo de configuracion
 	t_config* config =
@@ -137,22 +129,39 @@ int main() {
 	algoritmo = obtenerCampoString(logger, config, "ALGORITMO_PLANIFICACION",
 			&error_config);
 
-	// Valido si hubo errores
+	// Valido posibles errores
 	if (error_config) {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
-		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+		return -1;
 	}
+	return 1;
+}
+
+int main() {
+	pid_asignacion = 0;
+
+	// Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
+	listos = queue_create();
+	bloqueados = queue_create();
+	terminados = queue_create();
+
+	logger = log_create("coordinador_planificador.log", "Planificador",
+	true, LOG_LEVEL_INFO);
+
+	if (cargarConfiguracion() < 0)
+		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
 	// Se conecta como Servidor y espera a que el ESI se conecte
 	int socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 
 	// Se crea un hilo que administre a los demas hilos (los que charlen con los ESI)
 	pthread_t hiloAdministrador;
-	pthread_create(&hiloAdministrador, NULL, administrarHilosESI, (void*) &socketDeEscucha);
+	pthread_create(&hiloAdministrador, NULL, administrarHilosESI,
+			(void*) &socketDeEscucha);
 
 	while (1) { // Va leyendo la seleccion del menu y la envia a ESI (por ahora solo entiende "1")
 		char* seleccion = malloc(sizeof(int));
-		sprintf(seleccion, "%d", imprimir_menu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
+		sprintf(seleccion, "%d", imprimirMenu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
 		t_pcb* pcb = (t_pcb*) queue_pop(listos); // Agarra el primero que haya en la cola de listos
 		send(pcb->socket, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
 		free(seleccion);

@@ -16,6 +16,33 @@
 
 #include "esi.h"
 
+int cargarConfiguracion() {
+	error_config = false;
+
+	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
+	t_config* config = conectarAlArchivo(logger,
+			"/home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/config_esi.cfg",
+			&error_config);
+
+	// Obtiene los datos para conectarse al coordinador y al planificador
+	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR",
+			&error_config);
+	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR",
+			&error_config);
+	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR",
+			&error_config);
+	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",
+			&error_config);
+	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
+
+	// Valido posibles errores
+	if (error_config) {
+		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
+		return -1;
+	}
+	return 1;
+}
+
 t_esi_operacion parsearLineaScript(FILE* fp) {
 	char * line = NULL;
 	size_t len = 0;
@@ -60,31 +87,10 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 }
 
 int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
-	error_config = false;
-
 	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
-	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config = conectarAlArchivo(logger,
-			"/home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/config_esi.cfg",
-			&error_config);
-
-	// Obtiene los datos para conectarse al coordinador y al planificador
-	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR",
-			&error_config);
-	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR",
-			&error_config);
-	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR",
-			&error_config);
-	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",
-			&error_config);
-	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
-
-	// Valido posibles errores
-	if (error_config) {
-		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
+	if (cargarConfiguracion() < 0)
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
-	}
 
 	// Abro el fichero del script
 	FILE *fp;
@@ -110,16 +116,27 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		log_info(logger, "El planificador solicita una instruccion");
 		t_esi_operacion lineaParseada = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
 
-		//enviarMensaje(logger, socketCoordinador, packagesize);
 		log_info(logger, "Envio la instruccion al coordinador");
-		if ((send(socketCoordinador, &lineaParseada, sizeof(t_esi_operacion), 0)) < 0){
+		if ((send(socketCoordinador, &lineaParseada, sizeof(t_esi_operacion), 0))
+				< 0) {
 			//Hubo error al enviar la linea parseada
 			log_error(logger, "Error al enviar instruccion de script");
 			exit(EXIT_FAILURE);
 		} else {
 			//Esperar respuesta coordinador.
-			char resCoordinador[packagesize];
-			recv(socketCoordinador, (void*) resCoordinador, packagesize, 0);
+			char respuestaCoordinador[packagesize];
+			recv(socketCoordinador, (void*) respuestaCoordinador, packagesize,
+					0);
+
+			if (strcmp(respuestaCoordinador, "ok") == 0) {
+				log_info(logger,
+						"El coordinador informa que llego correctamente");
+				log_info(logger, "Le envio el resultado al planificador");
+				//send(socketPlanificador, respuestaCoordinador, strlen(respuestaCoordinador) + 1, 0);
+			} else {
+				log_error(logger,
+						"El coordinador informa que no la pudo recibir");
+			}
 		}
 	}
 

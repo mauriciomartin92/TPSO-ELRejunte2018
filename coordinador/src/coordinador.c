@@ -10,7 +10,7 @@
 
 #include "coordinador.h"
 
-void atendeUnESI(int socketCliente) {
+void atenderESI(int socketCliente) {
 	do {
 		void* instruccion = malloc(sizeof(t_esi_operacion));
 
@@ -18,12 +18,15 @@ void atendeUnESI(int socketCliente) {
 		if (recv(socketCliente, instruccion, sizeof(t_esi_operacion), 0) < 0) {
 			//Hubo error al recibir la linea parseada
 			log_error(logger, "Error al recibir instruccion de script");
+			send(socketCliente, "error", strlen("error"), 0); // Envio respuesta al ESI
 		} else {
 			log_info(logger, "Recibo un paquete del ESI");
 			/*
 			 * proceso el script asignandoselo a una instancia
 			 */
-			// send(socketCliente, RESPUESTA, TAM_RESPUESTA, 0); // Envio respuesta al ESI
+			log_info(logger,
+					"Le informo al ESI que el paquete llego correctamente");
+			send(socketCliente, "ok", strlen("ok"), 0); // Envio respuesta al ESI
 		}
 
 		free(instruccion);
@@ -45,10 +48,10 @@ void* establecerConexion(void* socketCliente) {
 	recv(*(int*) socketCliente, (void*) handshake, packagesize, 0);
 	if (atoi(handshake) == 1) {
 		log_info(logger, "El cliente es ESI.");
-		atendeUnESI(*(int*) socketCliente);
+		atenderESI(*(int*) socketCliente);
 	} else if (atoi(handshake) == 2) {
 		log_info(logger, "El cliente es una instancia.");
-		//atendeUnaInstancia(*(int*) socketCliente);
+		//atenderInstancia(*(int*) socketCliente);
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente.");
 	}
@@ -57,14 +60,8 @@ void* establecerConexion(void* socketCliente) {
 	return NULL;
 }
 
-int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
+int cargarConfiguracion() {
 	error_config = false;
-
-	/*
-	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
-	 * comunicar distintos tipos de mensajes que emite el S.O. como ser: WARNINGS, ERRORS, INFO.
-	 */
-	logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_INFO);
 
 	/*
 	 * Se crea en la carpeta Coordinador un archivo "config_coordinador.cfg", la idea es que utilizando la
@@ -86,8 +83,22 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	// Valido si hubo errores
 	if (error_config) {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
-		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+		return -1;
 	}
+	return 1;
+}
+
+int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
+	error_config = false;
+
+	/*
+	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
+	 * comunicar distintos tipos de mensajes que emite el S.O. como ser: WARNINGS, ERRORS, INFO.
+	 */
+	logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_INFO);
+
+	if (cargarConfiguracion() < 0)
+		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 

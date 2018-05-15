@@ -22,7 +22,10 @@
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
 t_log* logger;
-
+char* ip;
+char* port;
+int packagesize;
+bool error_config;
 t_list* tabla_entradas;
 
 typedef struct {
@@ -30,5 +33,7 @@ typedef struct {
 	int entrada_asociada;
 	int size_valor_almacenado;
 } t_entrada;
+
+int cargarConfiguracion();
 
 #endif /* INSTANCIA_H_ */

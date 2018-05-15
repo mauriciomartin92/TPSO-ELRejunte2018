@@ -39,6 +39,9 @@ typedef struct {
 	int socket;
 } t_pcb;
 
-int imprimir_menu();
+int imprimirMenu();
+int cargarConfiguracion();
+void* administrarHilosESI(void* socketDeEscucha);
+void* procesarESI(void* socketESI);
 
 #endif /* PLANIFICADOR_H_ */

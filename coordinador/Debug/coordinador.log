@@ -41,3 +41,33 @@
 [INFO] 23:27:49:800 Coordinador/(4734:4768): El cliente es ESI.
 [INFO] 23:27:51:794 Coordinador/(4734:4734): Listo para escuchar a cualquier Cliente...
 [INFO] 23:27:54:498 Coordinador/(4734:4768): Recibo un paquete del ESI
+[INFO] 23:44:01:758 Coordinador/(5205:5205): Servidor conectado.
+[INFO] 23:44:01:759 Coordinador/(5205:5205): Listo para escuchar a cualquier Cliente...
+[INFO] 23:47:04:802 Coordinador/(5205:5310): Cliente conectado
+[INFO] 23:47:04:803 Coordinador/(5205:5310): El cliente es ESI.
+[INFO] 23:47:06:803 Coordinador/(5205:5205): Listo para escuchar a cualquier Cliente...
+[INFO] 23:47:10:643 Coordinador/(5205:5310): Recibo un paquete del ESI
+[INFO] 23:47:10:644 Coordinador/(5205:5310): Le informo al ESI que el paquete llego correctamente
+[INFO] 23:47:10:649 Coordinador/(5205:5310): Recibo un paquete del ESI
+[INFO] 23:47:10:649 Coordinador/(5205:5310): Le informo al ESI que el paquete llego correctamente
+[INFO] 23:47:10:650 Coordinador/(5205:5310): Recibo un paquete del ESI
+[INFO] 23:47:10:651 Coordinador/(5205:5310): Le informo al ESI que el paquete llego correctamente
+[INFO] 23:55:38:842 Coordinador/(5432:5432): Servidor conectado.
+[INFO] 23:55:38:846 Coordinador/(5432:5432): Listo para escuchar a cualquier Cliente...
+[INFO] 23:56:01:521 Coordinador/(5432:5452): Cliente conectado
+[INFO] 23:56:01:523 Coordinador/(5432:5452): El cliente es ESI.
+[INFO] 23:56:03:518 Coordinador/(5432:5432): Listo para escuchar a cualquier Cliente...
+[INFO] 00:08:32:296 Coordinador/(5749:5749): Servidor conectado.
+[INFO] 00:08:32:298 Coordinador/(5749:5749): Listo para escuchar a cualquier Cliente...
+[INFO] 00:08:42:8 Coordinador/(5749:5753): Cliente conectado
+[INFO] 00:08:42:12 Coordinador/(5749:5753): El cliente es una instancia.
+[INFO] 00:08:44:4 Coordinador/(5749:5749): Listo para escuchar a cualquier Cliente...
+[INFO] 00:08:55:387 Coordinador/(5749:5756): Cliente conectado
+[INFO] 00:08:55:388 Coordinador/(5749:5756): El cliente es ESI.
+[INFO] 00:08:57:372 Coordinador/(5749:5749): Listo para escuchar a cualquier Cliente...
+[INFO] 00:09:00:444 Coordinador/(5749:5756): Recibo un paquete del ESI
+[INFO] 00:09:00:445 Coordinador/(5749:5756): Le informo al ESI que el paquete llego correctamente
+[INFO] 00:09:00:452 Coordinador/(5749:5756): Recibo un paquete del ESI
+[INFO] 00:09:00:453 Coordinador/(5749:5756): Le informo al ESI que el paquete llego correctamente
+[INFO] 00:09:00:454 Coordinador/(5749:5756): Recibo un paquete del ESI
+[INFO] 00:09:00:458 Coordinador/(5749:5756): Le informo al ESI que el paquete llego correctamente

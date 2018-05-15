@@ -16,15 +16,7 @@
 
 #include "instancia.h"
 
-int main() {
-	char* ip;
-	char* port;
-	int packagesize;
-	bool error_config = false;
-
-	// Creo el logger
-	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
-
+int cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
 	t_config* config =
 			conectarAlArchivo(logger,
@@ -39,8 +31,19 @@ int main() {
 	// Valido si hubo errores
 	if (error_config) {
 		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
-		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+		return -1;
 	}
+	return 1;
+}
+
+int main() {
+	error_config = false;
+
+	// Creo el logger
+	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
+
+	if (cargarConfiguracion() < 0)
+		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
 	// Me conecto con el Servidor y le mando mensajes
 	int socketCoordinador = conectarComoCliente(logger, ip, port);
@@ -49,8 +52,6 @@ int main() {
 
 	//Creo la tabla de entradas de la instancia, que consiste en una lista.
 	tabla_entradas = list_create();
-
-
 
 	return EXIT_SUCCESS;
 }

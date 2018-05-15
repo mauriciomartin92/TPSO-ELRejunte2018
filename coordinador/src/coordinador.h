@@ -33,6 +33,8 @@ typedef struct {
 	int socket;
 } t_parametro_socket;
 
+int cargarConfiguracion();
 void* establecerConexion(void* parametros);
+void atenderESI(int socketCliente);
 
 #endif /* COORDINADOR_H_ */
