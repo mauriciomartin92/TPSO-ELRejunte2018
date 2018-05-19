@@ -12,14 +12,16 @@
 
 void atenderESI(int socketCliente) {
 	do {
-		void* instruccion = malloc(sizeof(t_esi_operacion));
+		t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
 
 		// Recibo linea de script parseada
 		if (recv(socketCliente, instruccion, sizeof(t_esi_operacion), 0) < 0) {
+			sleep(retardo / 1000);
 			//Hubo error al recibir la linea parseada
 			log_error(logger, "Error al recibir instruccion de script");
 			send(socketCliente, "error", strlen("error"), 0); // Envio respuesta al ESI
 		} else {
+			sleep(retardo / 1000);
 			log_info(logger, "Recibo un paquete del ESI");
 			/*
 			 * proceso el script asignandoselo a una instancia
@@ -31,6 +33,14 @@ void atenderESI(int socketCliente) {
 
 		free(instruccion);
 	} while (1);
+}
+
+void atenderInstancia(int socketCliente) {
+	log_info(logger, "Envio a la Instancia su cantidad de entradas");
+	enviarPaqueteNumerico(socketCliente, cant_entradas);
+
+	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
+	enviarPaqueteNumerico(socketCliente, tam_entradas);
 }
 
 void* establecerConexion(void* socketCliente) {
@@ -51,12 +61,12 @@ void* establecerConexion(void* socketCliente) {
 		atenderESI(*(int*) socketCliente);
 	} else if (atoi(handshake) == 2) {
 		log_info(logger, "El cliente es una instancia.");
-		//atenderInstancia(*(int*) socketCliente);
+		atenderInstancia(*(int*) socketCliente);
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente.");
 	}
 
-	finalizarSocket(*(int*) socketCliente);
+	//finalizarSocket(*(int*) socketCliente);
 	return NULL;
 }
 
@@ -79,6 +89,11 @@ int cargarConfiguracion() {
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
 	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
+	cant_entradas = obtenerCampoInt(logger, config, "CANT_ENTRADAS",
+			&error_config);
+	tam_entradas = obtenerCampoInt(logger, config, "TAM_ENTRADAS",
+			&error_config);
+	retardo = obtenerCampoInt(logger, config, "RETARDO", &error_config);
 
 	// Valido si hubo errores
 	if (error_config) {

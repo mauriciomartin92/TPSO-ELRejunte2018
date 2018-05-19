@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <semaphore.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/queue.h>
@@ -32,6 +33,8 @@ t_log* logger;
 t_queue* listos;
 t_queue* bloqueados;
 t_queue* terminados;
+sem_t sem_bin_menu;
+sem_t sem_bin_esi;
 int pid_asignacion;
 
 typedef struct {

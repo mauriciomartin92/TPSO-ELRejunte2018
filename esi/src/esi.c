@@ -52,33 +52,28 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
-	/*while ((read = getline(&line, &len, fp)) != -1) {
-	 t_esi_operacion parsed = parse(line);
+	if (parsed.valido) { // ESTO SOLO LO TIENE QUE HACER LA INSTANCIA PARA SABER QUE INSTRUCCION ES
+		switch (parsed.keyword) {
+		case GET:
+			printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
+			break;
+		case SET:
+			printf("SET\tclave: <%s>\tvalor: <%s>\n",
+					parsed.argumentos.SET.clave, parsed.argumentos.SET.valor);
+			break;
+		case STORE:
+			printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
+			break;
+		default:
+			fprintf(stderr, "No pude interpretar <%s>\n", line);
+			exit(EXIT_FAILURE);
 
-	 if (parsed.valido) {
-	 switch (parsed.keyword) {
-	 case GET:
-	 printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
-	 break;
-	 case SET:
-	 printf("SET\tclave: <%s>\tvalor: <%s>\n",
-	 parsed.argumentos.SET.clave,
-	 parsed.argumentos.SET.valor);
-	 break;
-	 case STORE:
-	 printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
-	 break;
-	 default:
-	 fprintf(stderr, "No pude interpretar <%s>\n", line);
-	 exit(EXIT_FAILURE);
-	 }
-
-	 destruir_operacion(parsed);
-	 } else {
-	 fprintf(stderr, "La linea <%s> no es valida\n", line);
-	 exit(EXIT_FAILURE);
-	 }
-	 }*/
+			destruir_operacion(parsed);
+		}
+	} else {
+		fprintf(stderr, "La linea <%s> no es valida\n", line);
+		exit(EXIT_FAILURE);
+	}
 
 	if (line)
 		free(line);
@@ -92,7 +87,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	if (cargarConfiguracion() < 0)
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
-	// Abro el fichero del script
+// Abro el fichero del script
 	FILE *fp;
 	fp = fopen(argv[1], "r");
 	if (!fp) {
@@ -100,7 +95,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		exit(EXIT_FAILURE);
 	}
 
-	// Me conecto como Cliente al Coordinador y al Planificador
+// Me conecto como Cliente al Coordinador y al Planificador
 	int socketCoordinador = conectarComoCliente(logger, ip_coordinador,
 			port_coordinador);
 	char* handshake = "1";

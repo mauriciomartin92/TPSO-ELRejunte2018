@@ -16,6 +16,52 @@
 
 #include "instancia.h"
 
+void imprimirArgumentosInstruccion(t_esi_operacion* instruccion) {
+	log_error(logger, "HOLA KE AC");
+	printf("EL KEYWORD ES: %s", (char*) (*instruccion).keyword);
+	switch ((*instruccion).keyword) {
+	case GET:
+		printf("GET\tclave: <%s>\n", (*instruccion).argumentos.GET.clave);
+		break;
+	case SET:
+		printf("SET\tclave: <%s>\tvalor: <%s>\n", (*instruccion).argumentos.SET.clave,
+				(*instruccion).argumentos.SET.valor);
+		break;
+	case STORE:
+		printf("STORE\tclave: <%s>\n", (*instruccion).argumentos.STORE.clave);
+		break;
+	}
+}
+
+void recibirInstruccion(int socketCoordinador) {
+	t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
+
+	// Recibo linea de script parseada
+	if (recv(socketCoordinador, instruccion, sizeof(t_esi_operacion), 0) < 0) { // MSG_WAITALL
+		//Hubo error al recibir la linea parseada
+		log_error(logger, "Error al recibir instruccion de script.");
+
+		send(socketCoordinador, "error", strlen("error"), 0); // Envio respuesta al Coordinador
+	} else {
+		log_info(logger,
+				"Recibo una instruccion de script que me envia el Coordinador.");
+
+		imprimirArgumentosInstruccion(instruccion);
+
+		/*
+		 * proceso el script asignandoselo a una instancia
+		 */
+
+		/*
+		log_info(logger,
+				"Le informo al Coordinador que el paquete llego correctamente");
+		send(socketCoordinador, "ok", strlen("ok"), 0); // Envio respuesta al Coordinador
+		*/
+	}
+
+	free(instruccion);
+}
+
 int cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
 	t_config* config =
@@ -50,8 +96,33 @@ int main() {
 	char* handshake = "2";
 	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
 
+	// Me preparo para recibir la cantidad y el tamaño de las entradas
+	char* cant_entradas = malloc(sizeof(int));
+	char* tam_entradas = malloc(sizeof(int));
+
+	if (recv(socketCoordinador, cant_entradas, sizeof(int), 0) < 0) {
+		log_error(logger, "No se pudo recibir la cantidad de entradas.");
+		// EXPLOTAR
+	}
+	if (recv(socketCoordinador, tam_entradas, sizeof(int), 0) < 0) {
+		log_error(logger, "No se pudo recibir el tamaño de las entradas.");
+		// EXPLOTAR
+	}
+
+	printf("cant entradas: %d", atoi(cant_entradas));
+	printf("tam entradas: %d",  atoi(tam_entradas));
+	// Si esta todo ok:
+	log_info(logger,
+			"Se recibio la cantidad y tamaño de las entradas correctamente.");
+
 	//Creo la tabla de entradas de la instancia, que consiste en una lista.
 	tabla_entradas = list_create();
+
+	/*
+	 * ---------- mmap (lo esta haciendo Julian) ----------
+	 */
+
+	recibirInstruccion(socketCoordinador);
 
 	return EXIT_SUCCESS;
 }

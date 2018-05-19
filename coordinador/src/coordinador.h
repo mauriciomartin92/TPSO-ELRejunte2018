@@ -25,16 +25,13 @@
 t_log* logger;
 char* ip;
 char* port;
-int backlog, packagesize;
+int backlog, packagesize, cant_entradas, tam_entradas, retardo;
 int socketDeEscucha;
 bool error_config;
-
-typedef struct {
-	int socket;
-} t_parametro_socket;
 
 int cargarConfiguracion();
 void* establecerConexion(void* parametros);
 void atenderESI(int socketCliente);
+void atenderInstancia(int socketCliente);
 
 #endif /* COORDINADOR_H_ */

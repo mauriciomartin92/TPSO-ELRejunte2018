@@ -139,6 +139,9 @@ int cargarConfiguracion() {
 
 int main() {
 	pid_asignacion = 0;
+	//sem_init(sem_bin_menu, 0, 0);
+	//sem_init(sem_bin_esi, 0, 1);
+
 
 	// Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
 	listos = queue_create();

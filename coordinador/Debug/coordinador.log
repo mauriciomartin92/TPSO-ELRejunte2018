@@ -71,3 +71,90 @@
 [INFO] 00:09:00:453 Coordinador/(5749:5756): Le informo al ESI que el paquete llego correctamente
 [INFO] 00:09:00:454 Coordinador/(5749:5756): Recibo un paquete del ESI
 [INFO] 00:09:00:458 Coordinador/(5749:5756): Le informo al ESI que el paquete llego correctamente
+[INFO] 15:21:22:312 Coordinador/(5068:5068): Servidor conectado.
+[INFO] 15:21:22:366 Coordinador/(5068:5068): Listo para escuchar a cualquier Cliente...
+[INFO] 15:22:06:267 Coordinador/(5068:5133): Cliente conectado
+[INFO] 15:22:06:283 Coordinador/(5068:5133): El cliente es una instancia.
+[INFO] 15:22:06:284 Coordinador/(5068:5133): Envio a la Instancia su cantidad de entradas
+[INFO] 15:22:06:286 Coordinador/(5068:5133): Envio a la Instancia el tamaño de las entradas
+[INFO] 15:22:08:266 Coordinador/(5068:5068): Listo para escuchar a cualquier Cliente...
+[INFO] 15:46:38:610 Coordinador/(5590:5590): Servidor conectado.
+[INFO] 15:46:38:611 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 15:47:04:114 Coordinador/(5590:5636): Cliente conectado
+[INFO] 15:47:04:115 Coordinador/(5590:5636): El cliente es una instancia.
+[INFO] 15:47:04:116 Coordinador/(5590:5636): Envio a la Instancia su cantidad de entradas
+[INFO] 15:47:04:117 Coordinador/(5590:5636): Envio a la Instancia el tamaño de las entradas
+[INFO] 15:47:06:111 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 15:48:30:762 Coordinador/(5590:5675): Cliente conectado
+[INFO] 15:48:30:763 Coordinador/(5590:5675): El cliente es una instancia.
+[INFO] 15:48:30:764 Coordinador/(5590:5675): Envio a la Instancia su cantidad de entradas
+[INFO] 15:48:30:766 Coordinador/(5590:5675): Envio a la Instancia el tamaño de las entradas
+[INFO] 15:48:32:759 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 15:49:07:276 Coordinador/(5590:5702): Cliente conectado
+[INFO] 15:49:07:277 Coordinador/(5590:5702): El cliente es una instancia.
+[INFO] 15:49:07:278 Coordinador/(5590:5702): Envio a la Instancia su cantidad de entradas
+[INFO] 15:49:07:279 Coordinador/(5590:5702): Envio a la Instancia el tamaño de las entradas
+[INFO] 15:49:09:272 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 15:52:19:625 Coordinador/(5590:5784): Cliente conectado
+[INFO] 15:52:19:628 Coordinador/(5590:5784): El cliente es una instancia.
+[INFO] 15:52:19:630 Coordinador/(5590:5784): Envio a la Instancia su cantidad de entradas
+[INFO] 15:52:19:631 Coordinador/(5590:5784): Envio a la Instancia el tamaño de las entradas
+[INFO] 15:52:21:626 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 15:52:54:770 Coordinador/(5590:5816): Cliente conectado
+[INFO] 15:52:54:773 Coordinador/(5590:5816): El cliente es una instancia.
+[INFO] 15:52:54:774 Coordinador/(5590:5816): Envio a la Instancia su cantidad de entradas
+[INFO] 15:52:54:775 Coordinador/(5590:5816): Envio a la Instancia el tamaño de las entradas
+[INFO] 15:52:56:759 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 15:54:01:478 Coordinador/(5590:5851): Cliente conectado
+[INFO] 15:54:02:969 Coordinador/(5590:5851): El cliente es una instancia.
+[INFO] 15:54:02:970 Coordinador/(5590:5851): Envio a la Instancia su cantidad de entradas
+[INFO] 15:54:02:971 Coordinador/(5590:5851): Envio a la Instancia el tamaño de las entradas
+[INFO] 15:54:03:473 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 16:02:22:406 Coordinador/(5590:5937): Cliente conectado
+[INFO] 16:02:22:409 Coordinador/(5590:5937): El cliente es una instancia.
+[INFO] 16:02:22:411 Coordinador/(5590:5937): Envio a la Instancia su cantidad de entradas
+[INFO] 16:02:22:413 Coordinador/(5590:5937): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:02:24:406 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 16:09:11:815 Coordinador/(5590:6063): Cliente conectado
+[INFO] 16:09:11:818 Coordinador/(5590:6063): El cliente es una instancia.
+[INFO] 16:09:11:819 Coordinador/(5590:6063): Envio a la Instancia su cantidad de entradas
+[INFO] 16:09:11:820 Coordinador/(5590:6063): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:09:13:813 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 16:13:54:292 Coordinador/(5590:6145): Cliente conectado
+[INFO] 16:13:54:294 Coordinador/(5590:6145): El cliente es una instancia.
+[INFO] 16:13:54:296 Coordinador/(5590:6145): Envio a la Instancia su cantidad de entradas
+[INFO] 16:13:54:299 Coordinador/(5590:6145): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:13:56:286 Coordinador/(5590:5590): Listo para escuchar a cualquier Cliente...
+[INFO] 16:14:25:249 Coordinador/(6149:6149): Servidor conectado.
+[INFO] 16:14:25:252 Coordinador/(6149:6149): Listo para escuchar a cualquier Cliente...
+[INFO] 16:15:00:550 Coordinador/(6199:6199): Servidor conectado.
+[INFO] 16:15:00:552 Coordinador/(6199:6199): Listo para escuchar a cualquier Cliente...
+[INFO] 16:15:05:816 Coordinador/(6199:6201): Cliente conectado
+[INFO] 16:15:05:817 Coordinador/(6199:6201): El cliente es una instancia.
+[INFO] 16:15:05:819 Coordinador/(6199:6201): Envio a la Instancia su cantidad de entradas
+[INFO] 16:15:05:821 Coordinador/(6199:6201): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:15:07:812 Coordinador/(6199:6199): Listo para escuchar a cualquier Cliente...
+[INFO] 16:19:42:36 Coordinador/(6199:6328): Cliente conectado
+[INFO] 16:19:42:46 Coordinador/(6199:6328): El cliente es una instancia.
+[INFO] 16:19:42:58 Coordinador/(6199:6328): Envio a la Instancia su cantidad de entradas
+[INFO] 16:19:42:59 Coordinador/(6199:6328): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:19:44:38 Coordinador/(6199:6199): Listo para escuchar a cualquier Cliente...
+[INFO] 16:20:47:588 Coordinador/(6357:6357): Servidor conectado.
+[INFO] 16:20:47:593 Coordinador/(6357:6357): Listo para escuchar a cualquier Cliente...
+[INFO] 16:20:58:93 Coordinador/(6357:6362): Cliente conectado
+[INFO] 16:20:58:94 Coordinador/(6357:6362): El cliente es una instancia.
+[INFO] 16:20:58:96 Coordinador/(6357:6362): Envio a la Instancia su cantidad de entradas
+[INFO] 16:20:58:98 Coordinador/(6357:6362): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:21:00:91 Coordinador/(6357:6357): Listo para escuchar a cualquier Cliente...
+[INFO] 16:23:00:584 Coordinador/(6397:6397): Servidor conectado.
+[INFO] 16:23:00:587 Coordinador/(6397:6397): Listo para escuchar a cualquier Cliente...
+[INFO] 16:23:09:721 Coordinador/(6397:6416): Cliente conectado
+[INFO] 16:23:09:722 Coordinador/(6397:6416): El cliente es una instancia.
+[INFO] 16:23:09:724 Coordinador/(6397:6416): Envio a la Instancia su cantidad de entradas
+[INFO] 16:23:09:726 Coordinador/(6397:6416): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:23:11:719 Coordinador/(6397:6397): Listo para escuchar a cualquier Cliente...
+[INFO] 16:23:54:720 Coordinador/(6397:6446): Cliente conectado
+[INFO] 16:23:54:722 Coordinador/(6397:6446): El cliente es una instancia.
+[INFO] 16:23:54:723 Coordinador/(6397:6446): Envio a la Instancia su cantidad de entradas
+[INFO] 16:23:54:725 Coordinador/(6397:6446): Envio a la Instancia el tamaño de las entradas
+[INFO] 16:23:56:715 Coordinador/(6397:6397): Listo para escuchar a cualquier Cliente...

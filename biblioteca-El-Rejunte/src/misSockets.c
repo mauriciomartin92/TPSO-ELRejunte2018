@@ -165,7 +165,14 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
  * -----------------------------------------------------------------------------------------------------------------
  */
 
-void enviarMensaje(t_log* logger, int serverSocket, int packagesize) {
+void enviarPaqueteNumerico(int socketDestino, int paqueteNumerico) {
+	char* buffer = malloc(sizeof(int));
+	sprintf(buffer, "%d", paqueteNumerico);
+	//memcpy
+	send(socketDestino, buffer, strlen(buffer) + 1, 0);
+}
+
+void enviarMensajeConsola(t_log* logger, int socketDestino, int packagesize) {
 	/*	Enviar datos!
 	 *
 	 *	Vamos a crear un paquete (en este caso solo un conjunto de caracteres) de size PACKAGESIZE, que le enviare al servidor.
@@ -185,7 +192,7 @@ void enviarMensaje(t_log* logger, int serverSocket, int packagesize) {
 			enviar = false;			// Chequeo que el usuario no quiera salir
 		}
 		if (enviar)
-			send(serverSocket, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
+			send(socketDestino, message, strlen(message) + 1, 0); // Solo envio si el usuario no quiere salir.
 	}
 
 	/*
@@ -195,7 +202,7 @@ void enviarMensaje(t_log* logger, int serverSocket, int packagesize) {
 	 */
 }
 
-void recibirMensaje(t_log* logger, int socketCliente, int packagesize) {
+void recibirMensajeConsola(t_log* logger, int socketOrigen, int packagesize) {
 	/*
 	 * 	Ya estamos listos para recibir paquetes de nuestro cliente...
 	 *
@@ -209,7 +216,7 @@ void recibirMensaje(t_log* logger, int socketCliente, int packagesize) {
 	log_info(logger, "Esperando mensajes:\n");
 
 	while (status != 0) {
-		status = recv(socketCliente, (void*) package, packagesize, 0);
+		status = recv(socketOrigen, (void*) package, packagesize, 0);
 		if (status != 0)
 			printf("%s", package);
 	}

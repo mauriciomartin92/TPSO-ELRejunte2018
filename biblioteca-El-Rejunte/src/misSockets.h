@@ -30,10 +30,11 @@ typedef struct {
 int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
 		int backlog);
 int escucharCliente(t_log* logger, int listenningSocket, int backlog);
-void recibirMensaje(t_log* logger, int socketCliente, int packagesize);
+void recibirMensajeConsola(t_log* logger, int socketCliente, int packagesize);
 
 int conectarComoCliente(t_log* logger, const char* ip, const char* puerto);
-void enviarMensaje(t_log* logger, int socketServidor, int packagesize);
+void enviarMensajeConsola(t_log* logger, int socketServidor, int packagesize);
+void enviarPaqueteNumerico(int socketDestino, int paqueteNumerico);
 
 int finalizarSocket(int socket);
 

@@ -18,6 +18,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
@@ -35,5 +36,6 @@ typedef struct {
 } t_entrada;
 
 int cargarConfiguracion();
+void recibirInstruccion(int socketCoorinador);
 
 #endif /* INSTANCIA_H_ */
