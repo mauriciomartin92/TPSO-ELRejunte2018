@@ -13,7 +13,7 @@
 t_tcb* algoritmoDeDistribucion() {
 	// implementar
 	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
-	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve
+	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve de la tabla_instancias
 	// obs: hacer el case de los demas casos pero sin implementacion
 }
 
