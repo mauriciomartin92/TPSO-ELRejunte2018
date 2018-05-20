@@ -167,8 +167,8 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 
 void enviarPaqueteNumerico(int socketDestino, int paqueteNumerico) {
 	char* buffer = malloc(sizeof(int));
-	sprintf(buffer, "%d", paqueteNumerico);
-	//memcpy
+	sprintf(buffer, "%d", paqueteNumerico); // HABRIA QUE UTILIZAR MEMCPY
+	//memcpy(buffer, (void*) &paqueteNumerico, sizeof(paqueteNumerico));
 	send(socketDestino, buffer, strlen(buffer) + 1, 0);
 }
 

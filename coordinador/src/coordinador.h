@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/collections/list.h>
 #include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
@@ -25,13 +26,24 @@
 t_log* logger;
 char* ip;
 char* port;
+char* algoritmo_distribucion;
 int backlog, packagesize, cant_entradas, tam_entradas, retardo;
+t_list* tabla_instancias;
 int socketDeEscucha;
 bool error_config;
+int clave_tid;
+
+typedef struct {
+	int tid;
+	int socket;
+	t_list* esis_asignados;
+} t_tcb;
 
 int cargarConfiguracion();
 void* establecerConexion(void* parametros);
 void atenderESI(int socketCliente);
 void atenderInstancia(int socketCliente);
+void enviarAInstancia(t_esi_operacion* instruccion);
+t_tcb* algoritmoDeDistribucion();
 
 #endif /* COORDINADOR_H_ */

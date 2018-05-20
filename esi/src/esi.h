@@ -29,7 +29,7 @@ char* ip_coordinador; char* ip_planificador;
 char* port_coordinador; char* port_planificador;
 int packagesize;
 
-void cargar_configuracion();
+int cargarConfiguracion();
 t_esi_operacion parsearLineaScript(FILE* fp);
 
 #endif /* ESI_H_ */

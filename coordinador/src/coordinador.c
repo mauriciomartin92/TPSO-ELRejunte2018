@@ -10,6 +10,18 @@
 
 #include "coordinador.h"
 
+t_tcb* algoritmoDeDistribucion() {
+	// implementar
+	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
+	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve
+	// obs: hacer el case de los demas casos pero sin implementacion
+}
+
+void enviarAInstancia(t_esi_operacion* instruccion) {
+	t_tcb* tcb_elegido = algoritmoDeDistribucion();
+	send(tcb_elegido->socket, instruccion, sizeof(t_esi_operacion*), 0);
+}
+
 void atenderESI(int socketCliente) {
 	do {
 		t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
@@ -23,9 +35,11 @@ void atenderESI(int socketCliente) {
 		} else {
 			sleep(retardo / 1000);
 			log_info(logger, "Recibo un paquete del ESI");
-			/*
-			 * proceso el script asignandoselo a una instancia
-			 */
+
+			// ------ACA SE LO VOY A MANDAR A UNA INSTANCIA------
+			enviarAInstancia(instruccion);
+			// -------------------AAAATENSHION-------------------
+
 			log_info(logger,
 					"Le informo al ESI que el paquete llego correctamente");
 			send(socketCliente, "ok", strlen("ok"), 0); // Envio respuesta al ESI
@@ -41,6 +55,12 @@ void atenderInstancia(int socketCliente) {
 
 	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
 	enviarPaqueteNumerico(socketCliente, tam_entradas);
+
+	t_tcb* tcb = malloc(sizeof(t_tcb));
+	tcb->tid = clave_tid;
+	clave_tid++;
+	tcb->socket = socketCliente;
+	list_add(tabla_instancias, tcb);
 }
 
 void* establecerConexion(void* socketCliente) {
@@ -72,6 +92,7 @@ void* establecerConexion(void* socketCliente) {
 
 int cargarConfiguracion() {
 	error_config = false;
+	clave_tid = 0; // Son unicas
 
 	/*
 	 * Se crea en la carpeta Coordinador un archivo "config_coordinador.cfg", la idea es que utilizando la
@@ -89,6 +110,7 @@ int cargarConfiguracion() {
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
 	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
+	algoritmo_distribucion = obtenerCampoString(logger, config, "ALGORITMO_DISTRIBUCION", &error_config);
 	cant_entradas = obtenerCampoInt(logger, config, "CANT_ENTRADAS",
 			&error_config);
 	tam_entradas = obtenerCampoInt(logger, config, "TAM_ENTRADAS",
@@ -114,6 +136,8 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 
 	if (cargarConfiguracion() < 0)
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+
+	tabla_instancias = list_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 
