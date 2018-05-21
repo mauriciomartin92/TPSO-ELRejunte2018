@@ -15,11 +15,19 @@ t_tcb* algoritmoDeDistribucion() {
 	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
 	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve de la tabla_instancias
 	// obs: hacer el case de los demas casos pero sin implementacion
+	/*switch (algoritmo_distribucion) {
+	 case "EL":
+	 case "LSU":
+	 case "KSE":
+	 }*/
+	return (t_tcb*) queue_pop(cola_instancias);
 }
 
 void enviarAInstancia(t_esi_operacion* instruccion) {
+	log_info(logger, "Le envio la instruccion a la Instancia correspondiente");
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
-	send(tcb_elegido->socket, instruccion, sizeof(t_esi_operacion*), 0);
+	printf("la direccion de instancia: %p\n", tcb_elegido);
+	send(tcb_elegido->socket, instruccion, sizeof(t_esi_operacion), 0);
 }
 
 void atenderESI(int socketCliente) {
@@ -34,9 +42,15 @@ void atenderESI(int socketCliente) {
 			send(socketCliente, "error", strlen("error"), 0); // Envio respuesta al ESI
 		} else {
 			sleep(retardo / 1000);
-			log_info(logger, "Recibo un paquete del ESI");
+			log_info(logger, "Recibi un paquete del ESI");
 
 			// ------ACA SE LO VOY A MANDAR A UNA INSTANCIA------
+			log_info(logger, "Aguarde mientras se busca una Instancia...");
+			while (queue_is_empty(cola_instancias)) {
+				sleep(4);
+				log_warning(logger,
+						"No hay instancias disponibles. Reintentando...");
+			}
 			enviarAInstancia(instruccion);
 			// -------------------AAAATENSHION-------------------
 
@@ -50,17 +64,20 @@ void atenderESI(int socketCliente) {
 }
 
 void atenderInstancia(int socketCliente) {
+	t_tcb* tcb = malloc(sizeof(t_tcb));
+	tcb->tid = clave_tid;
+	clave_tid++;
+	tcb->socket = socketCliente;
+	queue_push(cola_instancias, tcb);
+	log_info(logger, "Instancia agregada a la tabla de instancias");
+	printf("La direccion del nuevo tcb es %p\n", queue_peek(cola_instancias));
+	printf("Y la cantidad de elementos es %d\n", queue_size(cola_instancias));
+
 	log_info(logger, "Envio a la Instancia su cantidad de entradas");
 	enviarPaqueteNumerico(socketCliente, cant_entradas);
 
 	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
 	enviarPaqueteNumerico(socketCliente, tam_entradas);
-
-	t_tcb* tcb = malloc(sizeof(t_tcb));
-	tcb->tid = clave_tid;
-	clave_tid++;
-	tcb->socket = socketCliente;
-	list_add(tabla_instancias, tcb);
 }
 
 void* establecerConexion(void* socketCliente) {
@@ -80,13 +97,12 @@ void* establecerConexion(void* socketCliente) {
 		log_info(logger, "El cliente es ESI.");
 		atenderESI(*(int*) socketCliente);
 	} else if (atoi(handshake) == 2) {
-		log_info(logger, "El cliente es una instancia.");
+		log_info(logger, "El cliente es una Instancia.");
 		atenderInstancia(*(int*) socketCliente);
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente.");
 	}
 
-	//finalizarSocket(*(int*) socketCliente);
 	return NULL;
 }
 
@@ -110,7 +126,8 @@ int cargarConfiguracion() {
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
 	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
-	algoritmo_distribucion = obtenerCampoString(logger, config, "ALGORITMO_DISTRIBUCION", &error_config);
+	algoritmo_distribucion = obtenerCampoString(logger, config,
+			"ALGORITMO_DISTRIBUCION", &error_config);
 	cant_entradas = obtenerCampoInt(logger, config, "CANT_ENTRADAS",
 			&error_config);
 	tam_entradas = obtenerCampoInt(logger, config, "TAM_ENTRADAS",
@@ -137,7 +154,8 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	if (cargarConfiguracion() < 0)
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
-	tabla_instancias = list_create();
+	log_info(logger, "Se crea la tabla de intancias.");
+	cola_instancias = queue_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
 

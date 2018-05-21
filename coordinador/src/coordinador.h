@@ -18,7 +18,7 @@
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include <commons/collections/list.h>
+#include <commons/collections/queue.h>
 #include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
@@ -28,10 +28,11 @@ char* ip;
 char* port;
 char* algoritmo_distribucion;
 int backlog, packagesize, cant_entradas, tam_entradas, retardo;
-t_list* tabla_instancias;
+t_queue* cola_instancias;
 int socketDeEscucha;
 bool error_config;
 int clave_tid;
+
 
 typedef struct {
 	int tid;

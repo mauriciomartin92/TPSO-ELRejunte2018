@@ -109,8 +109,8 @@ int main() {
 		// EXPLOTAR
 	}
 
-	printf("cant entradas: %d", atoi(cant_entradas));
-	printf("tam entradas: %d",  atoi(tam_entradas));
+	printf("cant entradas: %d\n", atoi(cant_entradas));
+	printf("tam entradas: %d\n",  atoi(tam_entradas));
 	// Si esta todo ok:
 	log_info(logger,
 			"Se recibio la cantidad y tamaño de las entradas correctamente.");
