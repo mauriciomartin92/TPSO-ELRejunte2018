@@ -48,10 +48,10 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	size_t len = 0;
 
 	getline(&line, &len, fp);
-	printf("%s", line);
+	//printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
-	if (parsed.valido) { // ESTO SOLO LO TIENE QUE HACER LA INSTANCIA PARA SABER QUE INSTRUCCION ES
+	/*if (parsed.valido) { // ESTO SOLO LO TIENE QUE HACER LA INSTANCIA PARA SABER QUE INSTRUCCION ES
 		switch (parsed.keyword) {
 		case GET:
 			printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
@@ -72,7 +72,7 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	} else {
 		fprintf(stderr, "La linea <%s> no es valida\n", line);
 		exit(EXIT_FAILURE);
-	}
+	}*/
 
 	if (line)
 		free(line);
@@ -110,16 +110,17 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		if (strcmp(seleccion, mensaje) == 0) { // ¿Es lo que esperaba?
 			log_info(logger, "El planificador solicita una instruccion");
 			t_esi_operacion instruccion = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
+			log_info(logger, "La instruccion fue parseada");
+
+			void* paquete = empaquetarInstruccion(instruccion, logger);
 
 			log_info(logger, "Envio la instruccion al coordinador");
-			if ((send(socketCoordinador, &instruccion, sizeof(t_esi_operacion*),
+			if ((send(socketCoordinador, paquete, sizeof(paquete),
 					0)) < 0) {
 				//Hubo error al enviar la linea parseada
 				log_error(logger, "Error al enviar instruccion de script");
 				exit(EXIT_FAILURE);
 			} else {
-				printf("La direccion que envia al Coordinador es: %p",
-						&instruccion);
 				//Esperar respuesta coordinador.
 				char respuestaCoordinador[packagesize];
 				recv(socketCoordinador, (void*) respuestaCoordinador,

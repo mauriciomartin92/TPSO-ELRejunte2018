@@ -10,20 +10,17 @@
 void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	log_info(logger, "Empaqueto la instruccion");
 
-	paquete = malloc(
-			2 * sizeof(int) + sizeof(instruccion.argumentos.GET.clave));
+	instruccionMutada.operacion = 0;
+	instruccionMutada.clave = "";
+	instruccionMutada.valor = "";
 
 	switch (instruccion.keyword) {
 	case GET:
 		log_info(logger, "GET\tclave: <%s>\n",
 				instruccion.argumentos.GET.clave);
 
-		int operacion = 1;
-		memcpy(paquete, &operacion, sizeof(int));
-		memcpy(paquete,
-				&(strlen(instruccion.argumentos.GET.clave), sizeof(int)));
-		memcpy(paquete + sizeof(int), &(instruccion.argumentos.GET.clave),
-				sizeof(instruccion.argumentos.GET.clave));
+		instruccionMutada.operacion = 1;
+		strcpy(instruccionMutada.clave, (const char*) instruccion.argumentos.GET.clave);
 
 		break;
 	case SET:
@@ -31,64 +28,44 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 				instruccion.argumentos.SET.clave,
 				instruccion.argumentos.SET.valor);
 
-		paquete = realloc(
-				sizeof(int) + sizeof(instruccion.argumentos.SET.clave)
-						+ sizeof(instruccion.argumentos.SET.valor));
-
-		int operacion = 2;
-		memcpy(paquete, &operacion, sizeof(int));
-		memcpy(paquete + sizeof(int), &(instruccion.argumentos.SET.clave),
-				sizeof(instruccion.argumentos.SET.clave));
-		memcpy(paquete,
-				&(strlen(instruccion.argumentos.GET.clave), sizeof(int)));
-		memcpy(paquete + sizeof(int) + sizeof(instruccion.argumentos.SET.clave),
-				&(instruccion.argumentos.SET.valor),
-				sizeof(instruccion.argumentos.SET.valor));
+		instruccionMutada.operacion = 2;
+		strcpy(instruccionMutada.clave, instruccion.argumentos.SET.clave);
+		strcpy(instruccionMutada.valor, instruccion.argumentos.SET.valor);
 
 		break;
 	case STORE:
 		log_info(logger, "STORE\tclave: <%s>\n",
 				instruccion.argumentos.STORE.clave);
 
-		int operacion = 3;
-		memcpy(paquete, &operacion, sizeof(int));
-		memcpy(paquete,
-				&(strlen(instruccion.argumentos.GET.clave), sizeof(int)));
-		memcpy(paquete + sizeof(int), &(instruccion.argumentos.STORE.clave),
-				sizeof(instruccion.argumentos.STORE.clave));
+		instruccionMutada.operacion = 3;
+		strcpy(instruccionMutada.clave, instruccion.argumentos.STORE.clave);
 
 		break;
 	default:
 		log_error(logger, "No se pudo empaquetar la instruccion\n");
-		paquete = NULL;
 		break;
 	}
 
-	return paquete;
+	void* buffer = malloc(sizeof(instruccionMutada));
+	memcpy(buffer, &instruccionMutada, sizeof(instruccionMutada));
+
+	log_info(logger, "La instruccion fue empaquetada");
+	return buffer;
 }
 
-t_instruccionDeserializada* desempaquetarInstruccion(void* paquete,
-		size_t mensajeTam, t_log* logger) {
+t_instruccion desempaquetarInstruccion(void* buffer,
+		size_t buffer_size, t_log* logger) {
+
 	log_info(logger, "Desempaqueto la instruccion");
 
-	t_instruccionDeserializada* instruccionDeserializada = malloc(
-			sizeof(t_instruccionDeserializada));
-
-	memcpy(&(instruccionDeserializada->operacion), paquete, sizeof(int));
-	int tam_clave = 0;
-	memcpy(&tam_clave, paquete + sizeof(int), sizeof(int));
-	memcpy(&(instruccionDeserializada->clave), paquete + sizeof(int),
-			tam_clave);
-
-	printf("La operacion es %d\n", instruccionDeserializada->operacion);
-	printf("La clave es %s\n", instruccionDeserializada->clave);
+	memcpy(&instruccionMutada, buffer, buffer_size);
+	printf("La operacion es %d\n", instruccionMutada.operacion);
+	printf("La clave es %s\n", instruccionMutada.clave);
 
 	// Si es SET:
-	if (instruccionDeserializada->operacion == 2) {
-		memcpy(&(instruccionDeserializada->valor),
-				paquete + (2 * sizeof(int)) + tam_clave);
-		printf("La clave es %s\n", instruccionDeserializada->valor);
+	if (instruccionMutada.operacion == 2) {
+		printf("La clave es %s\n", instruccionMutada.valor);
 	}
 
-	return instruccionDeserializada;
+	return instruccionMutada;
 }
