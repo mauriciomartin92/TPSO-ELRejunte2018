@@ -46,9 +46,8 @@ int cargarConfiguracion() {
 t_esi_operacion parsearLineaScript(FILE* fp) {
 	char * line = NULL;
 	size_t len = 0;
-	ssize_t read;
 
-	read = getline(&line, &len, fp);
+	getline(&line, &len, fp);
 	printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
@@ -103,38 +102,40 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	int socketPlanificador = conectarComoCliente(logger, ip_planificador,
 			port_planificador);
 
-	char* seleccion = "1"; // Es lo que espero recibir
-	char mensaje[packagesize]; // Es donde lo voy a recibir
-	recv(socketPlanificador, (void*) mensaje, packagesize, 0); // Lo recibo
+	while (!feof(fp)) {
+		char* seleccion = "1"; // Es lo que espero recibir
+		char mensaje[packagesize]; // Es donde lo voy a recibir
+		recv(socketPlanificador, (void*) mensaje, packagesize, 0); // Lo recibo
 
-	if ((strcmp(seleccion, mensaje) == 0) && (!feof(fp))) { // ¿Es lo que esperaba?
-		log_info(logger, "El planificador solicita una instruccion");
-		t_esi_operacion lineaParseada = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
+		if (strcmp(seleccion, mensaje) == 0) { // ¿Es lo que esperaba?
+			log_info(logger, "El planificador solicita una instruccion");
+			t_esi_operacion instruccion = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
 
-		log_info(logger, "Envio la instruccion al coordinador");
-		if ((send(socketCoordinador, &lineaParseada, sizeof(t_esi_operacion), 0))
-				< 0) {
-			//Hubo error al enviar la linea parseada
-			log_error(logger, "Error al enviar instruccion de script");
-			exit(EXIT_FAILURE);
-		} else {
-			//Esperar respuesta coordinador.
-			char respuestaCoordinador[packagesize];
-			recv(socketCoordinador, (void*) respuestaCoordinador, packagesize,
-					0);
-
-			if (strcmp(respuestaCoordinador, "ok") == 0) {
-				log_info(logger,
-						"El coordinador informa que llego correctamente");
-				log_info(logger, "Le envio el resultado al planificador");
-				//send(socketPlanificador, respuestaCoordinador, strlen(respuestaCoordinador) + 1, 0);
+			log_info(logger, "Envio la instruccion al coordinador");
+			if ((send(socketCoordinador, &instruccion,
+					sizeof(t_esi_operacion*), 0)) < 0) {
+				//Hubo error al enviar la linea parseada
+				log_error(logger, "Error al enviar instruccion de script");
+				exit(EXIT_FAILURE);
 			} else {
-				log_error(logger,
-						"El coordinador informa que no la pudo recibir");
+				printf("La direccion que envia al Coordinador es: %p", &instruccion);
+				//Esperar respuesta coordinador.
+				char respuestaCoordinador[packagesize];
+				recv(socketCoordinador, (void*) respuestaCoordinador,
+						packagesize, 0);
+
+				if (strcmp(respuestaCoordinador, "ok") == 0) {
+					log_info(logger,
+							"El coordinador informa que llego correctamente");
+					log_info(logger, "Le envio el resultado al planificador");
+					//send(socketPlanificador, respuestaCoordinador, strlen(respuestaCoordinador) + 1, 0);
+				} else {
+					log_error(logger,
+							"El coordinador informa que no la pudo recibir");
+				}
 			}
 		}
 	}
-
 	fclose(fp);
 	return EXIT_SUCCESS;
 }

@@ -18,17 +18,25 @@
 
 void imprimirArgumentosInstruccion(t_esi_operacion* instruccion) {
 	log_error(logger, "HOLA KE AC");
-	printf("EL KEYWORD ES: %s", (char*) (*instruccion).keyword);
+	printf("La direccion que recibe la Instancia es: %p\n", instruccion);
 	switch ((*instruccion).keyword) {
 	case GET:
+		printf("ENTRE A GET\n");
 		printf("GET\tclave: <%s>\n", (*instruccion).argumentos.GET.clave);
 		break;
+
 	case SET:
-		printf("SET\tclave: <%s>\tvalor: <%s>\n", (*instruccion).argumentos.SET.clave,
+		printf("SET\tclave: <%s>\tvalor: <%s>\n",
+				(*instruccion).argumentos.SET.clave,
 				(*instruccion).argumentos.SET.valor);
 		break;
+
 	case STORE:
 		printf("STORE\tclave: <%s>\n", (*instruccion).argumentos.STORE.clave);
+		break;
+
+	default:
+		log_error(logger, "No comprendo la instruccion.\n");
 		break;
 	}
 }
@@ -37,7 +45,7 @@ void recibirInstruccion(int socketCoordinador) {
 	t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
 
 	// Recibo linea de script parseada
-	if (recv(socketCoordinador, instruccion, sizeof(t_esi_operacion), 0) < 0) { // MSG_WAITALL
+	if (recv(socketCoordinador, instruccion, sizeof(t_esi_operacion*), 0) < 0) { // MSG_WAITALL
 		//Hubo error al recibir la linea parseada
 		log_error(logger, "Error al recibir instruccion de script.");
 
@@ -53,10 +61,10 @@ void recibirInstruccion(int socketCoordinador) {
 		 */
 
 		/*
-		log_info(logger,
-				"Le informo al Coordinador que el paquete llego correctamente");
-		send(socketCoordinador, "ok", strlen("ok"), 0); // Envio respuesta al Coordinador
-		*/
+		 log_info(logger,
+		 "Le informo al Coordinador que el paquete llego correctamente");
+		 send(socketCoordinador, "ok", strlen("ok"), 0); // Envio respuesta al Coordinador
+		 */
 	}
 
 	free(instruccion);
@@ -110,7 +118,7 @@ int main() {
 	}
 
 	printf("cant entradas: %d\n", atoi(cant_entradas));
-	printf("tam entradas: %d\n",  atoi(tam_entradas));
+	printf("tam entradas: %d\n", atoi(tam_entradas));
 	// Si esta todo ok:
 	log_info(logger,
 			"Se recibio la cantidad y tamaño de las entradas correctamente.");

@@ -32,6 +32,7 @@ t_queue* cola_instancias;
 int socketDeEscucha;
 bool error_config;
 int clave_tid;
+bool estaAtendiendoInstancia;
 
 
 typedef struct {

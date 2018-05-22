@@ -108,6 +108,10 @@ int imprimirMenu() {
 		printf("Deadlock ACTIVADO");
 		printf("\nGracias, se esta procesando su solicitud...\n");
 		break;
+
+	default:
+		log_error(logger, "No es una opcion valida, intente nuevamente.");
+		break;
 	}
 	printf("%d\n", seleccion);
 	return seleccion;
@@ -142,7 +146,6 @@ int main() {
 	//sem_init(sem_bin_menu, 0, 0);
 	//sem_init(sem_bin_esi, 0, 1);
 
-
 	// Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
 	listos = queue_create();
 	bloqueados = queue_create();
@@ -166,8 +169,8 @@ int main() {
 		char* seleccion = malloc(sizeof(int));
 		sprintf(seleccion, "%d", imprimirMenu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
 		/*
-		int resultado = imprimirMenu();
-		memcpy(seleccion, (void*) &resultado, sizeof(int));
+		 int resultado = imprimirMenu();
+		 memcpy(seleccion, (void*) &resultado, sizeof(int));
 		 */
 		t_pcb* pcb = (t_pcb*) queue_pop(listos); // Agarra el primero que haya en la cola de listos
 		send(pcb->socket, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola

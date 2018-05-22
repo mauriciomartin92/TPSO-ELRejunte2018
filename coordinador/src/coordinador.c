@@ -24,38 +24,40 @@ t_tcb* algoritmoDeDistribucion() {
 }
 
 void enviarAInstancia(t_esi_operacion* instruccion) {
-	log_info(logger, "Le envio la instruccion a la Instancia correspondiente");
+	log_info(logger, "enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
-	printf("la direccion de instancia: %p\n", tcb_elegido);
-	send(tcb_elegido->socket, instruccion, sizeof(t_esi_operacion), 0);
+	printf("enviarAInstancia: la direccion de instancia: %p\n", tcb_elegido);
+	printf("La direccion que recibe el Coordinador y se envia a Instancia es: %p\n", instruccion);
+	send(tcb_elegido->socket, instruccion, sizeof(t_esi_operacion*), 0);
 }
 
 void atenderESI(int socketCliente) {
 	do {
+		printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
 		t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
-
 		// Recibo linea de script parseada
-		if (recv(socketCliente, instruccion, sizeof(t_esi_operacion), 0) < 0) {
+		if (recv(socketCliente, instruccion, sizeof(t_esi_operacion*), 0) < 0) {
 			sleep(retardo / 1000);
 			//Hubo error al recibir la linea parseada
-			log_error(logger, "Error al recibir instruccion de script");
+			log_error(logger, "atenderESI: Error al recibir instruccion de script");
 			send(socketCliente, "error", strlen("error"), 0); // Envio respuesta al ESI
 		} else {
 			sleep(retardo / 1000);
-			log_info(logger, "Recibi un paquete del ESI");
+			log_info(logger, "atenderESI: Recibi un paquete del ESI");
+			printf("atenderESI: LA DIRECCION DE LA INSTRUCCION ES: %p\n", instruccion);
 
 			// ------ACA SE LO VOY A MANDAR A UNA INSTANCIA------
-			log_info(logger, "Aguarde mientras se busca una Instancia...");
+			log_info(logger, "atenderESI: Aguarde mientras se busca una Instancia...");
 			while (queue_is_empty(cola_instancias)) {
 				sleep(4);
 				log_warning(logger,
-						"No hay instancias disponibles. Reintentando...");
+						"atenderESI: No hay instancias disponibles. Reintentando...");
 			}
 			enviarAInstancia(instruccion);
 			// -------------------AAAATENSHION-------------------
 
 			log_info(logger,
-					"Le informo al ESI que el paquete llego correctamente");
+					"atenderESI: Le informo al ESI que el paquete llego correctamente");
 			send(socketCliente, "ok", strlen("ok"), 0); // Envio respuesta al ESI
 		}
 
@@ -69,19 +71,19 @@ void atenderInstancia(int socketCliente) {
 	clave_tid++;
 	tcb->socket = socketCliente;
 	queue_push(cola_instancias, tcb);
-	log_info(logger, "Instancia agregada a la tabla de instancias");
-	printf("La direccion del nuevo tcb es %p\n", queue_peek(cola_instancias));
-	printf("Y la cantidad de elementos es %d\n", queue_size(cola_instancias));
+	log_info(logger, "atenderInstancia: TCB de Instancia agregado a la tabla de instancias");
+	printf("atenderInstancia: La direccion del nuevo TCB es %p\n", queue_peek(cola_instancias));
+	printf("atenderInstancia: Y la cantidad de elementos es %d\n", queue_size(cola_instancias));
 
-	log_info(logger, "Envio a la Instancia su cantidad de entradas");
+	log_info(logger, "atenderInstancia: Envio a la Instancia su cantidad de entradas");
 	enviarPaqueteNumerico(socketCliente, cant_entradas);
 
-	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
+	log_info(logger, "atenderInstancia: Envio a la Instancia el tamaño de las entradas");
 	enviarPaqueteNumerico(socketCliente, tam_entradas);
 }
 
 void* establecerConexion(void* socketCliente) {
-	log_info(logger, "Cliente conectado");
+	log_info(logger, "establecerConexion: Cliente conectado");
 
 	/* Aca se utiliza el concepto de handshake.
 	 * Cada Cliente manda un identificador para avisarle al Servidor
@@ -94,13 +96,15 @@ void* establecerConexion(void* socketCliente) {
 	char handshake[packagesize];
 	recv(*(int*) socketCliente, (void*) handshake, packagesize, 0);
 	if (atoi(handshake) == 1) {
-		log_info(logger, "El cliente es ESI.");
+		log_info(logger, "establecerConexion: El cliente es ESI.");
 		atenderESI(*(int*) socketCliente);
 	} else if (atoi(handshake) == 2) {
-		log_info(logger, "El cliente es una Instancia.");
+		log_info(logger, "establecerConexion: El cliente es una Instancia.");
+		estaAtendiendoInstancia = true;
 		atenderInstancia(*(int*) socketCliente);
+		estaAtendiendoInstancia = false;
 	} else {
-		log_error(logger, "No se pudo reconocer al cliente.");
+		log_error(logger, "establecerConexion: No se pudo reconocer al cliente.");
 	}
 
 	return NULL;
@@ -136,7 +140,7 @@ int cargarConfiguracion() {
 
 	// Valido si hubo errores
 	if (error_config) {
-		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
+		log_error(logger, "cargarConfiguracion: NO SE PUDO CONECTAR CORRECTAMENTE.");
 		return -1;
 	}
 	return 1;
@@ -144,6 +148,7 @@ int cargarConfiguracion() {
 
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
 	error_config = false;
+	estaAtendiendoInstancia = false;
 
 	/*
 	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
@@ -154,7 +159,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	if (cargarConfiguracion() < 0)
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
-	log_info(logger, "Se crea la tabla de intancias.");
+	log_info(logger, "main: Se crea la tabla de intancias.");
 	cola_instancias = queue_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
