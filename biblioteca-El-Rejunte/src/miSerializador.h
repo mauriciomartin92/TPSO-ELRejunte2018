@@ -13,7 +13,7 @@
 #define SRC_MISERIALIZADOR_H_
 
 typedef struct {
-	int operacion;
+	int32_t  operacion;
 	char* clave;
 	char* valor;
 } t_instruccion;

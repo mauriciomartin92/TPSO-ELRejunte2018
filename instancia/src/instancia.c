@@ -43,6 +43,7 @@ void recibirInstruccion(int socketCoordinador) {
 	t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
 
 	// Recibo linea de script parseada
+	paquete = malloc(sizeof(packagesize));
 	if (recv(socketCoordinador, paquete, packagesize, 0) < 0) { // MSG_WAITALL
 		//Hubo error al recibir la linea parseada
 		log_error(logger, "Error al recibir instruccion de script.");
@@ -125,7 +126,7 @@ int main() {
 	//Creo la tabla de entradas de la instancia, que consiste en una lista.
 	tabla_entradas = list_create();
 
-	void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entradas)));
+	//void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entradas)));
 
 	/*
 	 * ---------- mmap (lo esta haciendo Julian) ----------

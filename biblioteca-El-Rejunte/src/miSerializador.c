@@ -7,12 +7,10 @@
 
 #include "miSerializador.h"
 
+// Analizar la opcion de enviar un paquete del estilo char* = "1 clave valor" y la funcion strtok
+
 void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	log_info(logger, "Empaqueto la instruccion");
-
-	instruccionMutada.operacion = 0;
-	instruccionMutada.clave = NULL;
-	instruccionMutada.valor = NULL;
 
 	switch (instruccion.keyword) {
 	case GET:
@@ -51,11 +49,15 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 		break;
 	default:
 		log_error(logger, "No se pudo empaquetar la instruccion");
-		break;
+		return NULL;
 	}
 
-	void* buffer = malloc(sizeof(instruccionMutada));
-	memcpy(buffer, &instruccionMutada, sizeof(instruccionMutada));
+	size_t size_total = sizeof(int32_t) + strlen(instruccionMutada.clave) * sizeof(char);
+	printf("size_total: %d\n", size_total);
+
+	void* buffer = malloc(size_total);
+	memcpy(buffer, &(instruccionMutada.operacion), sizeof(int32_t));
+	memcpy(buffer + sizeof(int32_t), &(instruccionMutada.clave), strlen(instruccionMutada.clave) * sizeof(char));
 
 	log_info(logger, "La instruccion fue empaquetada");
 	return buffer;
@@ -65,7 +67,11 @@ t_instruccion desempaquetarInstruccion(void* buffer, t_log* logger) {
 
 	log_info(logger, "Desempaqueto la instruccion");
 
-	memcpy(&instruccionMutada, buffer, sizeof(buffer));
+	instruccionMutada.clave = malloc(strlen("GET"));
+
+	memcpy(&(instruccionMutada.operacion), buffer, sizeof(int32_t));
+	//memcpy(instruccionMutada.clave, buffer + sizeof(int32_t), strlen("GET"));
+	memcpy(instruccionMutada.clave, buffer + sizeof(int32_t), strlen("GET"));
 	printf("La operacion es %d\n", instruccionMutada.operacion);
 	printf("La clave es %s\n", instruccionMutada.clave);
 

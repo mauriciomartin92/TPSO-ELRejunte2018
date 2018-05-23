@@ -32,8 +32,9 @@ void enviarAInstancia(void* paquete) {
 void atenderESI(int socketCliente) {
 	do {
 		printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
-		void* paquete;
+
 		// Recibo linea de script parseada
+		void* paquete = malloc(sizeof(packagesize));
 		if (recv(socketCliente, paquete, packagesize, 0) < 0) {
 			sleep(retardo / 1000);
 			//Hubo error al recibir la linea parseada
@@ -50,6 +51,7 @@ void atenderESI(int socketCliente) {
 						"atenderESI: No hay instancias disponibles. Reintentando...");
 			}
 			enviarAInstancia(paquete);
+			free(paquete);
 
 			log_info(logger,
 					"atenderESI: Le informo al ESI que el paquete llego correctamente");

@@ -141,5 +141,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		}
 	}
 	fclose(fp);
+	finalizarSocket(socketCoordinador);
+	finalizarSocket(socketPlanificador);
 	return EXIT_SUCCESS;
 }
