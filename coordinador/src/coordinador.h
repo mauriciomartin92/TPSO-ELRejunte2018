@@ -46,7 +46,7 @@ int cargarConfiguracion();
 void* establecerConexion(void* parametros);
 void atenderESI(int socketCliente);
 void atenderInstancia(int socketCliente);
-void enviarAInstancia(void* buffer);
+void enviarAInstancia(char* paquete);
 t_tcb* algoritmoDeDistribucion();
 
 #endif /* COORDINADOR_H_ */

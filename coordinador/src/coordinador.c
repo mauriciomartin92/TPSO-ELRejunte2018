@@ -23,10 +23,10 @@ t_tcb* algoritmoDeDistribucion() {
 	return (t_tcb*) queue_pop(cola_instancias);
 }
 
-void enviarAInstancia(void* paquete) {
+void enviarAInstancia(char* paquete) {
 	log_info(logger, "enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
-	send(tcb_elegido->socket, paquete, sizeof(paquete), 0);
+	send(tcb_elegido->socket, paquete, strlen(paquete), 0);
 }
 
 void atenderESI(int socketCliente) {
@@ -34,7 +34,7 @@ void atenderESI(int socketCliente) {
 		printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
 
 		// Recibo linea de script parseada
-		void* paquete = malloc(sizeof(packagesize));
+		char* paquete = malloc(sizeof(packagesize));
 		if (recv(socketCliente, paquete, packagesize, 0) < 0) {
 			sleep(retardo / 1000);
 			//Hubo error al recibir la linea parseada

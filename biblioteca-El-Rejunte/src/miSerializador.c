@@ -9,42 +9,34 @@
 
 // Analizar la opcion de enviar un paquete del estilo char* = "1 clave valor" y la funcion strtok
 
-void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
+char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	log_info(logger, "Empaqueto la instruccion");
 
 	switch (instruccion.keyword) {
 	case GET:
-		log_info(logger, "GET\tclave: <%s>\n",
-				instruccion.argumentos.GET.clave);
-
-		instruccionMutada.operacion = 1;
-		instruccionMutada.clave = malloc(
-				strlen(instruccion.argumentos.GET.clave) + 1);
-		strcpy(instruccionMutada.clave, instruccion.argumentos.GET.clave);
+		buffer = malloc(
+				sizeof("1-") + sizeof(instruccion.argumentos.GET.clave));
+		strcpy(buffer, "1-");
+		strcpy(buffer + strlen("1-"), instruccion.argumentos.GET.clave);
 
 		break;
 	case SET:
-		log_info(logger, "SET\tclave: <%s>\tvalor: <%s>\n",
-				instruccion.argumentos.SET.clave,
+		buffer = malloc(
+				sizeof("2-") + sizeof(instruccion.argumentos.SET.clave)
+						+ sizeof("-")
+						+ sizeof(instruccion.argumentos.SET.valor));
+		strcpy(buffer, "2-");
+		strcpy(buffer + strlen("2-"), instruccion.argumentos.SET.clave);
+		strcpy(buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave), "-");
+		strcpy(buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave) + strlen("-"),
 				instruccion.argumentos.SET.valor);
-
-		instruccionMutada.operacion = 2;
-		instruccionMutada.clave = malloc(
-				strlen(instruccion.argumentos.SET.clave) + 1);
-		strcpy(instruccionMutada.clave, instruccion.argumentos.SET.clave);
-		instruccionMutada.clave = malloc(
-				strlen(instruccion.argumentos.GET.clave) + 1);
-		strcpy(instruccionMutada.valor, instruccion.argumentos.SET.valor);
 
 		break;
 	case STORE:
-		log_info(logger, "STORE\tclave: <%s>\n",
-				instruccion.argumentos.STORE.clave);
-
-		instruccionMutada.operacion = 3;
-		instruccionMutada.clave = malloc(
-				strlen(instruccion.argumentos.STORE.clave) + 1);
-		strcpy(instruccionMutada.clave, instruccion.argumentos.STORE.clave);
+		buffer = malloc(
+				sizeof("3-") + sizeof(instruccion.argumentos.STORE.clave));
+		strcpy(buffer, "3-");
+		strcpy(buffer + strlen("3-"), instruccion.argumentos.STORE.clave);
 
 		break;
 	default:
@@ -52,32 +44,29 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 		return NULL;
 	}
 
-	size_t size_total = sizeof(int32_t) + strlen(instruccionMutada.clave) * sizeof(char);
-	printf("size_total: %d\n", size_total);
-
-	void* buffer = malloc(size_total);
-	memcpy(buffer, &(instruccionMutada.operacion), sizeof(int32_t));
-	memcpy(buffer + sizeof(int32_t), &(instruccionMutada.clave), strlen(instruccionMutada.clave) * sizeof(char));
-
 	log_info(logger, "La instruccion fue empaquetada");
+	printf("El paquete a enviar es: %s\n", buffer);
 	return buffer;
 }
 
-t_instruccion desempaquetarInstruccion(void* buffer, t_log* logger) {
-
+t_instruccion desempaquetarInstruccion(char* buffer, t_log* logger) {
 	log_info(logger, "Desempaqueto la instruccion");
 
-	instruccionMutada.clave = malloc(strlen("GET"));
+	printf("El paquete recibido es: %s\n", buffer);
 
-	memcpy(&(instruccionMutada.operacion), buffer, sizeof(int32_t));
-	//memcpy(instruccionMutada.clave, buffer + sizeof(int32_t), strlen("GET"));
-	memcpy(instruccionMutada.clave, buffer + sizeof(int32_t), strlen("GET"));
+	instruccionMutada.operacion = atoi(strtok(buffer, "-"));
+	instruccionMutada.clave = strtok(NULL, "-");
+
+	if (instruccionMutada.operacion == 2) {
+		instruccionMutada.valor = strtok(NULL, "-");
+	}
+
 	printf("La operacion es %d\n", instruccionMutada.operacion);
 	printf("La clave es %s\n", instruccionMutada.clave);
 
 	// Si es SET:
 	if (instruccionMutada.operacion == 2) {
-		printf("La clave es %s\n", instruccionMutada.valor);
+		printf("El valor es %s\n", instruccionMutada.valor);
 	}
 
 	return instruccionMutada;

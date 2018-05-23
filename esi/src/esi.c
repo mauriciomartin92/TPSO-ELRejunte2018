@@ -48,7 +48,7 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	size_t len = 0;
 
 	getline(&line, &len, fp);
-	//printf("%s", line);
+	printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
 	/*if (parsed.valido) { // ESTO SOLO LO TIENE QUE HACER LA INSTANCIA PARA SABER QUE INSTRUCCION ES
@@ -115,10 +115,10 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			log_info(logger, "La instruccion fue parseada");
 
 			// Se empaqueta la instruccion
-			void* paquete = empaquetarInstruccion(instruccion, logger);
+			char* paquete = empaquetarInstruccion(instruccion, logger);
 
 			log_info(logger, "Envio la instruccion al coordinador");
-			if ((send(socketCoordinador, paquete, sizeof(paquete), 0)) < 0) {
+			if ((send(socketCoordinador, paquete, strlen(paquete), 0)) < 0) {
 				//Hubo error al enviar la linea parseada
 				log_error(logger, "Error al enviar instruccion de script");
 				exit(EXIT_FAILURE);
