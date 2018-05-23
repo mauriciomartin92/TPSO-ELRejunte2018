@@ -21,6 +21,7 @@
 #include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
+#include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
 t_log* logger;
 char* ip;
@@ -28,6 +29,7 @@ char* port;
 int packagesize;
 bool error_config;
 t_list* tabla_entradas;
+void* paquete;
 
 typedef struct {
 	char* clave;

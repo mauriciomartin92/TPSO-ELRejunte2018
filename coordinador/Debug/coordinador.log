@@ -1268,3 +1268,698 @@
 [INFO] 18:08:16:551 Coordinador/(9048:9052): atenderESI: Aguarde mientras se busca una Instancia...
 [WARNING] 18:08:20:555 Coordinador/(9048:9052): atenderESI: No hay instancias disponibles. Reintentando...
 [WARNING] 18:08:24:557 Coordinador/(9048:9052): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 19:25:54:170 Coordinador/(3262:3262): main: Se crea la tabla de intancias.
+[INFO] 19:25:54:178 Coordinador/(3262:3262): Servidor conectado.
+[INFO] 19:25:54:179 Coordinador/(3262:3262): Listo para escuchar a cualquier Cliente...
+[INFO] 19:26:43:304 Coordinador/(3262:3334): establecerConexion: Cliente conectado
+[INFO] 19:26:43:324 Coordinador/(3262:3334): establecerConexion: El cliente es ESI.
+[INFO] 19:26:45:303 Coordinador/(3262:3262): Listo para escuchar a cualquier Cliente...
+[INFO] 19:26:57:769 Coordinador/(3262:3334): atenderESI: Recibi un paquete del ESI
+[INFO] 19:26:57:771 Coordinador/(3262:3334): atenderESI: Aguarde mientras se busca una Instancia...
+[WARNING] 19:27:01:772 Coordinador/(3262:3334): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 19:27:05:779 Coordinador/(3262:3334): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 22:57:04:678 Coordinador/(3780:3780): main: Se crea la tabla de intancias.
+[INFO] 22:57:04:680 Coordinador/(3780:3780): Servidor conectado.
+[INFO] 22:57:04:682 Coordinador/(3780:3780): Listo para escuchar a cualquier Cliente...
+[INFO] 22:57:15:438 Coordinador/(3781:3781): main: Se crea la tabla de intancias.
+[INFO] 22:57:15:440 Coordinador/(3781:3781): Servidor conectado.
+[INFO] 22:57:15:448 Coordinador/(3781:3781): Listo para escuchar a cualquier Cliente...
+[INFO] 22:57:47:619 Coordinador/(3781:3791): establecerConexion: Cliente conectado
+[INFO] 22:57:47:620 Coordinador/(3781:3791): establecerConexion: El cliente es ESI.
+[INFO] 22:57:49:599 Coordinador/(3781:3781): Listo para escuchar a cualquier Cliente...
+[INFO] 22:57:52:420 Coordinador/(3781:3791): atenderESI: Recibi un paquete del ESI
+[INFO] 22:57:52:421 Coordinador/(3781:3791): atenderESI: Aguarde mientras se busca una Instancia...
+[WARNING] 22:57:56:424 Coordinador/(3781:3791): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 23:09:22:616 Coordinador/(3988:3988): main: Se crea la tabla de intancias.
+[INFO] 23:09:22:678 Coordinador/(3988:3988): Servidor conectado.
+[INFO] 23:09:22:683 Coordinador/(3988:3988): Listo para escuchar a cualquier Cliente...
+[INFO] 23:09:50:471 Coordinador/(3988:3997): establecerConexion: Cliente conectado
+[INFO] 23:09:50:558 Coordinador/(3988:3997): establecerConexion: El cliente es ESI.
+[INFO] 23:09:52:484 Coordinador/(3988:3988): Listo para escuchar a cualquier Cliente...
+[INFO] 23:10:00:49 Coordinador/(3988:3997): atenderESI: Recibi un paquete del ESI
+[INFO] 23:10:00:93 Coordinador/(3988:3997): atenderESI: Aguarde mientras se busca una Instancia...
+[WARNING] 23:10:04:98 Coordinador/(3988:3997): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 23:10:08:102 Coordinador/(3988:3997): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 23:10:12:106 Coordinador/(3988:3997): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 23:10:16:111 Coordinador/(3988:3997): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 23:16:06:473 Coordinador/(4486:4486): main: Se crea la tabla de intancias.
+[INFO] 23:16:06:544 Coordinador/(4486:4486): Servidor conectado.
+[INFO] 23:16:06:550 Coordinador/(4486:4486): Listo para escuchar a cualquier Cliente...
+[INFO] 23:16:19:463 Coordinador/(4486:4491): establecerConexion: Cliente conectado
+[INFO] 23:16:19:546 Coordinador/(4486:4491): establecerConexion: El cliente es ESI.
+[INFO] 23:16:21:457 Coordinador/(4486:4486): Listo para escuchar a cualquier Cliente...
+[INFO] 23:16:23:31 Coordinador/(4486:4491): atenderESI: Recibi un paquete del ESI
+[INFO] 23:16:23:41 Coordinador/(4486:4491): atenderESI: Aguarde mientras se busca una Instancia...
+[WARNING] 23:16:27:49 Coordinador/(4486:4491): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 23:16:31:60 Coordinador/(4486:4491): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 23:19:44:444 Coordinador/(4875:4875): main: Se crea la tabla de intancias.
+[INFO] 23:19:44:501 Coordinador/(4875:4875): Servidor conectado.
+[INFO] 23:19:44:510 Coordinador/(4875:4875): Listo para escuchar a cualquier Cliente...
+[INFO] 23:19:49:934 Coordinador/(4875:4879): establecerConexion: Cliente conectado
+[INFO] 23:19:50:14 Coordinador/(4875:4879): establecerConexion: El cliente es ESI.
+[INFO] 23:19:51:934 Coordinador/(4875:4875): Listo para escuchar a cualquier Cliente...
+[INFO] 23:19:57:553 Coordinador/(4875:4879): atenderESI: Recibi un paquete del ESI
+[INFO] 23:19:57:560 Coordinador/(4875:4879): atenderESI: Aguarde mientras se busca una Instancia...
+[WARNING] 23:20:01:566 Coordinador/(4875:4879): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 23:20:05:570 Coordinador/(4875:4879): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 23:20:09:575 Coordinador/(4875:4879): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 23:22:24:479 Coordinador/(4940:4940): main: Se crea la tabla de intancias.
+[INFO] 23:22:24:551 Coordinador/(4940:4940): Servidor conectado.
+[INFO] 23:22:24:559 Coordinador/(4940:4940): Listo para escuchar a cualquier Cliente...
+[INFO] 23:22:30:154 Coordinador/(4940:4944): establecerConexion: Cliente conectado
+[INFO] 23:22:30:258 Coordinador/(4940:4944): establecerConexion: El cliente es ESI.
+[INFO] 23:22:32:152 Coordinador/(4940:4940): Listo para escuchar a cualquier Cliente...
+[INFO] 23:22:37:826 Coordinador/(4940:4944): atenderESI: Recibi un paquete del ESI
+[INFO] 23:22:37:830 Coordinador/(4940:4944): atenderESI: Aguarde mientras se busca una Instancia...
+[INFO] 23:22:43:72 Coordinador/(4945:4945): main: Se crea la tabla de intancias.
+[INFO] 23:22:43:130 Coordinador/(4945:4945): Servidor conectado.
+[INFO] 23:22:43:133 Coordinador/(4945:4945): Listo para escuchar a cualquier Cliente...
+[INFO] 23:22:47:324 Coordinador/(4945:4949): establecerConexion: Cliente conectado
+[INFO] 23:22:47:391 Coordinador/(4945:4949): establecerConexion: El cliente es ESI.
+[INFO] 23:22:49:327 Coordinador/(4945:4945): Listo para escuchar a cualquier Cliente...
+[INFO] 23:24:34:335 Coordinador/(5265:5265): main: Se crea la tabla de intancias.
+[INFO] 23:24:34:393 Coordinador/(5265:5265): Servidor conectado.
+[INFO] 23:24:34:398 Coordinador/(5265:5265): Listo para escuchar a cualquier Cliente...
+[INFO] 23:25:02:299 Coordinador/(5265:5299): establecerConexion: Cliente conectado
+[INFO] 23:25:02:373 Coordinador/(5265:5299): establecerConexion: El cliente es ESI.
+[INFO] 23:25:04:309 Coordinador/(5265:5265): Listo para escuchar a cualquier Cliente...
+[INFO] 23:25:06:493 Coordinador/(5265:5299): atenderESI: Recibi un paquete del ESI
+[INFO] 23:25:06:497 Coordinador/(5265:5299): atenderESI: Aguarde mientras se busca una Instancia...
+[WARNING] 23:25:10:505 Coordinador/(5265:5299): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 23:25:52:33 Coordinador/(5346:5346): main: Se crea la tabla de intancias.
+[INFO] 23:25:53:306 Coordinador/(5346:5346): Servidor conectado.
+[INFO] 23:25:53:309 Coordinador/(5346:5346): Listo para escuchar a cualquier Cliente...
+[INFO] 23:26:16:722 Coordinador/(5374:5374): main: Se crea la tabla de intancias.
+[INFO] 23:26:16:822 Coordinador/(5374:5374): Servidor conectado.
+[INFO] 23:26:16:830 Coordinador/(5374:5374): Listo para escuchar a cualquier Cliente...
+[INFO] 23:26:52:770 Coordinador/(5719:5719): main: Se crea la tabla de intancias.
+[INFO] 23:26:52:839 Coordinador/(5719:5719): Servidor conectado.
+[INFO] 23:26:52:843 Coordinador/(5719:5719): Listo para escuchar a cualquier Cliente...
+[INFO] 23:27:20:753 Coordinador/(5719:5745): establecerConexion: Cliente conectado
+[INFO] 23:27:20:827 Coordinador/(5719:5745): establecerConexion: El cliente es ESI.
+[INFO] 23:27:22:752 Coordinador/(5719:5719): Listo para escuchar a cualquier Cliente...
+[INFO] 23:27:25:857 Coordinador/(5719:5745): atenderESI: Recibi un paquete del ESI
+[INFO] 23:27:25:861 Coordinador/(5719:5745): atenderESI: Aguarde mientras se busca una Instancia...
+[WARNING] 23:27:29:868 Coordinador/(5719:5745): atenderESI: No hay instancias disponibles. Reintentando...
+[WARNING] 23:27:33:881 Coordinador/(5719:5745): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 00:17:46:772 Coordinador/(6683:6683): main: Se crea la tabla de intancias.
+[INFO] 00:17:46:835 Coordinador/(6683:6683): Servidor conectado.
+[INFO] 00:17:46:847 Coordinador/(6683:6683): Listo para escuchar a cualquier Cliente...
+[INFO] 00:18:16:219 Coordinador/(6683:6802): establecerConexion: Cliente conectado
+[INFO] 00:18:16:342 Coordinador/(6683:6802): establecerConexion: El cliente es una Instancia.
+[INFO] 00:18:16:350 Coordinador/(6683:6802): atenderInstancia: TCB de Instancia agregado a la tabla de instancias
+[INFO] 00:18:16:365 Coordinador/(6683:6802): atenderInstancia: Envio a la Instancia su cantidad de entradas
+[INFO] 00:18:16:369 Coordinador/(6683:6802): atenderInstancia: Envio a la Instancia el tamaño de las entradas
+[INFO] 00:18:18:224 Coordinador/(6683:6683): Listo para escuchar a cualquier Cliente...
+[INFO] 00:18:40:877 Coordinador/(6683:6805): establecerConexion: Cliente conectado
+[INFO] 00:18:40:963 Coordinador/(6683:6805): establecerConexion: El cliente es ESI.
+[INFO] 00:18:42:871 Coordinador/(6683:6683): Listo para escuchar a cualquier Cliente...
+[ERROR] 00:18:51:425 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:438 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:443 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:455 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:463 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:472 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:480 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:488 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:497 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:500 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:501 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:507 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:509 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:512 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:529 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:532 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:535 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:538 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:540 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:542 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:554 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:560 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:562 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:565 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:568 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:570 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:573 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:587 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:589 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:592 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:594 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:597 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:600 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:602 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:612 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:619 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:621 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:625 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:627 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:630 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:633 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:643 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:650 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:653 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:656 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:658 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:661 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:673 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:676 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:681 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:684 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:686 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:688 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:691 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:694 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:706 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:709 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:711 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:714 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:716 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:719 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:721 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:723 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:726 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:732 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:737 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:740 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:742 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:744 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:747 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:749 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:752 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:761 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:765 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:768 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:770 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:773 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:775 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:778 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:779 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:782 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:791 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:795 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:798 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:799 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:802 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:804 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:807 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:809 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:813 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:821 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:826 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:828 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:831 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:833 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:835 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:838 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:840 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:843 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:851 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:853 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:859 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:861 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:865 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:866 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:867 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:869 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:871 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:874 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:881 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:886 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:888 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:890 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:892 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:894 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:898 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:899 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:902 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:904 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:913 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:915 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:918 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:920 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:922 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:924 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:926 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:929 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:931 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:934 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:945 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:946 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:949 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:952 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:954 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:956 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:958 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:960 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:963 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:972 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:974 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:978 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:981 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:983 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:986 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:988 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:991 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:994 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:51:0 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:8 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:11 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:14 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:17 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:19 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:21 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:23 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:34 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:40 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:42 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:44 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:46 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:49 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:52 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:54 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:61 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:69 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:72 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:74 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:77 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:80 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:82 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:85 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:92 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:93 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:100 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:102 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:104 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:106 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:109 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:111 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:113 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:116 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:125 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:130 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:133 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:135 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:138 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:140 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:143 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:145 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:160 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:164 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:166 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:169 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:171 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:174 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:176 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:186 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:193 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:196 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:199 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:201 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:204 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:206 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:218 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:219 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:225 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:227 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:230 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:233 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:235 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:238 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:251 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:254 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:256 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:259 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:262 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:265 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:279 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:283 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:286 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:288 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:290 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:292 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:295 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:298 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:311 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:315 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:318 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:320 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:322 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:325 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:327 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:341 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:344 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:347 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:349 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:353 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:355 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:358 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:368 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:369 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:375 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:379 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:382 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:385 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:387 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:400 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:402 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:407 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:409 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:412 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:415 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:417 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:420 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:434 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:437 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:439 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:441 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:444 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:447 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:450 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:464 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:466 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:468 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:471 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:473 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:476 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:479 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:489 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:490 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:492 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:494 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:498 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:501 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:503 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:506 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:508 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:511 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:525 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:528 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:530 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:533 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:535 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:538 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:541 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:551 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:556 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:559 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:561 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:564 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:567 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:570 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:580 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:585 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:587 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:590 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:592 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:594 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:597 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:600 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:609 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:613 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:617 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:618 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:620 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:623 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:624 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:626 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:630 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:636 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:641 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:643 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:646 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:648 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:651 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:653 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:655 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:657 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:659 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:669 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:670 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:675 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:678 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:681 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:683 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:685 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:688 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:690 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:701 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:703 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:706 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:708 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:710 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:712 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:715 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:718 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:720 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:722 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:729 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:734 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:737 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:739 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:742 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:744 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:747 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:749 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:751 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:761 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:762 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:766 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:769 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:772 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:774 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:777 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:780 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:782 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:796 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:799 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:800 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:802 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:804 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:806 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:808 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:810 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:813 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:821 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:823 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:830 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:833 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:836 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:838 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:842 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:855 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:857 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:860 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:863 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:866 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:868 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:871 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:881 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:883 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:889 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:892 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:895 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:897 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:900 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:903 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:916 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:918 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:921 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:923 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:926 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:929 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:931 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:942 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:949 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:951 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:954 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:956 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:959 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:962 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:977 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:984 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:988 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:991 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:52:993 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:6 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:12 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:18 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:22 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:26 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:37 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:39 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:46 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:48 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:53 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:57 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:68 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:71 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:77 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:79 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:86 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:96 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:99 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:105 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:109 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:111 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:117 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:125 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:133 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:135 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:137 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:142 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:145 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:157 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:158 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:164 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:168 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:172 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:174 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:176 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:184 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:190 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:196 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:198 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:201 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:203 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:206 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:208 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:218 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:225 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:228 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:232 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:235 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:238 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:250 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:251 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:255 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:258 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:261 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:264 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:266 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:269 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:281 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:284 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:287 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:290 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:292 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:295 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:298 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:324 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:341 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:351 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:364 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:373 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:387 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:405 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:410 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:424 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:436 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:438 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:443 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:445 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:448 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:450 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:452 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:454 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:456 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:458 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:469 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:471 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:473 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:475 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:477 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:480 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:482 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:485 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:487 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:497 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:499 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:500 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:505 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:508 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:510 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:513 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:516 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:519 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:529 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:531 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:535 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:537 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:540 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:542 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:545 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:548 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:558 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:565 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:566 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:571 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:574 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:596 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:599 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:602 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:606 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:610 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:618 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:623 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:629 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:632 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:634 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:637 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:639 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:649 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:650 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:656 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:659 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:662 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:665 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:667 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:670 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:684 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:687 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:690 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:692 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:695 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:698 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:700 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:710 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:716 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:719 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:721 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:724 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:726 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:729 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:740 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:747 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:750 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:752 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:760 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:771 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:777 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:780 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:782 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:785 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:788 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:796 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:803 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:805 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:809 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:811 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:813 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:816 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:818 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:821 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:829 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:837 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:839 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:842 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:844 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:847 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:850 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:861 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:862 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:868 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:870 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:873 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:876 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:879 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script
+[ERROR] 00:18:53:881 Coordinador/(6683:6805): atenderESI: Error al recibir instruccion de script

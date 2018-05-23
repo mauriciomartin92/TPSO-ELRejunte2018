@@ -21,6 +21,6 @@ typedef struct {
 t_instruccion instruccionMutada;
 
 void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger);
-t_instruccion desempaquetarInstruccion(void* paqueteSerializado, size_t buffer_size, t_log* logger);
+t_instruccion desempaquetarInstruccion(void* paqueteSerializado, t_log* logger);
 
 #endif /* SRC_MISERIALIZADOR_H_ */

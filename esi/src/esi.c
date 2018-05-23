@@ -52,27 +52,27 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	t_esi_operacion parsed = parse(line);
 
 	/*if (parsed.valido) { // ESTO SOLO LO TIENE QUE HACER LA INSTANCIA PARA SABER QUE INSTRUCCION ES
-		switch (parsed.keyword) {
-		case GET:
-			printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
-			break;
-		case SET:
-			printf("SET\tclave: <%s>\tvalor: <%s>\n",
-					parsed.argumentos.SET.clave, parsed.argumentos.SET.valor);
-			break;
-		case STORE:
-			printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
-			break;
-		default:
-			fprintf(stderr, "No pude interpretar <%s>\n", line);
-			exit(EXIT_FAILURE);
+	 switch (parsed.keyword) {
+	 case GET:
+	 printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
+	 break;
+	 case SET:
+	 printf("SET\tclave: <%s>\tvalor: <%s>\n",
+	 parsed.argumentos.SET.clave, parsed.argumentos.SET.valor);
+	 break;
+	 case STORE:
+	 printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
+	 break;
+	 default:
+	 fprintf(stderr, "No pude interpretar <%s>\n", line);
+	 exit(EXIT_FAILURE);
 
-			destruir_operacion(parsed);
-		}
-	} else {
-		fprintf(stderr, "La linea <%s> no es valida\n", line);
-		exit(EXIT_FAILURE);
-	}*/
+	 destruir_operacion(parsed);
+	 }
+	 } else {
+	 fprintf(stderr, "La linea <%s> no es valida\n", line);
+	 exit(EXIT_FAILURE);
+	 }*/
 
 	if (line)
 		free(line);
@@ -109,14 +109,16 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 
 		if (strcmp(seleccion, mensaje) == 0) { // ¿Es lo que esperaba?
 			log_info(logger, "El planificador solicita una instruccion");
-			t_esi_operacion instruccion = parsearLineaScript(fp); // HAY QUE MANDARLO AL COORDINADOR
+
+			// Se parsea la instruccion que se le enviara al coordiandor
+			t_esi_operacion instruccion = parsearLineaScript(fp);
 			log_info(logger, "La instruccion fue parseada");
 
+			// Se empaqueta la instruccion
 			void* paquete = empaquetarInstruccion(instruccion, logger);
 
 			log_info(logger, "Envio la instruccion al coordinador");
-			if ((send(socketCoordinador, paquete, sizeof(paquete),
-					0)) < 0) {
+			if ((send(socketCoordinador, paquete, sizeof(paquete), 0)) < 0) {
 				//Hubo error al enviar la linea parseada
 				log_error(logger, "Error al enviar instruccion de script");
 				exit(EXIT_FAILURE);

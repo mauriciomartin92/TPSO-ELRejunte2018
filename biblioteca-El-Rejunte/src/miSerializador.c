@@ -11,8 +11,8 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	log_info(logger, "Empaqueto la instruccion");
 
 	instruccionMutada.operacion = 0;
-	instruccionMutada.clave = "";
-	instruccionMutada.valor = "";
+	instruccionMutada.clave = NULL;
+	instruccionMutada.valor = NULL;
 
 	switch (instruccion.keyword) {
 	case GET:
@@ -20,7 +20,9 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 				instruccion.argumentos.GET.clave);
 
 		instruccionMutada.operacion = 1;
-		strcpy(instruccionMutada.clave, (const char*) instruccion.argumentos.GET.clave);
+		instruccionMutada.clave = malloc(
+				strlen(instruccion.argumentos.GET.clave) + 1);
+		strcpy(instruccionMutada.clave, instruccion.argumentos.GET.clave);
 
 		break;
 	case SET:
@@ -29,7 +31,11 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 				instruccion.argumentos.SET.valor);
 
 		instruccionMutada.operacion = 2;
+		instruccionMutada.clave = malloc(
+				strlen(instruccion.argumentos.SET.clave) + 1);
 		strcpy(instruccionMutada.clave, instruccion.argumentos.SET.clave);
+		instruccionMutada.clave = malloc(
+				strlen(instruccion.argumentos.GET.clave) + 1);
 		strcpy(instruccionMutada.valor, instruccion.argumentos.SET.valor);
 
 		break;
@@ -38,11 +44,13 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 				instruccion.argumentos.STORE.clave);
 
 		instruccionMutada.operacion = 3;
+		instruccionMutada.clave = malloc(
+				strlen(instruccion.argumentos.STORE.clave) + 1);
 		strcpy(instruccionMutada.clave, instruccion.argumentos.STORE.clave);
 
 		break;
 	default:
-		log_error(logger, "No se pudo empaquetar la instruccion\n");
+		log_error(logger, "No se pudo empaquetar la instruccion");
 		break;
 	}
 
@@ -53,12 +61,11 @@ void* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	return buffer;
 }
 
-t_instruccion desempaquetarInstruccion(void* buffer,
-		size_t buffer_size, t_log* logger) {
+t_instruccion desempaquetarInstruccion(void* buffer, t_log* logger) {
 
 	log_info(logger, "Desempaqueto la instruccion");
 
-	memcpy(&instruccionMutada, buffer, buffer_size);
+	memcpy(&instruccionMutada, buffer, sizeof(buffer));
 	printf("La operacion es %d\n", instruccionMutada.operacion);
 	printf("La clave es %s\n", instruccionMutada.clave);
 
