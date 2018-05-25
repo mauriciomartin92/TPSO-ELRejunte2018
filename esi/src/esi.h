@@ -25,5 +25,6 @@
 
 int cargarConfiguracion();
 t_esi_operacion parsearLineaScript(FILE* fp);
+void finalizar();
 
 #endif /* ESI_H_ */

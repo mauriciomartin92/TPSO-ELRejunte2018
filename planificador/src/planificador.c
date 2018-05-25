@@ -146,7 +146,7 @@ int cargarConfiguracion() {
 
 	// Valido posibles errores
 	if (error_config) {
-		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
+		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
 		return -1;
 	}
 	return 1;

@@ -65,7 +65,7 @@ void atenderESI(int socketCliente) {
 						"atenderESI: No hay instancias disponibles. Reintentando...");
 			}
 			enviarAInstancia(paquete);
-			free(paquete);
+			destruirPaquete(paquete);
 
 			log_info(logger,
 					"atenderESI: Le informo al ESI que el paquete llego correctamente");
@@ -155,8 +155,7 @@ int cargarConfiguracion() {
 
 	// Valido si hubo errores
 	if (error_config) {
-		log_error(logger,
-				"cargarConfiguracion: NO SE PUDO CONECTAR CORRECTAMENTE.");
+		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
 		return -1;
 	}
 	return 1;

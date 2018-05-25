@@ -18,10 +18,13 @@
 
 t_log* logger;
 bool error_config = false;
-char* ip_coordinador; char* ip_planificador;
-char* port_coordinador; char* port_planificador;
+char* ip_coordinador;
+char* ip_planificador;
+char* port_coordinador;
+char* port_planificador;
 int packagesize;
 int socketCoordinador, socketPlanificador;
+FILE *fp;
 
 int cargarConfiguracion() {
 	error_config = false;
@@ -44,7 +47,7 @@ int cargarConfiguracion() {
 
 	// Valido posibles errores
 	if (error_config) {
-		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
+		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
 		return -1;
 	}
 	return 1;
@@ -58,7 +61,7 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
-	/*if (parsed.valido) { // ESTO SOLO LO TIENE QUE HACER LA INSTANCIA PARA SABER QUE INSTRUCCION ES
+	/*if (parsed.valido) {
 	 switch (parsed.keyword) {
 	 case GET:
 	 printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
@@ -87,16 +90,26 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	return parsed;
 }
 
+void finalizar() {
+	if (fp) fclose(fp);
+	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
+	if (socketPlanificador > 0) finalizarSocket(socketPlanificador);
+	log_destroy(logger);
+	exit(0);
+}
+
 int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
 	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
-	if (cargarConfiguracion() < 0)
-		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+	if (cargarConfiguracion() < 0) {
+		log_error(logger, "No se pudo cargar la configuracion");
+		finalizar(); // Si hubo error, se corta la ejecucion.
+	}
 
 // Abro el fichero del script
-	FILE *fp = fopen(argv[1], "r");
+	fp = fopen(argv[1], "r");
 	if (!fp) {
-		log_error("Error al abrir el archivo");
+		log_error(logger, "Error al abrir el archivo");
 		finalizar();
 	}
 
@@ -127,7 +140,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			if ((send(socketCoordinador, paquete, strlen(paquete), 0)) < 0) {
 				//Hubo error al enviar la linea parseada
 				log_error(logger, "Error al enviar instruccion de script");
-				exit(EXIT_FAILURE);
+				finalizar();
 			} else {
 				//Esperar respuesta coordinador.
 				char respuestaCoordinador[packagesize];
@@ -144,14 +157,12 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 							"El coordinador informa que no la pudo recibir");
 				}
 			}
+			if (paquete) destruirPaquete(paquete);
 		}
 	}
 
 	// SE CIERRA Y LIBERA LO CORRESPONDIENTE AL ESI:
 
-	fclose(fp);
-	finalizarSocket(socketCoordinador);
-	finalizarSocket(socketPlanificador);
-	log_destroy(logger);
+	finalizar();
 	return EXIT_SUCCESS;
 }

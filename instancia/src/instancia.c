@@ -18,22 +18,16 @@
 
 t_log* logger;
 bool error_config;
-char* ip; char* port;
+char* ip;
+char* port;
 int packagesize;
+int socketCoordinador;
+char* cant_entradas;
+char* tam_entradas;
 t_list* tabla_entradas;
 
-void abrirArchivoInstancia(int* fileDescriptor) {
-	/*
-	 * La syscall open() nos permite abrir un archivo para escritura/lectura
-	 * con permisos de usuario para realizar dichas operaciones.
-	 */
-	*fileDescriptor = open("instancia.txt", O_CREAT | O_RDWR,
-			S_IRUSR | S_IWUSR);
+void ejecutar(t_instruccion instruccion) {
 
-	if (*fileDescriptor < 0) {
-		log_error(logger, "Error al abrir el archivo de instancia");
-		exit(1);
-	}
 }
 
 void imprimirArgumentosInstruccion(t_instruccion instruccion) {
@@ -60,8 +54,6 @@ void imprimirArgumentosInstruccion(t_instruccion instruccion) {
 }
 
 void recibirInstruccion(int socketCoordinador) {
-	t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
-
 	// Recibo linea de script parseada
 	void* paquete = malloc(sizeof(packagesize));
 	if (recv(socketCoordinador, paquete, packagesize, 0) < 0) { // MSG_WAITALL
@@ -74,7 +66,11 @@ void recibirInstruccion(int socketCoordinador) {
 				"Recibo una instruccion de script que me envia el Coordinador.");
 
 		t_instruccion instruccion = desempaquetarInstruccion(paquete, logger);
+		destruirPaquete(paquete);
+
 		imprimirArgumentosInstruccion(instruccion);
+
+		ejecutar(instruccion);
 
 		/*
 		 * proceso el script asignandoselo a una instancia
@@ -86,8 +82,20 @@ void recibirInstruccion(int socketCoordinador) {
 		 send(socketCoordinador, "ok", strlen("ok"), 0); // Envio respuesta al Coordinador
 		 */
 	}
+}
 
-	free(instruccion);
+void abrirArchivoInstancia(int* fileDescriptor) {
+	/*
+	 * La syscall open() nos permite abrir un archivo para escritura/lectura
+	 * con permisos de usuario para realizar dichas operaciones.
+	 */
+	*fileDescriptor = open("instancia.txt", O_CREAT | O_RDWR,
+	S_IRUSR | S_IWUSR);
+
+	if (*fileDescriptor < 0) {
+		log_error(logger, "Error al abrir el archivo de Instancia");
+		finalizar();
+	}
 }
 
 int cargarConfiguracion() {
@@ -104,10 +112,21 @@ int cargarConfiguracion() {
 
 	// Valido si hubo errores
 	if (error_config) {
-		log_error(logger, "NO SE PUDO CONECTAR CORRECTAMENTE.");
+		log_error(logger,
+				"No se pudieron obtener todos los datos correspondientes");
 		return -1;
 	}
 	return 1;
+}
+
+void finalizar() {
+	if (socketCoordinador > 0)
+		finalizarSocket(socketCoordinador);
+	free(cant_entradas);
+	free(tam_entradas);
+	list_destroy(tabla_entradas);
+	log_destroy(logger);
+	exit(0);
 }
 
 int main() {
@@ -121,16 +140,16 @@ int main() {
 	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
 
 	if (cargarConfiguracion() < 0)
-		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
+		finalizar(); // Si hubo error, se corta la ejecucion.
 
 	// Me conecto con el Servidor y le mando mensajes
-	int socketCoordinador = conectarComoCliente(logger, ip, port);
+	socketCoordinador = conectarComoCliente(logger, ip, port);
 	char* handshake = "2";
 	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
 
 	// Me preparo para recibir la cantidad y el tamaño de las entradas
-	char* cant_entradas = malloc(sizeof(int));
-	char* tam_entradas = malloc(sizeof(int));
+	cant_entradas = malloc(sizeof(int));
+	tam_entradas = malloc(sizeof(int));
 
 	if (recv(socketCoordinador, cant_entradas, sizeof(int), 0) < 0) {
 		log_error(logger, "No se pudo recibir la cantidad de entradas.");
@@ -157,9 +176,8 @@ int main() {
 	 */
 	abrirArchivoInstancia(&fd);
 	if (fstat(fd, &sb) < 0) {
-		perror("No se pudo obtener el tamaño de archivo ");
-		close(fd);
-		exit(1);
+		log_error(logger, "No se pudo obtener el tamaño de archivo");
+		finalizar();
 	}
 
 	printf("Tamaño de archivo: %ld\n", sb.st_size);
@@ -171,7 +189,7 @@ int main() {
 		 * con dirección elegida por el SO y permisos de lectura/escritura.
 		 */
 		mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE,
-				MAP_SHARED, fd, 0);
+		MAP_SHARED, fd, 0);
 
 		for (int i = 0; i < sb.st_size; i++) {
 			printf("%c", mapa_archivo[i]);
@@ -186,7 +204,6 @@ int main() {
 
 	recibirInstruccion(socketCoordinador);
 
-	// free(storage_volatil);
-
+	finalizar();
 	return EXIT_SUCCESS;
 }
