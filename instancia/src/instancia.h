@@ -27,22 +27,14 @@
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
-t_log* logger;
-char* ip;
-char* port;
-int packagesize;
-bool error_config;
-t_list* tabla_entradas;
-void* paquete;
-
 typedef struct {
 	char* clave;
 	int entrada_asociada;
 	int size_valor_almacenado;
-} t_entrada;
+} __attribute__((packed)) t_entrada;
 
 int cargarConfiguracion();
 void recibirInstruccion(int socketCoorinador);
-void abrirArchivoInstancia(int fileDescriptor);
+void abrirArchivoInstancia(int* fileDescriptor);
 
 #endif /* INSTANCIA_H_ */

@@ -16,6 +16,13 @@
 
 #include "esi.h"
 
+t_log* logger;
+bool error_config = false;
+char* ip_coordinador; char* ip_planificador;
+char* port_coordinador; char* port_planificador;
+int packagesize;
+int socketCoordinador, socketPlanificador;
+
 int cargarConfiguracion() {
 	error_config = false;
 
@@ -87,19 +94,18 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
 // Abro el fichero del script
-	FILE *fp;
-	fp = fopen(argv[1], "r");
+	FILE *fp = fopen(argv[1], "r");
 	if (!fp) {
-		perror("Error al abrir el archivo: ");
-		exit(EXIT_FAILURE);
+		log_error("Error al abrir el archivo");
+		finalizar();
 	}
 
 // Me conecto como Cliente al Coordinador y al Planificador
-	int socketCoordinador = conectarComoCliente(logger, ip_coordinador,
+	socketCoordinador = conectarComoCliente(logger, ip_coordinador,
 			port_coordinador);
 	char* handshake = "1";
 	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
-	int socketPlanificador = conectarComoCliente(logger, ip_planificador,
+	socketPlanificador = conectarComoCliente(logger, ip_planificador,
 			port_planificador);
 
 	while (!feof(fp)) {
@@ -140,8 +146,12 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			}
 		}
 	}
+
+	// SE CIERRA Y LIBERA LO CORRESPONDIENTE AL ESI:
+
 	fclose(fp);
 	finalizarSocket(socketCoordinador);
 	finalizarSocket(socketPlanificador);
+	log_destroy(logger);
 	return EXIT_SUCCESS;
 }

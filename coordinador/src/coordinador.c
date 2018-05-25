@@ -10,6 +10,16 @@
 
 #include "coordinador.h"
 
+t_log* logger;
+bool error_config;
+char* ip; char* port;
+char* algoritmo_distribucion;
+int backlog, packagesize, cant_entradas, tam_entradas, retardo;
+t_queue* cola_instancias;
+int socketDeEscucha;
+int clave_tid;
+bool estaAtendiendoInstancia;
+
 t_tcb* algoritmoDeDistribucion() {
 	// implementar
 	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
@@ -24,27 +34,31 @@ t_tcb* algoritmoDeDistribucion() {
 }
 
 void enviarAInstancia(char* paquete) {
-	log_info(logger, "enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
+	log_info(logger,
+			"enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
 	send(tcb_elegido->socket, paquete, strlen(paquete), 0);
 }
 
 void atenderESI(int socketCliente) {
 	do {
-		printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
+		printf("atenderESI: La cola de instancias esta vacia? %d\n",
+				queue_is_empty(cola_instancias));
 
 		// Recibo linea de script parseada
 		char* paquete = malloc(sizeof(packagesize));
 		if (recv(socketCliente, paquete, packagesize, 0) < 0) {
 			sleep(retardo / 1000);
 			//Hubo error al recibir la linea parseada
-			log_error(logger, "atenderESI: Error al recibir instruccion de script");
+			log_error(logger,
+					"atenderESI: Error al recibir instruccion de script");
 			send(socketCliente, "error", strlen("error"), 0); // Envio respuesta al ESI
 		} else {
 			sleep(retardo / 1000);
 			log_info(logger, "atenderESI: Recibi un paquete del ESI");
 
-			log_info(logger, "atenderESI: Aguarde mientras se busca una Instancia...");
+			log_info(logger,
+					"atenderESI: Aguarde mientras se busca una Instancia...");
 			while (queue_is_empty(cola_instancias)) {
 				sleep(4);
 				log_warning(logger,
@@ -66,14 +80,19 @@ void atenderInstancia(int socketCliente) {
 	clave_tid++;
 	tcb->socket = socketCliente;
 	queue_push(cola_instancias, tcb);
-	log_info(logger, "atenderInstancia: TCB de Instancia agregado a la tabla de instancias");
-	printf("atenderInstancia: La direccion del nuevo TCB es %p\n", queue_peek(cola_instancias));
-	printf("atenderInstancia: Y la cantidad de elementos es %d\n", queue_size(cola_instancias));
+	log_info(logger,
+			"atenderInstancia: TCB de Instancia agregado a la tabla de instancias");
+	printf("atenderInstancia: La direccion del nuevo TCB es %p\n",
+			queue_peek(cola_instancias));
+	printf("atenderInstancia: Y la cantidad de elementos es %d\n",
+			queue_size(cola_instancias));
 
-	log_info(logger, "atenderInstancia: Envio a la Instancia su cantidad de entradas");
+	log_info(logger,
+			"atenderInstancia: Envio a la Instancia su cantidad de entradas");
 	enviarPaqueteNumerico(socketCliente, cant_entradas);
 
-	log_info(logger, "atenderInstancia: Envio a la Instancia el tamaño de las entradas");
+	log_info(logger,
+			"atenderInstancia: Envio a la Instancia el tamaño de las entradas");
 	enviarPaqueteNumerico(socketCliente, tam_entradas);
 }
 
@@ -99,7 +118,8 @@ void* establecerConexion(void* socketCliente) {
 		atenderInstancia(*(int*) socketCliente);
 		estaAtendiendoInstancia = false;
 	} else {
-		log_error(logger, "establecerConexion: No se pudo reconocer al cliente.");
+		log_error(logger,
+				"establecerConexion: No se pudo reconocer al cliente.");
 	}
 
 	return NULL;
@@ -135,7 +155,8 @@ int cargarConfiguracion() {
 
 	// Valido si hubo errores
 	if (error_config) {
-		log_error(logger, "cargarConfiguracion: NO SE PUDO CONECTAR CORRECTAMENTE.");
+		log_error(logger,
+				"cargarConfiguracion: NO SE PUDO CONECTAR CORRECTAMENTE.");
 		return -1;
 	}
 	return 1;

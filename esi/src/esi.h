@@ -23,13 +23,6 @@
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
-t_log* logger;
-t_config* config;
-bool error_config = false;
-char* ip_coordinador; char* ip_planificador;
-char* port_coordinador; char* port_planificador;
-int packagesize;
-
 int cargarConfiguracion();
 t_esi_operacion parsearLineaScript(FILE* fp);
 

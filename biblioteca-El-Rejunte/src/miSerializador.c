@@ -11,6 +11,7 @@
 
 char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	log_info(logger, "Empaqueto la instruccion");
+	char* buffer;
 
 	switch (instruccion.keyword) {
 	case GET:
@@ -51,6 +52,7 @@ char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 
 t_instruccion desempaquetarInstruccion(char* buffer, t_log* logger) {
 	log_info(logger, "Desempaqueto la instruccion");
+	t_instruccion instruccionMutada;
 
 	printf("El paquete recibido es: %s\n", buffer);
 

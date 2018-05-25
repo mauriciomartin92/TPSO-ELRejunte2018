@@ -23,24 +23,10 @@
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
-char* ip;
-char* port;
-int packagesize, backlog;
-char* algoritmo;
-bool error_config;
-t_log* logger;
-// t_queue* es un puntero a una cola
-t_queue* listos;
-t_queue* bloqueados;
-t_queue* terminados;
-sem_t sem_bin_menu;
-sem_t sem_bin_esi;
-int pid_asignacion;
-
 typedef struct {
 	int pid; //pid_t
 	int socket;
-} t_pcb;
+} __attribute__((packed)) t_pcb;
 
 int imprimirMenu();
 int cargarConfiguracion();

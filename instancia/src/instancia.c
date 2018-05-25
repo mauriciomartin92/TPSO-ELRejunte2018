@@ -16,15 +16,21 @@
 
 #include "instancia.h"
 
-void abrirArchivoInstancia(int *fileDescriptor) {
+t_log* logger;
+bool error_config;
+char* ip; char* port;
+int packagesize;
+t_list* tabla_entradas;
+
+void abrirArchivoInstancia(int* fileDescriptor) {
 	/*
 	 * La syscall open() nos permite abrir un archivo para escritura/lectura
 	 * con permisos de usuario para realizar dichas operaciones.
 	 */
-	*fileDescriptor = open("instancia.txt", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-	
-	if (*fileDescriptor < 0)
-	{
+	*fileDescriptor = open("instancia.txt", O_CREAT | O_RDWR,
+			S_IRUSR | S_IWUSR);
+
+	if (*fileDescriptor < 0) {
 		log_error(logger, "Error al abrir el archivo de instancia");
 		exit(1);
 	}
@@ -57,7 +63,7 @@ void recibirInstruccion(int socketCoordinador) {
 	t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
 
 	// Recibo linea de script parseada
-	paquete = malloc(sizeof(packagesize));
+	void* paquete = malloc(sizeof(packagesize));
 	if (recv(socketCoordinador, paquete, packagesize, 0) < 0) { // MSG_WAITALL
 		//Hubo error al recibir la linea parseada
 		log_error(logger, "Error al recibir instruccion de script.");
@@ -150,7 +156,7 @@ int main() {
 	 * ---------- mmap (lo esta haciendo Julian) ----------
 	 */
 	abrirArchivoInstancia(&fd);
-	if(fstat(fd, &sb) < 0){
+	if (fstat(fd, &sb) < 0) {
 		perror("No se pudo obtener el tamaño de archivo ");
 		close(fd);
 		exit(1);
@@ -159,14 +165,15 @@ int main() {
 	printf("Tamaño de archivo: %ld\n", sb.st_size);
 
 	//Si el tamaño del archivo es mayor a 0, es porque existía y tiene información.
-	if(sb.st_size > 0){
+	if (sb.st_size > 0) {
 		/*
 		 * Con mmap() paso el archivo a un bloque de memoria de igual tamaño
 		 * con dirección elegida por el SO y permisos de lectura/escritura.
 		 */
-		mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE,
+				MAP_SHARED, fd, 0);
 
-		for (int i = 0; i < sb.st_size; i++){
+		for (int i = 0; i < sb.st_size; i++) {
 			printf("%c", mapa_archivo[i]);
 		}
 		printf("\n");

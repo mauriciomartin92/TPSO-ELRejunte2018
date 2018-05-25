@@ -18,9 +18,6 @@ typedef struct {
 	char* valor;
 } t_instruccion;
 
-char* buffer;
-t_instruccion instruccionMutada;
-
 char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger);
 t_instruccion desempaquetarInstruccion(char* paqueteSerializado, t_log* logger);
 

@@ -16,6 +16,18 @@
 
 #include "planificador.h"
 
+t_log* logger;
+bool error_config;
+char* ip; char* port;
+int packagesize, backlog;
+char* algoritmo;
+t_queue* listos;
+t_queue* bloqueados;
+t_queue* terminados;
+sem_t sem_bin_menu;
+sem_t sem_bin_esi;
+int pid_asignacion;
+
 void estimar() {
 	// Hay que implementarlo
 }

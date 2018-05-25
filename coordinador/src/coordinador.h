@@ -24,23 +24,11 @@
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
-t_log* logger;
-char* ip;
-char* port;
-char* algoritmo_distribucion;
-int backlog, packagesize, cant_entradas, tam_entradas, retardo;
-t_queue* cola_instancias;
-int socketDeEscucha;
-bool error_config;
-int clave_tid;
-bool estaAtendiendoInstancia;
-
-
 typedef struct {
 	int tid;
 	int socket;
 	t_list* esis_asignados;
-} t_tcb;
+} __attribute__((packed)) t_tcb;
 
 int cargarConfiguracion();
 void* establecerConexion(void* parametros);
