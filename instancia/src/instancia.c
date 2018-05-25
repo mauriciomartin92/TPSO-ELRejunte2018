@@ -27,7 +27,16 @@ char* tam_entradas;
 t_list* tabla_entradas;
 
 void ejecutar(t_instruccion instruccion) {
-
+	/* pseudo codigo:
+	 * t_entrada entrada = tabla_entradas.find(unaEntrada -> unaEntrada.clave == instruccion.clave)
+	 * int operacion = instruccion.operacion;
+	 * if (operacion == 1) {
+	 * 		// es GET
+	 * } else if (operacion == 2) {
+	 * 		// es SET
+	 * } else {
+	 * 		// es STORE
+	 */
 }
 
 void imprimirArgumentosInstruccion(t_instruccion instruccion) {
