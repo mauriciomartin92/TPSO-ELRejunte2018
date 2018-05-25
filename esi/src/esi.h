@@ -21,6 +21,7 @@
 #include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
+#include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
 t_log* logger;
 t_config* config;

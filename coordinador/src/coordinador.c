@@ -23,20 +23,19 @@ t_tcb* algoritmoDeDistribucion() {
 	return (t_tcb*) queue_pop(cola_instancias);
 }
 
-void enviarAInstancia(t_esi_operacion* instruccion) {
+void enviarAInstancia(char* paquete) {
 	log_info(logger, "enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
-	printf("enviarAInstancia: la direccion de instancia: %p\n", tcb_elegido);
-	printf("La direccion que recibe el Coordinador y se envia a Instancia es: %p\n", instruccion);
-	send(tcb_elegido->socket, instruccion, sizeof(t_esi_operacion*), 0);
+	send(tcb_elegido->socket, paquete, strlen(paquete), 0);
 }
 
 void atenderESI(int socketCliente) {
 	do {
 		printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
-		t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
+
 		// Recibo linea de script parseada
-		if (recv(socketCliente, instruccion, sizeof(t_esi_operacion*), 0) < 0) {
+		char* paquete = malloc(sizeof(packagesize));
+		if (recv(socketCliente, paquete, packagesize, 0) < 0) {
 			sleep(retardo / 1000);
 			//Hubo error al recibir la linea parseada
 			log_error(logger, "atenderESI: Error al recibir instruccion de script");
@@ -44,24 +43,20 @@ void atenderESI(int socketCliente) {
 		} else {
 			sleep(retardo / 1000);
 			log_info(logger, "atenderESI: Recibi un paquete del ESI");
-			printf("atenderESI: LA DIRECCION DE LA INSTRUCCION ES: %p\n", instruccion);
 
-			// ------ACA SE LO VOY A MANDAR A UNA INSTANCIA------
 			log_info(logger, "atenderESI: Aguarde mientras se busca una Instancia...");
 			while (queue_is_empty(cola_instancias)) {
 				sleep(4);
 				log_warning(logger,
 						"atenderESI: No hay instancias disponibles. Reintentando...");
 			}
-			enviarAInstancia(instruccion);
-			// -------------------AAAATENSHION-------------------
+			enviarAInstancia(paquete);
+			free(paquete);
 
 			log_info(logger,
 					"atenderESI: Le informo al ESI que el paquete llego correctamente");
 			send(socketCliente, "ok", strlen("ok"), 0); // Envio respuesta al ESI
 		}
-
-		free(instruccion);
 	} while (1);
 }
 

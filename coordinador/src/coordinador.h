@@ -22,6 +22,7 @@
 #include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
+#include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
 t_log* logger;
 char* ip;
@@ -45,7 +46,7 @@ int cargarConfiguracion();
 void* establecerConexion(void* parametros);
 void atenderESI(int socketCliente);
 void atenderInstancia(int socketCliente);
-void enviarAInstancia(t_esi_operacion* instruccion);
+void enviarAInstancia(char* paquete);
 t_tcb* algoritmoDeDistribucion();
 
 #endif /* COORDINADOR_H_ */

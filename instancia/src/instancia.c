@@ -30,23 +30,21 @@ void abrirArchivoInstancia(int *fileDescriptor) {
 	}
 }
 
-void imprimirArgumentosInstruccion(t_esi_operacion* instruccion) {
-	log_error(logger, "HOLA KE AC");
-	printf("La direccion que recibe la Instancia es: %p\n", instruccion);
-	switch ((*instruccion).keyword) {
-	case GET:
+void imprimirArgumentosInstruccion(t_instruccion instruccion) {
+	switch (instruccion.operacion) {
+	case 1:
 		printf("ENTRE A GET\n");
-		printf("GET\tclave: <%s>\n", (*instruccion).argumentos.GET.clave);
+		printf("GET %s\n", instruccion.clave);
 		break;
 
-	case SET:
-		printf("SET\tclave: <%s>\tvalor: <%s>\n",
-				(*instruccion).argumentos.SET.clave,
-				(*instruccion).argumentos.SET.valor);
+	case 2:
+		printf("ENTRE A SET\n");
+		printf("SET %s %s\n", instruccion.clave, instruccion.valor);
 		break;
 
-	case STORE:
-		printf("STORE\tclave: <%s>\n", (*instruccion).argumentos.STORE.clave);
+	case 3:
+		printf("ENTRE A STORE\n");
+		printf("STORE %s\n", instruccion.clave);
 		break;
 
 	default:
@@ -59,7 +57,8 @@ void recibirInstruccion(int socketCoordinador) {
 	t_esi_operacion* instruccion = malloc(sizeof(t_esi_operacion));
 
 	// Recibo linea de script parseada
-	if (recv(socketCoordinador, instruccion, sizeof(t_esi_operacion*), 0) < 0) { // MSG_WAITALL
+	paquete = malloc(sizeof(packagesize));
+	if (recv(socketCoordinador, paquete, packagesize, 0) < 0) { // MSG_WAITALL
 		//Hubo error al recibir la linea parseada
 		log_error(logger, "Error al recibir instruccion de script.");
 
@@ -68,6 +67,7 @@ void recibirInstruccion(int socketCoordinador) {
 		log_info(logger,
 				"Recibo una instruccion de script que me envia el Coordinador.");
 
+		t_instruccion instruccion = desempaquetarInstruccion(paquete, logger);
 		imprimirArgumentosInstruccion(instruccion);
 
 		/*
@@ -144,6 +144,8 @@ int main() {
 	//Creo la tabla de entradas de la instancia, que consiste en una lista.
 	tabla_entradas = list_create();
 
+	//void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entradas)));
+
 	/*
 	 * ---------- mmap (lo esta haciendo Julian) ----------
 	 */
@@ -177,6 +179,7 @@ int main() {
 
 	recibirInstruccion(socketCoordinador);
 
+	// free(storage_volatil);
+
 	return EXIT_SUCCESS;
 }
-

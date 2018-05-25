@@ -40,7 +40,6 @@ void* administrarHilosESI(void* socketDeEscucha) {
 				backlog);
 		pthread_t unHilo; // Cada conexion la delega en un hilo
 		pthread_create(&unHilo, NULL, procesarESI, (void*) &socketESI);
-		sleep(2); // sleep para poder ver algo
 	}
 	return NULL;
 }
