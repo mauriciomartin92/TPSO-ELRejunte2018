@@ -12,8 +12,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
@@ -37,5 +41,6 @@ typedef struct {
 
 int cargarConfiguracion();
 void recibirInstruccion(int socketCoorinador);
+void abrirArchivoInstancia(int fileDescriptor);
 
 #endif /* INSTANCIA_H_ */
