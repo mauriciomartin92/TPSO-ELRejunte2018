@@ -132,6 +132,7 @@ void finalizar() {
 int main() {
 	int fd;
 	char* mapa_archivo;
+	char* val;
 	struct stat sb;
 
 	error_config = false;
@@ -190,15 +191,22 @@ int main() {
 		 */
 		mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE,
 		MAP_SHARED, fd, 0);
-
-		for (int i = 0; i < sb.st_size; i++) {
-			printf("%c", mapa_archivo[i]);
+		for (int i = 0; i < sb.st_size; ++i)
+		{
+			if(mapa_archivo[i] == ';'){
+				list_add(tabla_entradas, val);
+				strcpy(val, "");
+			} else {
+				val[i] = mapa_archivo[i];
+			}
 		}
-		printf("\n");
+		
 	} else {
 		//El archivo fue creado y está vacío
 
 	}
+	printf("Lista size: %i\n", list_size(lista));
+
 	munmap(mapa_archivo, sizeof(mapa_archivo));
 	close(fd);
 
