@@ -42,16 +42,23 @@ void procesar(t_instruccion* instruccion) {
 	if (!entrada) { // la entrada no estaba
 		if (instruccion->operacion == 1) {
 			// es GET: crearla
+			t_entrada* nueva_entrada = malloc(sizeof(t_entrada));
+			nueva_entrada->clave = instruccion->clave;
+			//entrada->entrada_asociada = proxima entrada!
+			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
+			list_add(tabla_entradas, nueva_entrada);
 		} else if (instruccion->operacion == 2) {
-			// es SET: no esta
+			// es SET: no hacer nada
 		} else {
 			// es STORE
 		}
 	} else { // la entrada no estaba
 		if (instruccion->operacion == 1) {
-			// es GET: traer valor
+			// es GET: devolver valor
+			// return buscarValorEnMemoria(entrada);
 		} else if (instruccion->operacion == 2) {
 			// es SET: insertar valor
+			// insertarValorEnMemoria(entrada);
 		} else {
 			// es STORE
 		}
