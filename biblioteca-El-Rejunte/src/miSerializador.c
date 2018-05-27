@@ -50,25 +50,25 @@ char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	return buffer;
 }
 
-t_instruccion desempaquetarInstruccion(char* buffer, t_log* logger) {
+t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 	log_info(logger, "Desempaqueto la instruccion");
-	t_instruccion instruccionMutada;
+	t_instruccion* instruccionMutada = malloc(sizeof(t_instruccion));
 
 	printf("El paquete recibido es: %s\n", buffer);
 
-	instruccionMutada.operacion = atoi(strtok(buffer, "-"));
-	instruccionMutada.clave = strtok(NULL, "-");
+	instruccionMutada->operacion = atoi(strtok(buffer, "-"));
+	instruccionMutada->clave = strtok(NULL, "-");
 
-	if (instruccionMutada.operacion == 2) {
-		instruccionMutada.valor = strtok(NULL, "-");
+	if (instruccionMutada->operacion == 2) {
+		instruccionMutada->valor = strtok(NULL, "-");
 	}
 
-	printf("La operacion es %d\n", instruccionMutada.operacion);
-	printf("La clave es %s\n", instruccionMutada.clave);
+	printf("La operacion es %d\n", instruccionMutada->operacion);
+	printf("La clave es %s\n", instruccionMutada->clave);
 
 	// Si es SET:
-	if (instruccionMutada.operacion == 2) {
-		printf("El valor es %s\n", instruccionMutada.valor);
+	if (instruccionMutada->operacion == 2) {
+		printf("El valor es %s\n", instruccionMutada->valor);
 	}
 
 	return instruccionMutada;

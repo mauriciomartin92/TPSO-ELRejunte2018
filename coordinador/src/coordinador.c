@@ -12,8 +12,10 @@
 
 t_log* logger;
 bool error_config;
-char* ip; char* port;
+char* ip;
+char* port;
 char* algoritmo_distribucion;
+int protocolo_algoritmo_distribucion;
 int backlog, packagesize, cant_entradas, tam_entradas, retardo;
 t_queue* cola_instancias;
 int socketDeEscucha;
@@ -30,7 +32,14 @@ t_tcb* algoritmoDeDistribucion() {
 	 case "LSU":
 	 case "KSE":
 	 }*/
-	return (t_tcb*) queue_pop(cola_instancias);
+	switch (protocolo_algoritmo_distribucion) {
+	//case 1:
+
+	//case 2:
+
+	default: // Equitative Load
+		return (t_tcb*) queue_pop(cola_instancias); // OJO: falta volver a encolar en algun punto
+	}
 }
 
 void enviarAInstancia(char* paquete) {
@@ -125,6 +134,17 @@ void* establecerConexion(void* socketCliente) {
 	return NULL;
 }
 
+// Protocolo numerico de ALGORITMO_DISTRIBUCION
+void establecerProtocoloDistribucion() {
+	if (strcmp(algoritmo_distribucion, "LSU")) {
+		protocolo_algoritmo_distribucion = 1;
+	} else if (strcmp(algoritmo_distribucion, "KSE")) {
+		protocolo_algoritmo_distribucion = 2;
+	} else {
+		protocolo_algoritmo_distribucion = 0; // Equitative Load
+	}
+}
+
 int cargarConfiguracion() {
 	error_config = false;
 	clave_tid = 0; // Son unicas
@@ -153,9 +173,12 @@ int cargarConfiguracion() {
 			&error_config);
 	retardo = obtenerCampoInt(logger, config, "RETARDO", &error_config);
 
+	establecerProtocoloDistribucion();
+
 	// Valido si hubo errores
 	if (error_config) {
-		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
+		log_error(logger,
+				"No se pudieron obtener todos los datos correspondientes");
 		return -1;
 	}
 	return 1;

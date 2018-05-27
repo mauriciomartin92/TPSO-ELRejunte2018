@@ -31,6 +31,7 @@ typedef struct {
 } __attribute__((packed)) t_tcb;
 
 int cargarConfiguracion();
+void establecerProtocoloDistribucion();
 void* establecerConexion(void* parametros);
 void atenderESI(int socketCliente);
 void atenderInstancia(int socketCliente);

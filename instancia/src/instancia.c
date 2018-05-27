@@ -26,34 +26,53 @@ char* cant_entradas;
 char* tam_entradas;
 t_list* tabla_entradas;
 
-void ejecutar(t_instruccion instruccion) {
-	/* pseudo codigo:
-	 * t_entrada entrada = tabla_entradas.find(unaEntrada -> unaEntrada.clave == instruccion.clave)
-	 * int operacion = instruccion.operacion;
-	 * if (operacion == 1) {
-	 * 		// es GET
-	 * } else if (operacion == 2) {
-	 * 		// es SET
-	 * } else {
-	 * 		// es STORE
-	 */
+void procesar(t_instruccion* instruccion) {
+
+	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
+	bool comparadorDeClaves(void* estructura) {
+		t_entrada* entrada = (t_entrada*) estructura;
+		return strcmp(instruccion->clave, entrada->clave);
+	}
+
+	// Busco la clave en la tabla usando la funcion magica
+	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas,
+			comparadorDeClaves);
+
+	// Evaluo como procesar segun las condiciones
+	if (!entrada) { // la entrada no estaba
+		if (instruccion->operacion == 1) {
+			// es GET: crearla
+		} else if (instruccion->operacion == 2) {
+			// es SET: no esta
+		} else {
+			// es STORE
+		}
+	} else { // la entrada no estaba
+		if (instruccion->operacion == 1) {
+			// es GET: traer valor
+		} else if (instruccion->operacion == 2) {
+			// es SET: insertar valor
+		} else {
+			// es STORE
+		}
+	}
 }
 
-void imprimirArgumentosInstruccion(t_instruccion instruccion) {
-	switch (instruccion.operacion) {
+void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
+	switch (instruccion->operacion) {
 	case 1:
 		printf("ENTRE A GET\n");
-		printf("GET %s\n", instruccion.clave);
+		printf("GET %s\n", instruccion->clave);
 		break;
 
 	case 2:
 		printf("ENTRE A SET\n");
-		printf("SET %s %s\n", instruccion.clave, instruccion.valor);
+		printf("SET %s %s\n", instruccion->clave, instruccion->valor);
 		break;
 
 	case 3:
 		printf("ENTRE A STORE\n");
-		printf("STORE %s\n", instruccion.clave);
+		printf("STORE %s\n", instruccion->clave);
 		break;
 
 	default:
@@ -62,7 +81,7 @@ void imprimirArgumentosInstruccion(t_instruccion instruccion) {
 	}
 }
 
-void recibirInstruccion(int socketCoordinador) {
+t_instruccion* recibirInstruccion(int socketCoordinador) {
 	// Recibo linea de script parseada
 	void* paquete = malloc(sizeof(packagesize));
 	if (recv(socketCoordinador, paquete, packagesize, 0) < 0) { // MSG_WAITALL
@@ -70,26 +89,22 @@ void recibirInstruccion(int socketCoordinador) {
 		log_error(logger, "Error al recibir instruccion de script.");
 
 		send(socketCoordinador, "error", strlen("error"), 0); // Envio respuesta al Coordinador
+		return NULL;
 	} else {
 		log_info(logger,
 				"Recibo una instruccion de script que me envia el Coordinador.");
 
-		t_instruccion instruccion = desempaquetarInstruccion(paquete, logger);
+		t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
 		destruirPaquete(paquete);
 
 		imprimirArgumentosInstruccion(instruccion);
-
-		ejecutar(instruccion);
-
-		/*
-		 * proceso el script asignandoselo a una instancia
-		 */
 
 		/*
 		 log_info(logger,
 		 "Le informo al Coordinador que el paquete llego correctamente");
 		 send(socketCoordinador, "ok", strlen("ok"), 0); // Envio respuesta al Coordinador
 		 */
+		return instruccion;
 	}
 }
 
@@ -172,7 +187,7 @@ int main() {
 
 	printf("cant entradas: %d\n", atoi(cant_entradas));
 	printf("tam entradas: %d\n", atoi(tam_entradas));
-	// Si esta todo ok:
+	// Si esta ok:
 	log_info(logger,
 			"Se recibio la cantidad y tamaño de las entradas correctamente.");
 
@@ -200,26 +215,27 @@ int main() {
 		 */
 		mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE,
 		MAP_SHARED, fd, 0);
-		for (int i = 0; i < sb.st_size; ++i)
-		{
-			if(mapa_archivo[i] == ';'){
+		for (int i = 0; i < sb.st_size; ++i) {
+			if (mapa_archivo[i] == ';') {
 				list_add(tabla_entradas, val);
 				strcpy(val, "");
 			} else {
 				val[i] = mapa_archivo[i];
 			}
 		}
-		
+
 	} else {
 		//El archivo fue creado y está vacío
 
 	}
-	printf("Lista size: %i\n", list_size(lista));
+	printf("Lista size: %i\n", list_size(tabla_entradas));
 
 	munmap(mapa_archivo, sizeof(mapa_archivo));
 	close(fd);
 
-	recibirInstruccion(socketCoordinador);
+	t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
+
+	procesar(instruccion);
 
 	finalizar();
 	return EXIT_SUCCESS;

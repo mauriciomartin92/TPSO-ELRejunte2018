@@ -35,9 +35,10 @@ typedef struct {
 
 int cargarConfiguracion();
 void abrirArchivoInstancia(int* fileDescriptor);
-void recibirInstruccion(int socketCoorinador);
-void imprimirArgumentosInstruccion(t_instruccion instruccion); // Creo que despues se borra esta funcion
-void ejecutar(t_instruccion instruccion);
+t_instruccion* recibirInstruccion(int socketCoorinador);
+void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
+void procesar(t_instruccion* instruccion);
+bool comparadorDeClaves(void* estructura);
 void finalizar();
 
 #endif /* INSTANCIA_H_ */
