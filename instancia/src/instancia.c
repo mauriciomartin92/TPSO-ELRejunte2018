@@ -129,6 +129,75 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 	}
 }
 
+void generarTablaDeEntradas() {
+	int fd, contador;
+	char* mapa_archivo;
+	char* una_entrada;
+	char** vec_clave_valor;
+	struct stat sb;
+
+	//Creo la tabla de entradas de la instancia, que consiste en una lista.
+	tabla_entradas = list_create();
+
+	//void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entradas)));
+
+	abrirArchivoInstancia(&fd);
+	if (fstat(fd, &sb) < 0) {
+		log_error(logger, "No se pudo obtener el tamaño de archivo");
+		finalizar();
+	}
+
+	printf("Tamaño de archivo: %ld\n", sb.st_size);
+
+	//Si el tamaño del archivo es mayor a 0, es porque existía y tiene información.
+	if (sb.st_size > 0) {
+		/*
+		 * Con mmap() paso el archivo a un bloque de memoria de igual tamaño
+		 * con dirección elegida por el SO y permisos de lectura/escritura.
+		 */
+		t_entrada* entrada = malloc(sizeof(t_entrada));
+		/*
+		 * Se crea un string vacío, donde se almacenará el contenido del archivo.
+		 */
+		mapa_archivo = string_new();
+		mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE,
+		MAP_SHARED, fd, 0);
+		//El contador se inicia en la posición inicial del archivo en memoria (byte 0)
+		contador = 0;
+		for (int i = 0; i < string_length(mapa_archivo); ++i) {
+			/*
+			 * Cuando llego al caracter de fin de entrada, creo un string vacío donde guardarla,
+			 * usando como datos el inicio (contador) y el byte actual (i) con string_substring.
+			 * En un vector de strings, se divide la entrada en 2, clave y valor (separados por -).
+			 * En la estructura entrada, se guarda la clave; en el campo entrada asociada se usa el contador;
+			 * en el tamaño del valor almacenado, se usa la longitud del valor almacenado en el vector.
+			 * Por último, se agrega a la lista un nuevo elemento con la estructura completa.
+			 * El contador se actualiza a la posición siguiente al fin de entrada.
+			 */
+			if (mapa_archivo[i] == ';') {
+				una_entrada = string_new();
+				una_entrada = string_substring(mapa_archivo, contador,
+						i - contador);
+				vec_clave_valor = string_split(una_entrada, "-");
+				entrada->clave = vec_clave_valor[0];
+				entrada->entrada_asociada = contador;
+				entrada->size_valor_almacenado = string_length(
+						vec_clave_valor[1]);
+				list_add(tabla_entradas, (t_entrada*) entrada);
+				contador = i + 1;
+			}
+		}
+
+	} else {
+		//El archivo fue creado y está vacío
+	}
+
+	printf("Lista size: %i\n", list_size(tabla_entradas));
+
+	munmap(mapa_archivo, sizeof(mapa_archivo));
+	close(fd);
+}
+
 int cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
 	t_config* config =
@@ -161,11 +230,6 @@ void finalizar() {
 }
 
 int main() {
-	int fd;
-	char* mapa_archivo;
-	char* val;
-	struct stat sb;
-
 	error_config = false;
 
 	// Creo el logger
@@ -198,47 +262,7 @@ int main() {
 	log_info(logger,
 			"Se recibio la cantidad y tamaño de las entradas correctamente.");
 
-	//Creo la tabla de entradas de la instancia, que consiste en una lista.
-	tabla_entradas = list_create();
-
-	//void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entradas)));
-
-	/*
-	 * ---------- mmap (lo esta haciendo Julian) ----------
-	 */
-	abrirArchivoInstancia(&fd);
-	if (fstat(fd, &sb) < 0) {
-		log_error(logger, "No se pudo obtener el tamaño de archivo");
-		finalizar();
-	}
-
-	printf("Tamaño de archivo: %ld\n", sb.st_size);
-
-	//Si el tamaño del archivo es mayor a 0, es porque existía y tiene información.
-	if (sb.st_size > 0) {
-		/*
-		 * Con mmap() paso el archivo a un bloque de memoria de igual tamaño
-		 * con dirección elegida por el SO y permisos de lectura/escritura.
-		 */
-		mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE,
-		MAP_SHARED, fd, 0);
-		for (int i = 0; i < sb.st_size; ++i) {
-			if (mapa_archivo[i] == ';') {
-				list_add(tabla_entradas, val);
-				strcpy(val, "");
-			} else {
-				val[i] = mapa_archivo[i];
-			}
-		}
-
-	} else {
-		//El archivo fue creado y está vacío
-
-	}
-	printf("Lista size: %i\n", list_size(tabla_entradas));
-
-	munmap(mapa_archivo, sizeof(mapa_archivo));
-	close(fd);
+	generarTablaDeEntradas();
 
 	t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 

@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include <commons/string.h>
 #include <commons/collections/list.h>
 #include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
@@ -34,6 +35,7 @@ typedef struct {
 } __attribute__((packed)) t_entrada;
 
 int cargarConfiguracion();
+void generarTablaDeEntradas();
 void abrirArchivoInstancia(int* fileDescriptor);
 t_instruccion* recibirInstruccion(int socketCoorinador);
 void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
