@@ -40,6 +40,7 @@ void abrirArchivoInstancia(int* fileDescriptor);
 t_instruccion* recibirInstruccion(int socketCoorinador);
 void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 void procesar(t_instruccion* instruccion);
+void setClaveValor(char* clave, char* valor);
 bool comparadorDeClaves(void* estructura);
 void finalizar();
 

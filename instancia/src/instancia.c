@@ -26,6 +26,10 @@ char* cant_entradas;
 char* tam_entradas;
 t_list* tabla_entradas;
 
+void setClaveValor(char* clave, char* valor) {
+	// implementar
+}
+
 void procesar(t_instruccion* instruccion) {
 
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
@@ -44,7 +48,7 @@ void procesar(t_instruccion* instruccion) {
 			// es GET: crearla
 			t_entrada* nueva_entrada = malloc(sizeof(t_entrada));
 			nueva_entrada->clave = instruccion->clave;
-			//entrada->entrada_asociada = proxima entrada!
+			nueva_entrada->entrada_asociada = tabla_entradas->elements_count;
 			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
 			list_add(tabla_entradas, nueva_entrada);
 		} else if (instruccion->operacion == 2) {
@@ -52,13 +56,13 @@ void procesar(t_instruccion* instruccion) {
 		} else {
 			// es STORE
 		}
-	} else { // la entrada no estaba
+	} else { // la entrada si estaba
 		if (instruccion->operacion == 1) {
-			// es GET: devolver valor
-			// return buscarValorEnMemoria(entrada);
+			// es GET
+			// ¿QUE HAGO ACA?
 		} else if (instruccion->operacion == 2) {
 			// es SET: insertar valor
-			// insertarValorEnMemoria(entrada);
+			setClaveValor(instruccion->clave, instruccion->valor);
 		} else {
 			// es STORE
 		}
@@ -66,19 +70,17 @@ void procesar(t_instruccion* instruccion) {
 }
 
 void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
+	printf("El paquete recibido es: ");
 	switch (instruccion->operacion) {
 	case 1:
-		printf("ENTRE A GET\n");
 		printf("GET %s\n", instruccion->clave);
 		break;
 
 	case 2:
-		printf("ENTRE A SET\n");
 		printf("SET %s %s\n", instruccion->clave, instruccion->valor);
 		break;
 
 	case 3:
-		printf("ENTRE A STORE\n");
 		printf("STORE %s\n", instruccion->clave);
 		break;
 
@@ -262,11 +264,11 @@ int main() {
 	log_info(logger,
 			"Se recibio la cantidad y tamaño de las entradas correctamente.");
 
-	generarTablaDeEntradas();
+	//generarTablaDeEntradas();
 
 	t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 
-	procesar(instruccion);
+	//procesar(instruccion);
 
 	finalizar();
 	return EXIT_SUCCESS;

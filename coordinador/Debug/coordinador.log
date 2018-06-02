@@ -2918,3 +2918,36 @@
 [INFO] 00:49:03:201 Coordinador/(7614:7618): atenderESI: Recibi un paquete del ESI
 [INFO] 00:49:03:203 Coordinador/(7614:7618): atenderESI: Aguarde mientras se busca una Instancia...
 [WARNING] 00:49:07:208 Coordinador/(7614:7618): atenderESI: No hay instancias disponibles. Reintentando...
+[INFO] 16:36:12:627 Coordinador/(6330:6330): main: Se crea la tabla de intancias.
+[INFO] 16:36:12:633 Coordinador/(6330:6330): Servidor conectado.
+[INFO] 16:36:12:634 Coordinador/(6330:6330): Listo para escuchar a cualquier Cliente...
+[INFO] 16:36:33:559 Coordinador/(6330:6355): establecerConexion: Cliente conectado
+[INFO] 16:36:33:586 Coordinador/(6330:6355): establecerConexion: El cliente es una Instancia.
+[INFO] 16:36:33:588 Coordinador/(6330:6355): atenderInstancia: TCB de Instancia agregado a la tabla de instancias
+[INFO] 16:36:33:590 Coordinador/(6330:6355): atenderInstancia: Envio a la Instancia su cantidad de entradas
+[INFO] 16:36:33:591 Coordinador/(6330:6355): atenderInstancia: Envio a la Instancia el tamaño de las entradas
+[INFO] 16:36:35:558 Coordinador/(6330:6330): Listo para escuchar a cualquier Cliente...
+[INFO] 16:36:53:362 Coordinador/(6330:6369): establecerConexion: Cliente conectado
+[INFO] 16:36:53:382 Coordinador/(6330:6369): establecerConexion: El cliente es ESI.
+[INFO] 16:36:55:364 Coordinador/(6330:6330): Listo para escuchar a cualquier Cliente...
+[INFO] 16:37:56:95 Coordinador/(6376:6376): main: Se crea la tabla de intancias.
+[INFO] 16:37:57:231 Coordinador/(6376:6376): Servidor conectado.
+[INFO] 16:37:57:234 Coordinador/(6376:6376): Listo para escuchar a cualquier Cliente...
+[INFO] 16:39:42:126 Coordinador/(6812:6812): main: Se crea la tabla de intancias.
+[INFO] 16:39:42:189 Coordinador/(6812:6812): Servidor conectado.
+[INFO] 16:39:42:192 Coordinador/(6812:6812): Listo para escuchar a cualquier Cliente...
+[INFO] 16:40:04:196 Coordinador/(6812:6835): establecerConexion: Cliente conectado
+[INFO] 16:40:04:389 Coordinador/(6812:6835): establecerConexion: El cliente es una Instancia.
+[INFO] 16:40:04:400 Coordinador/(6812:6835): atenderInstancia: TCB de Instancia agregado a la tabla de instancias
+[INFO] 16:40:04:418 Coordinador/(6812:6835): atenderInstancia: Envio a la Instancia su cantidad de entradas
+[INFO] 16:40:04:428 Coordinador/(6812:6835): atenderInstancia: Envio a la Instancia el tamaño de las entradas
+[INFO] 16:40:06:200 Coordinador/(6812:6812): Listo para escuchar a cualquier Cliente...
+[INFO] 16:40:17:791 Coordinador/(6812:6846): establecerConexion: Cliente conectado
+[INFO] 16:40:17:882 Coordinador/(6812:6846): establecerConexion: El cliente es ESI.
+[INFO] 16:40:19:787 Coordinador/(6812:6812): Listo para escuchar a cualquier Cliente...
+[INFO] 16:40:33:725 Coordinador/(6812:6846): atenderESI: Recibi un paquete del ESI
+[INFO] 16:40:33:731 Coordinador/(6812:6846): atenderESI: Aguarde mientras se busca una Instancia...
+[INFO] 16:40:33:733 Coordinador/(6812:6846): enviarAInstancia: Le envio la instruccion a la Instancia correspondiente
+[INFO] 16:40:33:768 Coordinador/(6812:6846): atenderESI: Le informo al ESI que el paquete llego correctamente
+[INFO] 16:53:35:832 Coordinador/(6812:6846): atenderESI: Recibi un paquete del ESI
+[INFO] 16:53:35:833 Coordinador/(6812:6846): atenderESI: Aguarde mientras se busca una Instancia...

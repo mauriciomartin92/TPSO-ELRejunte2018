@@ -28,9 +28,11 @@ char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 						+ strlen(instruccion.argumentos.SET.valor));
 		strcpy(buffer, "2-");
 		strcpy(buffer + strlen("2-"), instruccion.argumentos.SET.clave);
-		strcpy(buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave), "-");
-		strcpy(buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave) + strlen("-"),
-				instruccion.argumentos.SET.valor);
+		strcpy(buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave),
+				"-");
+		strcpy(
+				buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave)
+						+ strlen("-"), instruccion.argumentos.SET.valor);
 
 		break;
 	case STORE:
@@ -56,18 +58,22 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 
 	printf("El paquete recibido es: %s\n", buffer);
 
-	instruccionMutada->operacion = atoi(strtok(buffer, "-"));
-	instruccionMutada->clave = strtok(NULL, "-");
+	char** vector_componentes_buffer = string_split(buffer, "-");
 
-	if (instruccionMutada->operacion == 2) {
-		instruccionMutada->valor = strtok(NULL, "-");
-	}
+	instruccionMutada->operacion = atoi(vector_componentes_buffer[0]);
+	instruccionMutada->clave = vector_componentes_buffer[1];
 
 	printf("La operacion es %d\n", instruccionMutada->operacion);
 	printf("La clave es %s\n", instruccionMutada->clave);
 
-	// Si es SET:
-	if (instruccionMutada->operacion == 2) {
+	/*
+	 * instruccionMutada->operacion == 1, GET
+	 * instruccionMutada->operacion == 2, SET
+	 * instruccionMutada->operacion == 3, STORE
+	 */
+
+	if (instruccionMutada->operacion == 2) { // Si es SET
+		instruccionMutada->valor = vector_componentes_buffer[2];
 		printf("El valor es %s\n", instruccionMutada->valor);
 	}
 
