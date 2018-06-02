@@ -35,6 +35,7 @@ typedef struct {
 } __attribute__((packed)) t_entrada;
 
 int cargarConfiguracion();
+void generarTablaDeEntradas();
 void abrirArchivoInstancia(int* fileDescriptor);
 t_instruccion* recibirInstruccion(int socketCoorinador);
 void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
