@@ -37,6 +37,7 @@ typedef struct {
 int cargarConfiguracion();
 void generarTablaDeEntradas();
 void abrirArchivoInstancia(int* fileDescriptor);
+void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 void procesar(t_instruccion* instruccion);

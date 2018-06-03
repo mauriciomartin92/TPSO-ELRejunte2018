@@ -26,6 +26,13 @@ char* cant_entradas;
 char* tam_entradas;
 t_list* tabla_entradas;
 
+void imprimirTablaDeEntradas() {
+	for(int i = 0; i < list_size(tabla_entradas); i++) {
+		t_entrada* entrada = list_get(tabla_entradas, i);
+		printf("%s - %d - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado);
+	}
+}
+
 void setClaveValor(char* clave, char* valor) {
 	// implementar
 }
@@ -35,15 +42,17 @@ void procesar(t_instruccion* instruccion) {
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
 	bool comparadorDeClaves(void* estructura) {
 		t_entrada* entrada = (t_entrada*) estructura;
-		return strcmp(instruccion->clave, entrada->clave);
+		if (strcmp(instruccion->clave, entrada->clave) == 0)
+			return true;
+		return false;
 	}
 
 	// Busco la clave en la tabla usando la funcion magica
-	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas,
-			comparadorDeClaves);
+	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
 
 	// Evaluo como procesar segun las condiciones
 	if (!entrada) { // la entrada no estaba
+		log_warning(logger, "LA CLAVE NO EXISTE EN LA TABLA");
 		if (instruccion->operacion == 1) {
 			// es GET: crearla
 			t_entrada* nueva_entrada = malloc(sizeof(t_entrada));
@@ -51,12 +60,14 @@ void procesar(t_instruccion* instruccion) {
 			nueva_entrada->entrada_asociada = tabla_entradas->elements_count;
 			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
 			list_add(tabla_entradas, nueva_entrada);
+			imprimirTablaDeEntradas();
 		} else if (instruccion->operacion == 2) {
 			// es SET: no hacer nada
 		} else {
 			// es STORE
 		}
 	} else { // la entrada si estaba
+		log_warning(logger, "LA CLAVE EXISTE EN LA TABLA");
 		if (instruccion->operacion == 1) {
 			// es GET
 			// ¿QUE HAGO ACA?
@@ -70,7 +81,7 @@ void procesar(t_instruccion* instruccion) {
 }
 
 void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
-	printf("El paquete recibido es: ");
+	printf("La instruccion recibida es: ");
 	switch (instruccion->operacion) {
 	case 1:
 		printf("GET %s\n", instruccion->clave);
@@ -92,16 +103,17 @@ void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
 
 t_instruccion* recibirInstruccion(int socketCoordinador) {
 	// Recibo linea de script parseada
-	void* paquete = malloc(sizeof(packagesize));
-	if (recv(socketCoordinador, paquete, packagesize, 0) < 0) { // MSG_WAITALL
+	uint32_t tam_paquete;
+	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), MSG_WAITALL); // Recibo el header
+	char* paquete = malloc(tam_paquete);
+	if (recv(socketCoordinador, paquete, tam_paquete, MSG_WAITALL) < 0) { // MSG_WAITALL
 		//Hubo error al recibir la linea parseada
 		log_error(logger, "Error al recibir instruccion de script.");
 
 		send(socketCoordinador, "error", strlen("error"), 0); // Envio respuesta al Coordinador
 		return NULL;
 	} else {
-		log_info(logger,
-				"Recibo una instruccion de script que me envia el Coordinador.");
+		log_info(logger, "Recibo una instruccion de script que me envia el Coordinador.");
 
 		t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
 		destruirPaquete(paquete);
@@ -122,8 +134,7 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 	 * La syscall open() nos permite abrir un archivo para escritura/lectura
 	 * con permisos de usuario para realizar dichas operaciones.
 	 */
-	*fileDescriptor = open("instancia.txt", O_CREAT | O_RDWR,
-	S_IRUSR | S_IWUSR);
+	*fileDescriptor = open("instancia.txt", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
 	if (*fileDescriptor < 0) {
 		log_error(logger, "Error al abrir el archivo de Instancia");
@@ -137,6 +148,8 @@ void generarTablaDeEntradas() {
 	char* una_entrada;
 	char** vec_clave_valor;
 	struct stat sb;
+
+	log_info(logger, "Cargo la Tabla de Entradas con lo que esta en el disco");
 
 	//Creo la tabla de entradas de la instancia, que consiste en una lista.
 	tabla_entradas = list_create();
@@ -157,16 +170,14 @@ void generarTablaDeEntradas() {
 		 * Con mmap() paso el archivo a un bloque de memoria de igual tamaño
 		 * con dirección elegida por el SO y permisos de lectura/escritura.
 		 */
-		t_entrada* entrada = malloc(sizeof(t_entrada));
 		/*
 		 * Se crea un string vacío, donde se almacenará el contenido del archivo.
 		 */
 		mapa_archivo = string_new();
-		mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE,
-		MAP_SHARED, fd, 0);
+		mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		//El contador se inicia en la posición inicial del archivo en memoria (byte 0)
 		contador = 0;
-		for (int i = 0; i < string_length(mapa_archivo); ++i) {
+		for (int i = 0; i < string_length(mapa_archivo); i++) {
 			/*
 			 * Cuando llego al caracter de fin de entrada, creo un string vacío donde guardarla,
 			 * usando como datos el inicio (contador) y el byte actual (i) con string_substring.
@@ -178,14 +189,13 @@ void generarTablaDeEntradas() {
 			 */
 			if (mapa_archivo[i] == ';') {
 				una_entrada = string_new();
-				una_entrada = string_substring(mapa_archivo, contador,
-						i - contador);
+				una_entrada = string_substring(mapa_archivo, contador, i - contador);
 				vec_clave_valor = string_split(una_entrada, "-");
+				t_entrada* entrada = malloc(sizeof(t_entrada));
 				entrada->clave = vec_clave_valor[0];
 				entrada->entrada_asociada = contador;
-				entrada->size_valor_almacenado = string_length(
-						vec_clave_valor[1]);
-				list_add(tabla_entradas, (t_entrada*) entrada);
+				entrada->size_valor_almacenado = string_length(vec_clave_valor[1]);
+				list_add(tabla_entradas, entrada);
 				contador = i + 1;
 			}
 		}
@@ -202,20 +212,15 @@ void generarTablaDeEntradas() {
 
 int cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
-	t_config* config =
-			conectarAlArchivo(logger,
-					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg",
-					&error_config);
+	t_config* config = conectarAlArchivo(logger,  "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg", &error_config);
 
 	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
-	port = obtenerCampoString(logger, config, "PORT_COORDINADOR",
-			&error_config);
+	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	// Valido si hubo errores
 	if (error_config) {
-		log_error(logger,
-				"No se pudieron obtener todos los datos correspondientes");
+		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
 		return -1;
 	}
 	return 1;
@@ -264,11 +269,12 @@ int main() {
 	log_info(logger,
 			"Se recibio la cantidad y tamaño de las entradas correctamente.");
 
-	//generarTablaDeEntradas();
+	generarTablaDeEntradas(); // Traigo los clave-valor que hay en disco
+	imprimirTablaDeEntradas();
 
 	t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 
-	//procesar(instruccion);
+	procesar(instruccion);
 
 	finalizar();
 	return EXIT_SUCCESS;

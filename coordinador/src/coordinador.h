@@ -35,7 +35,7 @@ void establecerProtocoloDistribucion();
 void* establecerConexion(void* parametros);
 void atenderESI(int socketCliente);
 void atenderInstancia(int socketCliente);
-void enviarAInstancia(char* paquete);
+void enviarAInstancia(char* paquete, uint32_t tam_paquete);
 t_tcb* algoritmoDeDistribucion();
 
 #endif /* COORDINADOR_H_ */

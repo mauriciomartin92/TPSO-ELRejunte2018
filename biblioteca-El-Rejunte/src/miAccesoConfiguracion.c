@@ -22,8 +22,7 @@ char* obtenerCampoString(t_log* logger, t_config* config, char* campo, bool* err
 	if (config_has_property(config, campo)) { // Che config_coordinador, en lo que leiste, ¿tenes el campo que te pedi?
 		return config_get_string_value(config, campo); // Ah si, ¿lo tenes? entonces devolvelo
 	} else {
-		log_error(logger,
-				"No se pudo detectar %s, revise su archivo de configuracion.", campo);
+		log_error(logger, "No se pudo detectar %s, revise su archivo de configuracion.", campo);
 		*error_config = true;
 		return NULL;
 	}
@@ -34,8 +33,7 @@ int obtenerCampoInt(t_log* logger, t_config* config, char* campo, bool* error_co
 	if (config_has_property(config, campo)) {
 		return config_get_int_value(config, campo);
 	} else {
-		log_error(logger,
-				"No se pudo detectar %s, revise su archivo de configuracion.", campo);
+		log_error(logger, "No se pudo detectar %s, revise su archivo de configuracion.", campo);
 		*error_config = true;
 		return -1;
 	}

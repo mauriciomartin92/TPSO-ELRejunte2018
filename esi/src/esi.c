@@ -30,19 +30,13 @@ int cargarConfiguracion() {
 	error_config = false;
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config = conectarAlArchivo(logger,
-			"/home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/config_esi.cfg",
-			&error_config);
+	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/config_esi.cfg", &error_config);
 
 	// Obtiene los datos para conectarse al coordinador y al planificador
-	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR",
-			&error_config);
-	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR",
-			&error_config);
-	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR",
-			&error_config);
-	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",
-			&error_config);
+	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
+	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR", &error_config);
+	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
+	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",	&error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 
 	// Valido posibles errores
@@ -114,12 +108,10 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	}
 
 // Me conecto como Cliente al Coordinador y al Planificador
-	socketCoordinador = conectarComoCliente(logger, ip_coordinador,
-			port_coordinador);
+	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
 	char* handshake = "1";
 	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
-	socketPlanificador = conectarComoCliente(logger, ip_planificador,
-			port_planificador);
+	socketPlanificador = conectarComoCliente(logger, ip_planificador, port_planificador);
 
 	while (!feof(fp)) {
 		char* seleccion = "1"; // Es lo que espero recibir
@@ -137,24 +129,28 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			char* paquete = empaquetarInstruccion(instruccion, logger);
 
 			log_info(logger, "Envio la instruccion al coordinador");
-			if ((send(socketCoordinador, paquete, strlen(paquete), 0)) < 0) {
+
+			uint32_t tam_paquete = strlen(paquete);
+			printf("tam_paquete: %d\n", tam_paquete);
+
+			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
+			int cant_enviada = send(socketCoordinador, paquete, tam_paquete, 0);
+			printf("cant_enviada: %d\n", cant_enviada);
+			if (cant_enviada < 0) {
 				//Hubo error al enviar la linea parseada
 				log_error(logger, "Error al enviar instruccion de script");
 				finalizar();
 			} else {
 				//Esperar respuesta coordinador.
 				char respuestaCoordinador[packagesize];
-				recv(socketCoordinador, (void*) respuestaCoordinador,
-						packagesize, 0);
+				recv(socketCoordinador, (void*) respuestaCoordinador, packagesize, 0);
 
 				if (strcmp(respuestaCoordinador, "ok") == 0) {
-					log_info(logger,
-							"El coordinador informa que llego correctamente");
+					log_info(logger, "El coordinador informa que llego correctamente");
 					log_info(logger, "Le envio el resultado al planificador");
 					//send(socketPlanificador, respuestaCoordinador, strlen(respuestaCoordinador) + 1, 0);
 				} else {
-					log_error(logger,
-							"El coordinador informa que no la pudo recibir");
+					log_error(logger, "El coordinador informa que no la pudo recibir");
 				}
 			}
 			if (paquete) destruirPaquete(paquete);

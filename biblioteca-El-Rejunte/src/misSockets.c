@@ -18,8 +18,7 @@
  * -----------------------------------------------------------------------------------------------------------------
  */
 
-int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
-		int backlog) {
+int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,	int backlog) {
 
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?
@@ -50,8 +49,7 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,
 	 */
 	/* Necesitamos un socket que escuche las conecciones entrantes */
 	int listenningSocket;
-	listenningSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
-			serverInfo->ai_protocol);
+	listenningSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
 
 	/*
 	 * 	Perfecto, ya tengo un archivo que puedo utilizar para analizar las conexiones entrantes. Pero... ¿Por donde?
@@ -94,8 +92,7 @@ int escucharCliente(t_log* logger, int listenningSocket, int backlog) {
 	struct sockaddr_in addr; // Esta estructura contendra los datos de la conexion del cliente. IP, puerto, etc.
 	socklen_t addrlen = sizeof(addr);
 
-	int socketCliente = accept(listenningSocket, (struct sockaddr *) &addr,
-			&addrlen);
+	int socketCliente = accept(listenningSocket, (struct sockaddr *) &addr,	&addrlen);
 
 	return socketCliente;
 }
@@ -134,16 +131,14 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 	 * 	Obtiene un socket (un file descriptor -todo en linux es un archivo-), utilizando la estructura serverInfo que generamos antes.
 	 *
 	 */
-	int serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype,
-			serverInfo->ai_protocol);
+	int serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);
 
 	/*
 	 * 	Perfecto, ya tengo el medio para conectarme (el archivo), y ya se lo pedi al sistema.
 	 * 	Ahora me conecto!
 	 *
 	 */
-	int res = connect(serverSocket, serverInfo->ai_addr,
-			serverInfo->ai_addrlen);
+	int res = connect(serverSocket, serverInfo->ai_addr, serverInfo->ai_addrlen);
 	freeaddrinfo(serverInfo);	// No lo necesitamos mas
 
 	if (res < 0) {

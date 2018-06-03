@@ -42,21 +42,25 @@ t_tcb* algoritmoDeDistribucion() {
 	}
 }
 
-void enviarAInstancia(char* paquete) {
-	log_info(logger,
-			"enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
+void enviarAInstancia(char* paquete, uint32_t tam_paquete) {
+	log_info(logger, "enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
-	send(tcb_elegido->socket, paquete, strlen(paquete), 0);
+	send(tcb_elegido->socket, &tam_paquete, sizeof(uint32_t), 0);
+	send(tcb_elegido->socket, paquete, tam_paquete, 0);
 }
 
 void atenderESI(int socketCliente) {
 	do {
-		printf("atenderESI: La cola de instancias esta vacia? %d\n",
-				queue_is_empty(cola_instancias));
+		//printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
 
 		// Recibo linea de script parseada
-		char* paquete = malloc(sizeof(packagesize));
-		if (recv(socketCliente, paquete, packagesize, 0) < 0) {
+		uint32_t tam_paquete;
+		recv(socketCliente, &tam_paquete, sizeof(uint32_t), MSG_WAITALL); // Recibo el header
+		printf("tam_paquete: %d\n", tam_paquete);
+		char* paquete = malloc(tam_paquete);
+		int cant_recibida = recv(socketCliente, paquete, tam_paquete, MSG_WAITALL);
+		printf("cant_recibida: %d\n", cant_recibida);
+		if (cant_recibida < 0) {
 			sleep(retardo / 1000);
 			//Hubo error al recibir la linea parseada
 			log_error(logger,
@@ -73,7 +77,7 @@ void atenderESI(int socketCliente) {
 				log_warning(logger,
 						"atenderESI: No hay instancias disponibles. Reintentando...");
 			}
-			enviarAInstancia(paquete);
+			enviarAInstancia(paquete, tam_paquete);
 			destruirPaquete(paquete);
 
 			log_info(logger,
@@ -158,27 +162,22 @@ int cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
 	t_config* config =
 			conectarAlArchivo(logger,
-					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/config_coordinador.cfg",
-					&error_config);
+					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/config_coordinador.cfg", &error_config);
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
 	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
 	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
-	algoritmo_distribucion = obtenerCampoString(logger, config,
-			"ALGORITMO_DISTRIBUCION", &error_config);
-	cant_entradas = obtenerCampoInt(logger, config, "CANT_ENTRADAS",
-			&error_config);
-	tam_entradas = obtenerCampoInt(logger, config, "TAM_ENTRADAS",
-			&error_config);
+	algoritmo_distribucion = obtenerCampoString(logger, config, "ALGORITMO_DISTRIBUCION", &error_config);
+	cant_entradas = obtenerCampoInt(logger, config, "CANT_ENTRADAS", &error_config);
+	tam_entradas = obtenerCampoInt(logger, config, "TAM_ENTRADAS", &error_config);
 	retardo = obtenerCampoInt(logger, config, "RETARDO", &error_config);
 
 	establecerProtocoloDistribucion();
 
 	// Valido si hubo errores
 	if (error_config) {
-		log_error(logger,
-				"No se pudieron obtener todos los datos correspondientes");
+		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
 		return -1;
 	}
 	return 1;
@@ -205,8 +204,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	while (1) { // Infinitamente escucha a la espera de que se conecte alguien
 		int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
 		pthread_t unHilo; // Cada conexion la delega en un hilo
-		pthread_create(&unHilo, NULL, establecerConexion,
-				(void*) &socketCliente);
+		pthread_create(&unHilo, NULL, establecerConexion, (void*) &socketCliente);
 		sleep(2); // sleep para poder ver algo
 	}
 
