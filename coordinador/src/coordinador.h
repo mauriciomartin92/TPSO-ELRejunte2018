@@ -37,5 +37,6 @@ void atenderESI(int socketCliente);
 void atenderInstancia(int socketCliente);
 void enviarAInstancia(char* paquete, uint32_t tam_paquete);
 t_tcb* algoritmoDeDistribucion();
+void finalizar();
 
 #endif /* COORDINADOR_H_ */

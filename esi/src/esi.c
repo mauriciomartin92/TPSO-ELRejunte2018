@@ -25,6 +25,8 @@ char* port_planificador;
 int packagesize;
 int socketCoordinador, socketPlanificador;
 FILE *fp;
+uint32_t paquete_ok = 1;
+uint32_t continuar_pausar = 1;
 
 int cargarConfiguracion() {
 	error_config = false;
@@ -55,29 +57,6 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
-	/*if (parsed.valido) {
-	 switch (parsed.keyword) {
-	 case GET:
-	 printf("GET\tclave: <%s>\n", parsed.argumentos.GET.clave);
-	 break;
-	 case SET:
-	 printf("SET\tclave: <%s>\tvalor: <%s>\n",
-	 parsed.argumentos.SET.clave, parsed.argumentos.SET.valor);
-	 break;
-	 case STORE:
-	 printf("STORE\tclave: <%s>\n", parsed.argumentos.STORE.clave);
-	 break;
-	 default:
-	 fprintf(stderr, "No pude interpretar <%s>\n", line);
-	 exit(EXIT_FAILURE);
-
-	 destruir_operacion(parsed);
-	 }
-	 } else {
-	 fprintf(stderr, "La linea <%s> no es valida\n", line);
-	 exit(EXIT_FAILURE);
-	 }*/
-
 	if (line)
 		free(line);
 
@@ -100,25 +79,25 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		finalizar(); // Si hubo error, se corta la ejecucion.
 	}
 
-// Abro el fichero del script
+	// Abro el fichero del script
 	fp = fopen(argv[1], "r");
 	if (!fp) {
 		log_error(logger, "Error al abrir el archivo");
 		finalizar();
 	}
 
-// Me conecto como Cliente al Coordinador y al Planificador
+	// Me conecto como Cliente al Coordinador y al Planificador
 	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
-	char* handshake = "1";
-	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
+	uint32_t handshake = 1;
+	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
+
 	socketPlanificador = conectarComoCliente(logger, ip_planificador, port_planificador);
 
 	while (!feof(fp)) {
-		char* seleccion = "1"; // Es lo que espero recibir
-		char mensaje[packagesize]; // Es donde lo voy a recibir
-		recv(socketPlanificador, (void*) mensaje, packagesize, 0); // Lo recibo
+		uint32_t seleccion;
+		recv(socketPlanificador, &seleccion, sizeof(uint32_t), 0);
 
-		if (strcmp(seleccion, mensaje) == 0) { // ¿Es lo que esperaba?
+		if (seleccion == 1) { // ¿Es lo que esperaba? (1 = CONTINUAR)
 			log_info(logger, "El planificador solicita una instruccion");
 
 			// Se parsea la instruccion que se le enviara al coordiandor
@@ -131,33 +110,23 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			log_info(logger, "Envio la instruccion al coordinador");
 
 			uint32_t tam_paquete = strlen(paquete);
-			printf("tam_paquete: %d\n", tam_paquete);
-
 			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
-			int cant_enviada = send(socketCoordinador, paquete, tam_paquete, 0);
-			printf("cant_enviada: %d\n", cant_enviada);
-			if (cant_enviada < 0) {
-				//Hubo error al enviar la linea parseada
-				log_error(logger, "Error al enviar instruccion de script");
-				finalizar();
-			} else {
-				//Esperar respuesta coordinador.
-				char respuestaCoordinador[packagesize];
-				recv(socketCoordinador, (void*) respuestaCoordinador, packagesize, 0);
+			send(socketCoordinador, paquete, tam_paquete, 0);
 
-				if (strcmp(respuestaCoordinador, "ok") == 0) {
-					log_info(logger, "El coordinador informa que llego correctamente");
-					log_info(logger, "Le envio el resultado al planificador");
-					//send(socketPlanificador, respuestaCoordinador, strlen(respuestaCoordinador) + 1, 0);
-				} else {
-					log_error(logger, "El coordinador informa que no la pudo recibir");
-				}
+				//Esperar respuesta coordinador.
+			uint32_t respuesta_coordinador;
+			recv(socketCoordinador, &respuesta_coordinador, sizeof(uint32_t), 0);
+
+			if (respuesta_coordinador == paquete_ok) {
+				log_info(logger, "El coordinador informa que llego correctamente");
+				log_info(logger, "Le envio el resultado al planificador");
+				//send(socketPlanificador, respuesta_coordinador, sizeof(uint32_t), 0);
+			} else {
+				log_error(logger, "El coordinador informa que no la pudo recibir");
 			}
 			if (paquete) destruirPaquete(paquete);
 		}
 	}
-
-	// SE CIERRA Y LIBERA LO CORRESPONDIENTE AL ESI:
 
 	finalizar();
 	return EXIT_SUCCESS;

@@ -22,15 +22,17 @@ char* ip;
 char* port;
 int packagesize;
 int socketCoordinador;
-char* cant_entradas;
-char* tam_entradas;
+uint32_t cant_entradas, tam_entradas;
 t_list* tabla_entradas;
+uint32_t paquete_ok = 1;
 
 void imprimirTablaDeEntradas() {
+	printf("\n_______TABLA DE ENTRADAS_______\n");
 	for(int i = 0; i < list_size(tabla_entradas); i++) {
 		t_entrada* entrada = list_get(tabla_entradas, i);
 		printf("%s - %d - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado);
 	}
+	printf("\n");
 }
 
 void setClaveValor(char* clave, char* valor) {
@@ -38,6 +40,7 @@ void setClaveValor(char* clave, char* valor) {
 }
 
 void procesar(t_instruccion* instruccion) {
+	log_info(logger, "Procesando instruccion...");
 
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
 	bool comparadorDeClaves(void* estructura) {
@@ -78,6 +81,8 @@ void procesar(t_instruccion* instruccion) {
 			// es STORE
 		}
 	}
+	log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
+	send(socketCoordinador, &paquete_ok, sizeof(uint32_t), 0);
 }
 
 void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
@@ -104,29 +109,21 @@ void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
 t_instruccion* recibirInstruccion(int socketCoordinador) {
 	// Recibo linea de script parseada
 	uint32_t tam_paquete;
-	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), MSG_WAITALL); // Recibo el header
+	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
+
 	char* paquete = malloc(tam_paquete);
-	if (recv(socketCoordinador, paquete, tam_paquete, MSG_WAITALL) < 0) { // MSG_WAITALL
-		//Hubo error al recibir la linea parseada
-		log_error(logger, "Error al recibir instruccion de script.");
+	recv(socketCoordinador, paquete, tam_paquete, 0); // MSG_WAITALL
+	log_info(logger, "Recibi una instruccion de script que me envia el Coordinador");
 
-		send(socketCoordinador, "error", strlen("error"), 0); // Envio respuesta al Coordinador
-		return NULL;
-	} else {
-		log_info(logger, "Recibo una instruccion de script que me envia el Coordinador.");
+	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
+	destruirPaquete(paquete);
 
-		t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
-		destruirPaquete(paquete);
+	imprimirArgumentosInstruccion(instruccion);
 
-		imprimirArgumentosInstruccion(instruccion);
+	log_info(logger, "Le informo al Coordinador que el paquete llego correctamente");
+	send(socketCoordinador, &paquete_ok, sizeof(uint32_t), 0); // Envio respuesta al Coordinador
 
-		/*
-		 log_info(logger,
-		 "Le informo al Coordinador que el paquete llego correctamente");
-		 send(socketCoordinador, "ok", strlen("ok"), 0); // Envio respuesta al Coordinador
-		 */
-		return instruccion;
-	}
+	return instruccion;
 }
 
 void abrirArchivoInstancia(int* fileDescriptor) {
@@ -229,8 +226,6 @@ int cargarConfiguracion() {
 void finalizar() {
 	if (socketCoordinador > 0)
 		finalizarSocket(socketCoordinador);
-	free(cant_entradas);
-	free(tam_entradas);
 	list_destroy(tabla_entradas);
 	log_destroy(logger);
 	exit(0);
@@ -242,39 +237,31 @@ int main() {
 	// Creo el logger
 	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
 
-	if (cargarConfiguracion() < 0)
+	if (cargarConfiguracion() < 0) {
 		finalizar(); // Si hubo error, se corta la ejecucion.
+		return -1;
+	}
 
 	// Me conecto con el Servidor y le mando mensajes
 	socketCoordinador = conectarComoCliente(logger, ip, port);
-	char* handshake = "2";
-	send(socketCoordinador, handshake, strlen(handshake) + 1, 0);
+	uint32_t handshake = 2;
+	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
 
-	// Me preparo para recibir la cantidad y el tamaño de las entradas
-	cant_entradas = malloc(sizeof(int));
-	tam_entradas = malloc(sizeof(int));
+	recv(socketCoordinador, &cant_entradas, sizeof(uint32_t), 0);
+	recv(socketCoordinador, &tam_entradas, sizeof(uint32_t), 0);
 
-	if (recv(socketCoordinador, cant_entradas, sizeof(int), 0) < 0) {
-		log_error(logger, "No se pudo recibir la cantidad de entradas.");
-		// EXPLOTAR
-	}
-	if (recv(socketCoordinador, tam_entradas, sizeof(int), 0) < 0) {
-		log_error(logger, "No se pudo recibir el tamaño de las entradas.");
-		// EXPLOTAR
-	}
+	printf("cant entradas: %d\n", cant_entradas);
+	printf("tam entradas: %d\n", tam_entradas);
 
-	printf("cant entradas: %d\n", atoi(cant_entradas));
-	printf("tam entradas: %d\n", atoi(tam_entradas));
-	// Si esta ok:
-	log_info(logger,
-			"Se recibio la cantidad y tamaño de las entradas correctamente.");
+	log_info(logger, "Se recibio la cantidad y tamaño de las entradas correctamente");
 
 	generarTablaDeEntradas(); // Traigo los clave-valor que hay en disco
 	imprimirTablaDeEntradas();
 
-	t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
-
-	procesar(instruccion);
+	while (1) {
+		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
+		procesar(instruccion);
+	}
 
 	finalizar();
 	return EXIT_SUCCESS;
