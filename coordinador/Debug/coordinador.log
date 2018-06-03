@@ -3596,3 +3596,102 @@
 [INFO] 21:01:53:715 Coordinador/(15103:15110): atenderESI: Le informo al ESI que el paquete llego correctamente
 [INFO] 21:02:33:28 Coordinador/(15103:15110): atenderESI: Recibi un paquete del ESI
 [INFO] 21:02:33:30 Coordinador/(15103:15110): atenderESI: Aguarde mientras se busca una Instancia...
+[INFO] 04:51:14:864 Coordinador/(3433:3433): Se crea la tabla de intancias
+[INFO] 04:51:14:868 Coordinador/(3433:3433): Servidor conectado.
+[INFO] 04:51:14:871 Coordinador/(3433:3433): Listo para escuchar a cualquier Cliente...
+[INFO] 04:51:18:749 Coordinador/(3433:3433): Listo para escuchar a cualquier Cliente...
+[INFO] 04:51:18:752 Coordinador/(3433:3435): Cliente conectado
+[INFO] 04:51:18:753 Coordinador/(3433:3435): El cliente es una Instancia
+[INFO] 04:51:18:754 Coordinador/(3433:3435): TCB de Instancia agregado a la tabla de instancias
+[INFO] 04:51:18:756 Coordinador/(3433:3435): Envio a la Instancia su cantidad de entradas
+[INFO] 04:51:18:757 Coordinador/(3433:3435): Envio a la Instancia el tamaño de las entradas
+[INFO] 04:51:40:871 Coordinador/(3433:3433): Listo para escuchar a cualquier Cliente...
+[INFO] 04:51:40:880 Coordinador/(3433:3455): Cliente conectado
+[INFO] 04:51:40:885 Coordinador/(3433:3455): El cliente es ESI
+[INFO] 04:51:40:886 Coordinador/(3433:3455): Espero un paquete del ESI
+[INFO] 04:51:45:420 Coordinador/(3433:3455): Le informo al ESI que el paquete llego correctamente
+[INFO] 04:51:45:423 Coordinador/(3433:3455): Aguarde mientras se busca una Instancia
+[INFO] 04:51:45:424 Coordinador/(3433:3455): Le envio la instruccion a la Instancia correspondiente
+[INFO] 04:51:45:432 Coordinador/(3433:3455): Espero la respuesta de la Instancia
+[WARNING] 04:53:43:500 Coordinador/(3433:3455): La instancia se ha desconectado
+[INFO] 04:54:17:504 Coordinador/(3544:3544): Se crea la tabla de intancias
+[INFO] 04:54:17:556 Coordinador/(3544:3544): Servidor conectado.
+[INFO] 04:54:17:569 Coordinador/(3544:3544): Listo para escuchar a cualquier Cliente...
+[INFO] 04:54:27:786 Coordinador/(3544:3556): Cliente conectado
+[INFO] 04:54:27:788 Coordinador/(3544:3544): Listo para escuchar a cualquier Cliente...
+[INFO] 04:54:27:1 Coordinador/(3544:3556): El cliente es una Instancia
+[INFO] 04:54:28:10 Coordinador/(3544:3556): TCB de Instancia agregado a la tabla de instancias
+[INFO] 04:54:28:27 Coordinador/(3544:3556): Envio a la Instancia su cantidad de entradas
+[INFO] 04:54:28:35 Coordinador/(3544:3556): Envio a la Instancia el tamaño de las entradas
+[INFO] 04:54:35:586 Coordinador/(3544:3544): Listo para escuchar a cualquier Cliente...
+[INFO] 04:54:35:591 Coordinador/(3544:3566): Cliente conectado
+[INFO] 04:54:35:689 Coordinador/(3544:3566): El cliente es ESI
+[INFO] 04:54:35:691 Coordinador/(3544:3566): Espero un paquete del ESI
+[INFO] 04:54:42:75 Coordinador/(3544:3566): Le informo al ESI que el paquete llego correctamente
+[INFO] 04:54:42:80 Coordinador/(3544:3566): Aguarde mientras se busca una Instancia
+[INFO] 04:54:42:82 Coordinador/(3544:3566): Le envio la instruccion a la Instancia correspondiente
+[INFO] 04:54:42:139 Coordinador/(3544:3566): Espero la respuesta de la Instancia
+[INFO] 04:58:58:624 Coordinador/(3544:3566): Espero un paquete del ESI
+[WARNING] 04:58:58:634 Coordinador/(3544:3566): El ESI se ha desconectado
+[INFO] 04:59:08:211 Coordinador/(3678:3678): Se crea la tabla de intancias
+[INFO] 04:59:08:272 Coordinador/(3678:3678): Servidor conectado.
+[INFO] 04:59:08:280 Coordinador/(3678:3678): Listo para escuchar a cualquier Cliente...
+[INFO] 04:59:11:288 Coordinador/(3678:3678): Listo para escuchar a cualquier Cliente...
+[INFO] 04:59:11:296 Coordinador/(3678:3682): Cliente conectado
+[INFO] 04:59:11:305 Coordinador/(3678:3682): El cliente es una Instancia
+[INFO] 04:59:11:312 Coordinador/(3678:3682): TCB de Instancia agregado a la tabla de instancias
+[INFO] 04:59:11:323 Coordinador/(3678:3682): Envio a la Instancia su cantidad de entradas
+[INFO] 04:59:11:333 Coordinador/(3678:3682): Envio a la Instancia el tamaño de las entradas
+[INFO] 04:59:13:87 Coordinador/(3678:3678): Listo para escuchar a cualquier Cliente...
+[INFO] 04:59:13:107 Coordinador/(3678:3684): Cliente conectado
+[INFO] 04:59:13:109 Coordinador/(3678:3684): El cliente es ESI
+[INFO] 04:59:13:112 Coordinador/(3678:3684): Espero un paquete del ESI
+[INFO] 04:59:16:274 Coordinador/(3678:3684): Le informo al ESI que el paquete llego correctamente
+[INFO] 04:59:16:276 Coordinador/(3678:3684): Aguarde mientras se busca una Instancia
+[INFO] 04:59:16:281 Coordinador/(3678:3684): Le envio la instruccion a la Instancia correspondiente
+[INFO] 04:59:16:305 Coordinador/(3678:3684): Espero la respuesta de la Instancia
+[INFO] 05:00:27:336 Coordinador/(3678:3684): Espero un paquete del ESI
+[WARNING] 05:00:27:340 Coordinador/(3678:3684): El ESI se ha desconectado
+[INFO] 05:00:33:349 Coordinador/(3706:3706): Se crea la tabla de intancias
+[INFO] 05:00:33:464 Coordinador/(3706:3706): Servidor conectado.
+[INFO] 05:00:33:477 Coordinador/(3706:3706): Listo para escuchar a cualquier Cliente...
+[INFO] 05:00:38:511 Coordinador/(3706:3706): Listo para escuchar a cualquier Cliente...
+[INFO] 05:00:38:517 Coordinador/(3706:3728): Cliente conectado
+[INFO] 05:00:38:522 Coordinador/(3706:3728): El cliente es una Instancia
+[INFO] 05:00:38:525 Coordinador/(3706:3728): TCB de Instancia agregado a la tabla de instancias
+[INFO] 05:00:38:531 Coordinador/(3706:3728): Envio a la Instancia su cantidad de entradas
+[INFO] 05:00:38:534 Coordinador/(3706:3728): Envio a la Instancia el tamaño de las entradas
+[INFO] 05:00:43:58 Coordinador/(3706:3706): Listo para escuchar a cualquier Cliente...
+[INFO] 05:00:43:68 Coordinador/(3706:3730): Cliente conectado
+[INFO] 05:00:43:178 Coordinador/(3706:3730): El cliente es ESI
+[INFO] 05:00:43:182 Coordinador/(3706:3730): Espero un paquete del ESI
+[INFO] 05:00:47:201 Coordinador/(3706:3730): Le informo al ESI que el paquete llego correctamente
+[INFO] 05:00:47:203 Coordinador/(3706:3730): Aguarde mientras se busca una Instancia
+[INFO] 05:00:47:205 Coordinador/(3706:3730): Le envio la instruccion a la Instancia correspondiente
+[INFO] 05:00:47:221 Coordinador/(3706:3730): Espero la respuesta de la Instancia
+[INFO] 05:03:29:579 Coordinador/(3706:3730): Espero un paquete del ESI
+[WARNING] 05:03:29:588 Coordinador/(3706:3730): El ESI se ha desconectado
+[INFO] 05:04:33:570 Coordinador/(3858:3858): Se crea la tabla de intancias
+[INFO] 05:04:33:653 Coordinador/(3858:3858): Servidor conectado.
+[INFO] 05:04:33:659 Coordinador/(3858:3858): Listo para escuchar a cualquier Cliente...
+[INFO] 05:04:48:682 Coordinador/(3858:3884): Cliente conectado
+[INFO] 05:04:48:697 Coordinador/(3858:3858): Listo para escuchar a cualquier Cliente...
+[INFO] 05:04:48:884 Coordinador/(3858:3884): El cliente es una Instancia
+[INFO] 05:04:48:889 Coordinador/(3858:3884): TCB de Instancia agregado a la tabla de instancias
+[INFO] 05:04:48:909 Coordinador/(3858:3884): Envio a la Instancia su cantidad de entradas
+[INFO] 05:04:48:920 Coordinador/(3858:3884): Envio a la Instancia el tamaño de las entradas
+[INFO] 05:04:52:71 Coordinador/(3858:3858): Listo para escuchar a cualquier Cliente...
+[INFO] 05:04:52:76 Coordinador/(3858:3886): Cliente conectado
+[INFO] 05:04:52:194 Coordinador/(3858:3886): El cliente es ESI
+[INFO] 05:04:52:196 Coordinador/(3858:3886): Espero un paquete del ESI
+[INFO] 05:04:54:933 Coordinador/(3858:3886): Le informo al ESI que el paquete llego correctamente
+[INFO] 05:04:54:945 Coordinador/(3858:3886): Aguarde mientras se busca una Instancia
+[INFO] 05:04:54:957 Coordinador/(3858:3886): Le envio la instruccion a la Instancia correspondiente
+[INFO] 05:04:54:984 Coordinador/(3858:3886): Espero la respuesta de la Instancia
+[INFO] 05:04:55:15 Coordinador/(3858:3886): La instancia pudo procesar el paquete
+[INFO] 05:04:55:17 Coordinador/(3858:3886): Espero un paquete del ESI
+[INFO] 05:05:17:235 Coordinador/(3858:3886): Le informo al ESI que el paquete llego correctamente
+[INFO] 05:05:17:237 Coordinador/(3858:3886): Aguarde mientras se busca una Instancia
+[WARNING] 05:05:21:248 Coordinador/(3858:3886): No hay instancias disponibles. Reintentando...
+[WARNING] 05:05:25:255 Coordinador/(3858:3886): No hay instancias disponibles. Reintentando...
+[WARNING] 05:05:29:263 Coordinador/(3858:3886): No hay instancias disponibles. Reintentando...

@@ -21,9 +21,9 @@ bool error_config;
 char* ip; char* port;
 int packagesize, backlog;
 char* algoritmo;
-t_queue* listos;
-t_queue* bloqueados;
-t_queue* terminados;
+t_queue* cola_listos;
+t_queue* cola_bloqueados;
+t_queue* cola_terminados;
 sem_t sem_bin_menu;
 sem_t sem_bin_esi;
 int pid_asignacion;
@@ -42,7 +42,7 @@ void* procesarESI(void* socketESI) {
 	pid_asignacion++; // Preparo el pid_asignacion para la proxima asignacion
 
 	// Guardo al pcb del ESI en mi cola de listos
-	queue_push(listos, pcb);
+	queue_push(cola_listos, pcb);
 	return NULL;
 }
 
@@ -158,9 +158,9 @@ int main() {
 	//sem_init(sem_bin_esi, 0, 1);
 
 	// Colas para los procesos (son listas porque se actualiza el orden de ejecucion)
-	listos = queue_create();
-	bloqueados = queue_create();
-	terminados = queue_create();
+	cola_listos = queue_create();
+	cola_bloqueados = queue_create();
+	cola_terminados = queue_create();
 
 	logger = log_create("coordinador_planificador.log", "Planificador",
 	true, LOG_LEVEL_INFO);
@@ -177,15 +177,13 @@ int main() {
 			(void*) &socketDeEscucha);
 
 	while (1) { // Va leyendo la seleccion del menu y la envia a ESI (por ahora solo entiende "1")
-		char* seleccion = malloc(sizeof(int));
-		sprintf(seleccion, "%d", imprimirMenu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
+		uint32_t seleccion = imprimirMenu();
 		/*
 		 int resultado = imprimirMenu();
 		 memcpy(seleccion, (void*) &resultado, sizeof(int));
 		 */
-		t_pcb* pcb = (t_pcb*) queue_pop(listos); // Agarra el primero que haya en la cola de listos
-		send(pcb->socket, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
-		free(seleccion);
+		t_pcb* pcb = (t_pcb*) queue_pop(cola_listos); // Agarra el primero que haya en la cola de listos
+		send(pcb->socket, &seleccion, sizeof(uint32_t), 0); // Envio al ESI lo que se eligio en consola
 	}
 
 	finalizarSocket(socketDeEscucha);

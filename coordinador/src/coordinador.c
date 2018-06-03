@@ -43,28 +43,41 @@ t_tcb* algoritmoDeDistribucion() {
 	}
 }
 
-void enviarAInstancia(char* paquete, uint32_t tam_paquete) {
+int enviarAInstancia(char* paquete, uint32_t tam_paquete) {
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
 	send(tcb_elegido->socket, &tam_paquete, sizeof(uint32_t), 0);
 	send(tcb_elegido->socket, paquete, tam_paquete, 0);
+
+	log_info(logger, "Espero la respuesta de la Instancia");
+	uint32_t respuesta_instancia;
+	recv(tcb_elegido->socket, &respuesta_instancia, sizeof(uint32_t), 0);
+
+	if (respuesta_instancia <= 0) {
+		log_warning(logger, "La instancia se ha desconectado");
+		return -1;
+	} else if (respuesta_instancia == paquete_ok) {
+		log_info(logger, "La instancia pudo procesar el paquete");
+		queue_push(cola_instancias, tcb_elegido); // Lo vuelvo a encolar
+		return 1;
+	}
 }
 
-void atenderESI(int socketCliente) {
+void atenderESI(int socketESI) {
 	do {
 		//printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
 
 		log_info(logger, "Espero un paquete del ESI");
 
 		uint32_t tam_paquete;
-		if (recv(socketCliente, &tam_paquete, sizeof(uint32_t), 0) <= 0) { // Recibo el header
+		if (recv(socketESI, &tam_paquete, sizeof(uint32_t), 0) <= 0) { // Recibo el header
 			log_warning(logger, "El ESI se ha desconectado");
 			break;
 		}
 		char* paquete = malloc(tam_paquete);
-		recv(socketCliente, paquete, tam_paquete, 0);
+		recv(socketESI, paquete, tam_paquete, 0);
 
 		log_info(logger, "Le informo al ESI que el paquete llego correctamente");
-		send(socketCliente, &paquete_ok, sizeof(uint32_t), 0); // Envio respuesta al ESI
+		send(socketESI, &paquete_ok, sizeof(uint32_t), 0); // Envio respuesta al ESI
 
 		log_info(logger, "Aguarde mientras se busca una Instancia");
 		while (queue_is_empty(cola_instancias)) { // HAY QUE UTILIZAR UN SEMAFORO CONTADOR
@@ -73,36 +86,27 @@ void atenderESI(int socketCliente) {
 		}
 
 		log_info(logger, "Le envio la instruccion a la Instancia correspondiente");
-		enviarAInstancia(paquete, tam_paquete);
+		int resultadoInstancia = enviarAInstancia(paquete, tam_paquete);
 		destruirPaquete(paquete);
-
-		log_info(logger, "Espero la respuesta de la Instancia");
-		uint32_t respuesta_instancia = recv(socketCliente, &respuesta_instancia, sizeof(uint32_t), 0);
-		if (respuesta_instancia <= 0) {
-			log_warning(logger, "La instancia se ha desconectado");
+		if (resultadoInstancia < 0) // Instancia desconectada
 			break;
-		} else if (respuesta_instancia == paquete_ok) {
-			log_info(logger, "La instancia pudo procesar el paquete");
-		} else {
-			printf("rta: %d\n", respuesta_instancia);
-		}
 	} while (1);
 }
 
-void atenderInstancia(int socketCliente) {
+void atenderInstancia(int socketInstancia) {
 	t_tcb* tcb = malloc(sizeof(t_tcb));
 	tcb->tid = clave_tid;
 	clave_tid++;
-	tcb->socket = socketCliente;
+	tcb->socket = socketInstancia;
 	queue_push(cola_instancias, tcb);
 	log_info(logger, "TCB de Instancia agregado a la tabla de instancias");
 	printf("La cantidad de instancias actual es %d\n", queue_size(cola_instancias));
 
 	log_info(logger, "Envio a la Instancia su cantidad de entradas");
-	send(socketCliente, &cant_entradas, sizeof(uint32_t), 0);
+	send(socketInstancia, &cant_entradas, sizeof(uint32_t), 0);
 
 	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
-	send(socketCliente, &tam_entradas, sizeof(uint32_t), 0);
+	send(socketInstancia, &tam_entradas, sizeof(uint32_t), 0);
 }
 
 void* establecerConexion(void* socketCliente) {

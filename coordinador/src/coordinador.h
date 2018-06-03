@@ -33,9 +33,9 @@ typedef struct {
 int cargarConfiguracion();
 void establecerProtocoloDistribucion();
 void* establecerConexion(void* parametros);
-void atenderESI(int socketCliente);
-void atenderInstancia(int socketCliente);
-void enviarAInstancia(char* paquete, uint32_t tam_paquete);
+void atenderESI(int socketESI);
+void atenderInstancia(int socketInstancia);
+int enviarAInstancia(char* paquete, uint32_t tam_paquete);
 t_tcb* algoritmoDeDistribucion();
 void finalizar();
 

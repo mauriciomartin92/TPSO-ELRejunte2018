@@ -113,7 +113,7 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 
 	char* paquete = malloc(tam_paquete);
 	recv(socketCoordinador, paquete, tam_paquete, 0); // MSG_WAITALL
-	log_info(logger, "Recibi una instruccion de script que me envia el Coordinador");
+	log_info(logger, "Recibi un paquete que me envia el Coordinador");
 
 	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
 	destruirPaquete(paquete);
