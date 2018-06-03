@@ -16,12 +16,11 @@ char* ip;
 char* port;
 char* algoritmo_distribucion;
 int protocolo_algoritmo_distribucion;
-int backlog, packagesize, retardo;
-uint32_t cant_entradas, tam_entradas;
+int backlog, packagesize, cant_entradas, tam_entradas, retardo;
 t_queue* cola_instancias;
 int socketDeEscucha;
 int clave_tid;
-uint32_t paquete_ok = 1;
+bool estaAtendiendoInstancia;
 
 t_tcb* algoritmoDeDistribucion() {
 	// implementar
@@ -44,6 +43,7 @@ t_tcb* algoritmoDeDistribucion() {
 }
 
 void enviarAInstancia(char* paquete, uint32_t tam_paquete) {
+	log_info(logger, "enviarAInstancia: Le envio la instruccion a la Instancia correspondiente");
 	t_tcb* tcb_elegido = algoritmoDeDistribucion();
 	send(tcb_elegido->socket, &tam_paquete, sizeof(uint32_t), 0);
 	send(tcb_elegido->socket, paquete, tam_paquete, 0);
@@ -53,38 +53,36 @@ void atenderESI(int socketCliente) {
 	do {
 		//printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
 
-		log_info(logger, "Espero un paquete del ESI");
-
+		// Recibo linea de script parseada
 		uint32_t tam_paquete;
-		if (recv(socketCliente, &tam_paquete, sizeof(uint32_t), 0) <= 0) { // Recibo el header
-			log_warning(logger, "El ESI se ha desconectado");
-			break;
-		}
+		recv(socketCliente, &tam_paquete, sizeof(uint32_t), MSG_WAITALL); // Recibo el header
+		printf("tam_paquete: %d\n", tam_paquete);
 		char* paquete = malloc(tam_paquete);
-		recv(socketCliente, paquete, tam_paquete, 0);
-
-		log_info(logger, "Le informo al ESI que el paquete llego correctamente");
-		send(socketCliente, &paquete_ok, sizeof(uint32_t), 0); // Envio respuesta al ESI
-
-		log_info(logger, "Aguarde mientras se busca una Instancia");
-		while (queue_is_empty(cola_instancias)) { // HAY QUE UTILIZAR UN SEMAFORO CONTADOR
-			sleep(4); // Lo pongo para que la espera activa no sea tan densa
-			log_warning(logger, "No hay instancias disponibles. Reintentando...");
-		}
-
-		log_info(logger, "Le envio la instruccion a la Instancia correspondiente");
-		enviarAInstancia(paquete, tam_paquete);
-		destruirPaquete(paquete);
-
-		log_info(logger, "Espero la respuesta de la Instancia");
-		uint32_t respuesta_instancia = recv(socketCliente, &respuesta_instancia, sizeof(uint32_t), 0);
-		if (respuesta_instancia <= 0) {
-			log_warning(logger, "La instancia se ha desconectado");
-			break;
-		} else if (respuesta_instancia == paquete_ok) {
-			log_info(logger, "La instancia pudo procesar el paquete");
+		int cant_recibida = recv(socketCliente, paquete, tam_paquete, MSG_WAITALL);
+		printf("cant_recibida: %d\n", cant_recibida);
+		if (cant_recibida < 0) {
+			sleep(retardo / 1000);
+			//Hubo error al recibir la linea parseada
+			log_error(logger,
+					"atenderESI: Error al recibir instruccion de script");
+			send(socketCliente, "error", strlen("error"), 0); // Envio respuesta al ESI
 		} else {
-			printf("rta: %d\n", respuesta_instancia);
+			sleep(retardo / 1000);
+			log_info(logger, "atenderESI: Recibi un paquete del ESI");
+
+			log_info(logger,
+					"atenderESI: Aguarde mientras se busca una Instancia...");
+			while (queue_is_empty(cola_instancias)) {
+				sleep(4);
+				log_warning(logger,
+						"atenderESI: No hay instancias disponibles. Reintentando...");
+			}
+			enviarAInstancia(paquete, tam_paquete);
+			destruirPaquete(paquete);
+
+			log_info(logger,
+					"atenderESI: Le informo al ESI que el paquete llego correctamente");
+			send(socketCliente, "ok", strlen("ok"), 0); // Envio respuesta al ESI
 		}
 	} while (1);
 }
@@ -95,18 +93,24 @@ void atenderInstancia(int socketCliente) {
 	clave_tid++;
 	tcb->socket = socketCliente;
 	queue_push(cola_instancias, tcb);
-	log_info(logger, "TCB de Instancia agregado a la tabla de instancias");
-	printf("La cantidad de instancias actual es %d\n", queue_size(cola_instancias));
+	log_info(logger,
+			"atenderInstancia: TCB de Instancia agregado a la tabla de instancias");
+	printf("atenderInstancia: La direccion del nuevo TCB es %p\n",
+			queue_peek(cola_instancias));
+	printf("atenderInstancia: Y la cantidad de elementos es %d\n",
+			queue_size(cola_instancias));
 
-	log_info(logger, "Envio a la Instancia su cantidad de entradas");
-	send(socketCliente, &cant_entradas, sizeof(uint32_t), 0);
+	log_info(logger,
+			"atenderInstancia: Envio a la Instancia su cantidad de entradas");
+	enviarPaqueteNumerico(socketCliente, cant_entradas);
 
-	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
-	send(socketCliente, &tam_entradas, sizeof(uint32_t), 0);
+	log_info(logger,
+			"atenderInstancia: Envio a la Instancia el tamaño de las entradas");
+	enviarPaqueteNumerico(socketCliente, tam_entradas);
 }
 
 void* establecerConexion(void* socketCliente) {
-	log_info(logger, "Cliente conectado");
+	log_info(logger, "establecerConexion: Cliente conectado");
 
 	/* Aca se utiliza el concepto de handshake.
 	 * Cada Cliente manda un identificador para avisarle al Servidor
@@ -116,16 +120,19 @@ void* establecerConexion(void* socketCliente) {
 	 * saber con quien se esta comunicando =)
 	 */
 
-	uint32_t handshake;
-	recv(*(int*) socketCliente, &handshake, sizeof(uint32_t), 0);
-	if (handshake == 1) {
-		log_info(logger, "El cliente es ESI");
+	char handshake[packagesize];
+	recv(*(int*) socketCliente, (void*) handshake, packagesize, 0);
+	if (atoi(handshake) == 1) {
+		log_info(logger, "establecerConexion: El cliente es ESI.");
 		atenderESI(*(int*) socketCliente);
-	} else if (handshake == 2) {
-		log_info(logger, "El cliente es una Instancia");
+	} else if (atoi(handshake) == 2) {
+		log_info(logger, "establecerConexion: El cliente es una Instancia.");
+		estaAtendiendoInstancia = true;
 		atenderInstancia(*(int*) socketCliente);
+		estaAtendiendoInstancia = false;
 	} else {
-		log_error(logger, "No se pudo reconocer al cliente");
+		log_error(logger,
+				"establecerConexion: No se pudo reconocer al cliente.");
 	}
 
 	return NULL;
@@ -153,7 +160,9 @@ int cargarConfiguracion() {
 	 */
 
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/config_coordinador.cfg", &error_config);
+	t_config* config =
+			conectarAlArchivo(logger,
+					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/config_coordinador.cfg", &error_config);
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
@@ -174,12 +183,9 @@ int cargarConfiguracion() {
 	return 1;
 }
 
-void finalizar() {
-
-}
-
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
 	error_config = false;
+	estaAtendiendoInstancia = false;
 
 	/*
 	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
@@ -187,12 +193,10 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	 */
 	logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_INFO);
 
-	if (cargarConfiguracion() < 0) {
-		log_error(logger, "No se pudo cargar la configuracion");
-		finalizar();
-	}
+	if (cargarConfiguracion() < 0)
+		return EXIT_FAILURE; // Si hubo error, se corta la ejecucion.
 
-	log_info(logger, "Se crea la tabla de intancias");
+	log_info(logger, "main: Se crea la tabla de intancias.");
 	cola_instancias = queue_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
@@ -201,6 +205,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 		int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
 		pthread_t unHilo; // Cada conexion la delega en un hilo
 		pthread_create(&unHilo, NULL, establecerConexion, (void*) &socketCliente);
+		sleep(2); // sleep para poder ver algo
 	}
 
 	finalizarSocket(socketDeEscucha);
