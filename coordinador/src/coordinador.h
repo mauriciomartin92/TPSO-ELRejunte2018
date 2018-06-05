@@ -34,8 +34,9 @@ int cargarConfiguracion();
 void establecerProtocoloDistribucion();
 void* establecerConexion(void* parametros);
 void atenderESI(int socketESI);
-void atenderInstancia(int socketInstancia);
+void loguearOperacion(uint32_t id, char* paquete);
 int enviarAInstancia(char* paquete, uint32_t tam_paquete);
+void atenderInstancia(int socketInstancia);
 t_tcb* algoritmoDeDistribucion();
 void finalizar();
 

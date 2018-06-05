@@ -11,6 +11,7 @@
 #include "coordinador.h"
 
 t_log* logger;
+t_log* logger_operaciones;
 bool error_config;
 char* ip;
 char* port;
@@ -58,8 +59,16 @@ int enviarAInstancia(char* paquete, uint32_t tam_paquete) {
 	} else if (respuesta_instancia == paquete_ok) {
 		log_info(logger, "La instancia pudo procesar el paquete");
 		queue_push(cola_instancias, tcb_elegido); // Lo vuelvo a encolar
-		return 1;
 	}
+	return 1;
+}
+
+void loguearOperacion(uint32_t id, char* paquete) {
+	char* cadena_log_operaciones = string_new();
+	string_append_with_format(&cadena_log_operaciones, "%i", id);
+	string_append(&cadena_log_operaciones, "		");
+	string_append(&cadena_log_operaciones, paquete);
+	log_info(logger_operaciones, cadena_log_operaciones);
 }
 
 void atenderESI(int socketESI) {
@@ -75,6 +84,8 @@ void atenderESI(int socketESI) {
 		}
 		char* paquete = malloc(tam_paquete);
 		recv(socketESI, paquete, tam_paquete, 0);
+
+		//loguearOperacion(unESI->id, paquete);
 
 		log_info(logger, "Le informo al ESI que el paquete llego correctamente");
 		send(socketESI, &paquete_ok, sizeof(uint32_t), 0); // Envio respuesta al ESI
@@ -190,6 +201,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	 * comunicar distintos tipos de mensajes que emite el S.O. como ser: WARNINGS, ERRORS, INFO.
 	 */
 	logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_INFO);
+	logger_operaciones = log_create("log_operaciones.log", "Log de Operaciones", true, LOG_LEVEL_INFO);
 
 	if (cargarConfiguracion() < 0) {
 		log_error(logger, "No se pudo cargar la configuracion");
