@@ -64,9 +64,19 @@ int enviarAInstancia(char* paquete, uint32_t tam_paquete) {
 }
 
 void loguearOperacion(uint32_t id, char* paquete) {
+
+	/*
+	 * Log de Operaciones (Ejemplo)
+	 * ESI 		Operación
+	 * ESI 1 	SET materias:K3001 Fisica 2
+	 * ESI 1 	STORE materias:K3001
+	 * ESI 2 	SET materias:K3002 Economia
+	 */
+
 	char* cadena_log_operaciones = string_new();
+	string_append(&cadena_log_operaciones, "ESI ");
 	string_append_with_format(&cadena_log_operaciones, "%i", id);
-	string_append(&cadena_log_operaciones, "		");
+	string_append(&cadena_log_operaciones, "	");
 	string_append(&cadena_log_operaciones, paquete);
 	log_info(logger_operaciones, cadena_log_operaciones);
 }
