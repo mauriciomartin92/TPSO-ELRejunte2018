@@ -13,7 +13,7 @@
  *
  * 	No se contemplan el manejo de errores en el sistema por una cuestion didactica. Tener en cuenta esto al desarrollar.
  */
-
+/*
 #include "planificadorviejo.h"
 
 t_log* logger;
@@ -179,10 +179,10 @@ int main() {
 	while (1) { // Va leyendo la seleccion del menu y la envia a ESI (por ahora solo entiende "1")
 		char* seleccion = malloc(sizeof(int));
 		sprintf(seleccion, "%d", imprimirMenu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
-		/*
+
 		 int resultado = imprimirMenu();
 		 memcpy(seleccion, (void*) &resultado, sizeof(int));
-		 */
+
 		t_pcb* pcb = (t_pcb*) queue_pop(listos); // Agarra el primero que haya en la cola de listos
 		send(pcb->socket, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
 		free(seleccion);
@@ -192,3 +192,5 @@ int main() {
 
 	return EXIT_SUCCESS;
 }
+
+*/

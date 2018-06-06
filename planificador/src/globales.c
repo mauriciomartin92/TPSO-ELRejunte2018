@@ -9,7 +9,7 @@ char * KEY_IP_COORDINADOR = "IP_COORDINADOR";
 char * KEY_PUERTO_COORDINADOR = "PUERTO_COORDINADOR";
 char * KEY_CLAVES_BLOQUEADAS = "CLAVES_BLOQUEADAS";
 char * KEY_CONSTANTE_ESTIMACION = "CONSTANTE_ESTIMACION";
-char * RUTA_CONFIGURACION = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/Config/Planificador.cfg";
+char * RUTA_CONFIGURACION = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/src/Planificador.cfg";
 char * SJF = "SJF";
 char * HRRN = "HRRN";
 

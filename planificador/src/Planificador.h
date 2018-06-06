@@ -64,8 +64,8 @@ typedef struct{
 	float tiempoEspera;
 	bool bloqueadoPorRecurso;
 	bool bloqueadoPorUsuario;
-	int recursoAsignado; // clave
-	int recursoPedido; // clave
+	char * recursoAsignado; // clave
+	char * recursoPedido; // clave
 
 }ESI;
 
@@ -94,7 +94,7 @@ typedef struct{ // en la lista de recursosFinales: futbolLeoMessi, futbolLuisSua
 
 typedef struct{
 
-	int clave;
+	char * clave;
 	t_list * ESIasociados;
 
 } t_deadlockeados;
