@@ -223,6 +223,53 @@ int cargarConfiguracion() {
 	return 1;
 }
 
+void operacionStore(char* mapa, char* clave){
+	char* _nombreArchivo;
+	char* _entrada;
+	char* _valor;
+	char** _vecClaveValor;
+	int _contador = 0;
+	int _estaClave = 0;
+	int _file;
+
+	//Recorre las entradas hasta encontrar la clave pedida.
+	for(int i = 0; i < string_length(mapa); i++){
+			if(mapa[i] == ';'){
+				_entrada = string_new();
+				_entrada = string_substring(mapa, _contador, i - _contador);
+				_vecClaveValor = string_split(_entrada, "-");
+				//Si el string del vector es igual al string de la clave pasada, guardame el valor.
+				if(strcmp(_vecClaveValor[0], clave)){
+					_estaClave = 1;
+					_valor = string_new();
+					strncpy(_valor, _vecClaveValor[1], string_length(_vecClaveValor[1]));
+					break;
+				}
+				_contador = i + 1;
+			}
+		}
+	//Si fué encontrada la clave y el valor, creame un archivo con el nombre de la clave
+	//y después guardame el valor dentro.
+	if (_estaClave > 0){
+		_nombreArchivo = string_new();
+		strcpy(_nombreArchivo, _vecClaveValor[0]);
+		_file = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+		if(_file < 0){
+			perror("Error al crear archivo para la clave");
+			close(_file);
+			exit(1);
+		}
+		if((int)write(_file, _valor, string_length(_valor)) < 0){
+			perror("Error al escribir el valor en la entrada");
+			close(_file);
+			exit(1);
+		}
+
+		close(_file);
+
+	}
+}
+
 void finalizar() {
 	if (socketCoordinador > 0)
 		finalizarSocket(socketCoordinador);
