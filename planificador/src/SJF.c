@@ -2,9 +2,14 @@
 
 void planificacionSJF(){
 
-
 	liberarBloqueados();
-	pthread_create(&hiloEscucha,NULL, (void *) escucharPedidos, NULL);
+
+	socketDeEscucha = conectarComoServidor(logPlanificador, ipPropia, puertoPropio, backlog);
+
+	int socketESI = escucharCliente(logPlanificador, *(int*) socketDeEscucha, backlog);
+
+	pthread_create(&hiloEscuchaConsola,NULL, (void *) escucharPedidos, &socketESI);
+	pthread_create(&hiloEscuchaESI, NULL, (void *) lanzarConsola, NULL);
 
 	log_info(logPlanificador,"Arraca SJF");
 
@@ -128,11 +133,13 @@ void armarColaListos(){
 }
 
 
-void escucharPedidos(){
+void escucharPedidos(int conexion){
 
 
-	//todo acá poner el escucha de la consola cuando esté lista
-
+	int a= 1234;
+	send(conexion, &a, sizeof(uint32_t),  0); // Envio al ESI lo que se eligio en consola
+	int respuesta;
+	recv(conexion, &respuesta , sizeof (uint32_t), 0);
 	log_info(logPlanificador, " entra al hilo ");
 
 }
@@ -174,7 +181,8 @@ void planificacionSJFConDesalojo(){
 
 
 	liberarBloqueados();
-	pthread_create(&hiloEscucha,NULL, (void *) escucharPedidos, NULL);
+	int socketESI = escucharCliente(logPlanificador, *(int*) socketDeEscucha, backlog);
+	pthread_create(&hiloEscuchaConsola,NULL, (void *) escucharPedidos, NULL);
 
 	log_info(logPlanificador,"Arraca SJF con desalojo");
 
@@ -193,6 +201,4 @@ void planificacionSJFConDesalojo(){
 	}
 
 
-
 }
-

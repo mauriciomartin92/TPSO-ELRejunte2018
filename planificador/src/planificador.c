@@ -20,6 +20,7 @@ int main(void) {
 	listaFinalizados = list_create();
 	deadlockeados = list_create();
 	listaRecursos = list_create();
+	int backlog = 2;
 
 	log_info(logPlanificador,"Arranca el proceso planificador");
 	configurar();

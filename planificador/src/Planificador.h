@@ -8,6 +8,10 @@
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
+#include "../../biblioteca-El-Rejunte/src/misSockets.h"
+#include <readline/readline.h>
+
+
 
 
 //constantes de planificación
@@ -25,7 +29,25 @@ extern char * KEY_IP_COORDINADOR ;
 extern char * KEY_PUERTO_COORDINADOR;
 extern char * KEY_CLAVES_BLOQUEADAS ;
 extern char * KEY_CONSTANTE_ESTIMACION ;
+extern char * PAUSEAR_PLANIFICACION;
+extern char* REANUDAR_PLANIFICACION ;
+extern char* BLOQUEAR_ESI ;
+extern char* DESBLOQUEAR_ESI ;
+extern char* LISTAR_POR_RECURSO ;
+extern char* KILL_ESI ;
+extern char* STATUS_ESI ;
+extern char* COMPROBAR_DEADLOCK;
 
+
+// SOCKETS
+
+
+extern int socketDeEscucha;
+extern char * ipPropia;
+extern char * puertoPropio;
+extern int backlog;
+extern int CONTINUAR;
+extern int FINALIZAR;
 
 // GLOBALES
 
@@ -47,10 +69,12 @@ int puertoCoordinador;
 char ** clavesBloqueadas;
 extern char * rutaLog;
 bool recursoGenericoEnUso;
-pthread_t  hiloEscucha;
+pthread_t  hiloEscuchaConsola;
+pthread_t hiloEscuchaESI;
 pthread_t * hiloPlanifica;
 char * claveActual;
 t_list * deadlockeados;
+
 
 // ESTRUCTURAS DE PROCESOS
 
@@ -119,6 +143,7 @@ void crearSubrecurso (char* claveRecurso, char * claveSubrecurso);
 void recursoDestroy(t_recurso * recurso);
 void subrecursoDestroy (t_subrecurso * subrecurso);
 void recursoFinalDestroy(t_recursoFinal * recuFinal);
+extern void lanzarConsola();
 
 
 
