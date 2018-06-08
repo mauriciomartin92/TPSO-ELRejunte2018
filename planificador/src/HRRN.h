@@ -2,8 +2,8 @@
 #define HRRN_H_
 
 
-#include "Planificador.h"
 #include <pthread.h>
+#include "planificador.h"
 
 void planficacionHRRN();
 void planificacionHRRNConDesalojo();

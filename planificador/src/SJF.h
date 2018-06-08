@@ -2,7 +2,8 @@
 #define SJF_H_
 
 #include <pthread.h>
-#include "Planificador.h"
+
+#include "planificador.h"
 
 void planificacionSJF();
 void planificacionSJFConDesalojo();

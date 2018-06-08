@@ -209,7 +209,7 @@ void generarTablaDeEntradas() {
 
 int cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger,  "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg", &error_config);
+	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg", &error_config);
 
 	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);

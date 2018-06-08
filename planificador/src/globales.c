@@ -1,18 +1,20 @@
-#include "Planificador.h"
+#include "planificador.h"
 
 
-char* rutaLog = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/logs";
+//char* rutaLog = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/Debug/logs";
 char * KEY_PUERTO_CLIENTE = "PUERTO_CLIENTE";
 char * KEY_ALGORITMO_PLANIFICACION = "ALGORITMO_PLANIFICACION";
 char * KEY_ESTIMACION_INICIAL = "ESTIMACION_INICIAL";
 char * KEY_IP_COORDINADOR = "IP_COORDINADOR";
 char * KEY_PUERTO_COORDINADOR = "PUERTO_COORDINADOR";
+extern char * KEY_IP = "IP";
+extern char * KEY_PUERTO = "PUERTO";
 char * KEY_CLAVES_BLOQUEADAS = "CLAVES_BLOQUEADAS";
 char * KEY_CONSTANTE_ESTIMACION = "CONSTANTE_ESTIMACION";
-char * RUTA_CONFIGURACION = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/src/Planificador.cfg";
+char * RUTA_CONFIGURACION = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/config_planificador.cfg";
 char * SJF = "SJF";
 char * HRRN = "HRRN";
-char * ipPropia = "127.0.0.1";
+char * ipPropia = "127.0.0.2";
 char * puertoPropio = "8080";
 int CONTINUAR = 1;
 int FINALIZAR = 2;
@@ -188,9 +190,4 @@ void lanzarConsola(){
 		}
 
 	}
-
-
-
 }
-
-

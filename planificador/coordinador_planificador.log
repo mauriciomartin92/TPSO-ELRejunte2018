@@ -1,7 +1,0 @@
-[ERROR] 15:49:22:255 Planificador/(5448:5448): No se encuentra el archivo de configuracion.
-[ERROR] 15:50:14:234 Planificador/(5490:5490): No se encuentra el archivo de configuracion.
-[INFO] 17:17:52:360 Planificador/(8268:8268): Servidor conectado.
-[INFO] 17:17:52:422 Planificador/(8268:8273): Listo para escuchar a cualquier Cliente...
-[INFO] 17:29:31:407 Planificador/(9209:9209): Servidor conectado.
-[INFO] 17:29:31:423 Planificador/(9209:9214): Listo para escuchar a cualquier Cliente...
-[ERROR] 17:29:35:959 Planificador/(9209:9209): No es una opcion valida, intente nuevamente.

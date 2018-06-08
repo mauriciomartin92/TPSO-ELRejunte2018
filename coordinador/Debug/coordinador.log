@@ -3714,3 +3714,85 @@
 [INFO] 00:17:33:530 Coordinador/(4600:4634): Espero la respuesta de la Instancia
 [INFO] 00:17:33:567 Coordinador/(4600:4634): La instancia pudo procesar el paquete
 [INFO] 00:17:33:570 Coordinador/(4600:4634): Espero un paquete del ESI
+[INFO] 23:26:52:702 Coordinador/(3510:3510): Se crea la tabla de intancias
+[INFO] 23:26:52:703 Coordinador/(3510:3510): Servidor conectado.
+[INFO] 23:26:52:704 Coordinador/(3510:3510): Listo para escuchar a cualquier Cliente...
+[INFO] 23:44:13:593 Coordinador/(3510:3510): Listo para escuchar a cualquier Cliente...
+[INFO] 23:44:13:600 Coordinador/(3510:4236): Cliente conectado
+[INFO] 23:44:13:609 Coordinador/(3510:4236): El cliente es ESI
+[INFO] 23:44:13:610 Coordinador/(3510:4236): Espero un paquete del ESI
+[INFO] 00:06:47:726 Coordinador/(5116:5116): Se crea la tabla de intancias
+[INFO] 00:06:47:728 Coordinador/(5116:5116): Servidor conectado.
+[INFO] 00:06:47:729 Coordinador/(5116:5116): Listo para escuchar a cualquier Cliente...
+[INFO] 00:07:02:240 Coordinador/(5116:5116): Listo para escuchar a cualquier Cliente...
+[INFO] 00:07:02:253 Coordinador/(5116:5136): Cliente conectado
+[INFO] 00:07:02:257 Coordinador/(5116:5136): El cliente es ESI
+[INFO] 00:07:02:262 Coordinador/(5116:5136): Espero un paquete del ESI
+[INFO] 00:08:25:699 Coordinador/(5243:5243): Se crea la tabla de intancias
+[INFO] 00:08:25:701 Coordinador/(5243:5243): Servidor conectado.
+[INFO] 00:08:25:702 Coordinador/(5243:5243): Listo para escuchar a cualquier Cliente...
+[INFO] 00:09:03:61 Coordinador/(5574:5574): Se crea la tabla de intancias
+[INFO] 00:09:03:63 Coordinador/(5574:5574): Servidor conectado.
+[INFO] 00:09:03:65 Coordinador/(5574:5574): Listo para escuchar a cualquier Cliente...
+[INFO] 00:14:28:626 Coordinador/(6059:6059): Se crea la tabla de intancias
+[INFO] 00:14:28:628 Coordinador/(6059:6059): Servidor conectado.
+[INFO] 00:14:28:629 Coordinador/(6059:6059): Listo para escuchar a cualquier Cliente...
+[INFO] 00:15:05:279 Coordinador/(6059:6059): Listo para escuchar a cualquier Cliente...
+[INFO] 00:15:05:280 Coordinador/(6059:6149): Cliente conectado
+[INFO] 00:15:05:288 Coordinador/(6059:6149): El cliente es ESI
+[INFO] 00:15:05:290 Coordinador/(6059:6149): Espero un paquete del ESI
+[WARNING] 00:30:30:260 Coordinador/(6059:6149): El ESI se ha desconectado
+[INFO] 00:30:39:816 Coordinador/(6728:6728): Se crea la tabla de intancias
+[INFO] 00:30:39:818 Coordinador/(6728:6728): Servidor conectado.
+[INFO] 00:30:39:820 Coordinador/(6728:6728): Listo para escuchar a cualquier Cliente...
+[INFO] 00:40:58:139 Coordinador/(6995:6995): Se crea la tabla de intancias
+[INFO] 00:40:58:141 Coordinador/(6995:6995): Servidor conectado.
+[INFO] 00:40:58:147 Coordinador/(6995:6995): Listo para escuchar a cualquier Cliente...
+[INFO] 00:41:06:278 Coordinador/(6995:6995): Listo para escuchar a cualquier Cliente...
+[INFO] 00:41:06:300 Coordinador/(6995:7003): Cliente conectado
+[INFO] 00:41:06:304 Coordinador/(6995:7003): El cliente es ESI
+[INFO] 00:41:06:305 Coordinador/(6995:7003): Espero un paquete del ESI
+[WARNING] 00:41:10:570 Coordinador/(6995:7003): El ESI se ha desconectado
+[INFO] 00:42:53:519 Coordinador/(7063:7063): Se crea la tabla de intancias
+[INFO] 00:42:53:524 Coordinador/(7063:7063): Servidor conectado.
+[INFO] 00:42:53:525 Coordinador/(7063:7063): Listo para escuchar a cualquier Cliente...
+[INFO] 00:43:20:742 Coordinador/(7063:7063): Listo para escuchar a cualquier Cliente...
+[INFO] 00:43:20:756 Coordinador/(7063:7113): Cliente conectado
+[INFO] 00:43:20:757 Coordinador/(7063:7113): El cliente es ESI
+[INFO] 00:43:20:758 Coordinador/(7063:7113): Espero un paquete del ESI
+[WARNING] 00:46:30:936 Coordinador/(7063:7113): El ESI se ha desconectado
+[INFO] 00:46:37:573 Coordinador/(7268:7268): Se crea la tabla de intancias
+[INFO] 00:46:37:575 Coordinador/(7268:7268): Servidor conectado.
+[INFO] 00:46:37:578 Coordinador/(7268:7268): Listo para escuchar a cualquier Cliente...
+[INFO] 00:46:52:217 Coordinador/(7268:7268): Listo para escuchar a cualquier Cliente...
+[INFO] 00:46:52:228 Coordinador/(7268:7290): Cliente conectado
+[INFO] 00:46:52:234 Coordinador/(7268:7290): El cliente es ESI
+[INFO] 00:46:52:236 Coordinador/(7268:7290): Espero un paquete del ESI
+[WARNING] 00:47:39:801 Coordinador/(7268:7290): El ESI se ha desconectado
+[INFO] 00:47:43:993 Coordinador/(7326:7326): Se crea la tabla de intancias
+[INFO] 00:47:43:994 Coordinador/(7326:7326): Servidor conectado.
+[INFO] 00:47:43:996 Coordinador/(7326:7326): Listo para escuchar a cualquier Cliente...
+[INFO] 00:47:48:194 Coordinador/(7326:7326): Listo para escuchar a cualquier Cliente...
+[INFO] 00:47:48:209 Coordinador/(7326:7329): Cliente conectado
+[INFO] 00:47:48:213 Coordinador/(7326:7329): El cliente es ESI
+[INFO] 00:47:48:215 Coordinador/(7326:7329): Espero un paquete del ESI
+[WARNING] 00:49:31:69 Coordinador/(7326:7329): El ESI se ha desconectado
+[INFO] 00:49:40:330 Coordinador/(7408:7408): Se crea la tabla de intancias
+[INFO] 00:49:40:332 Coordinador/(7408:7408): Servidor conectado.
+[INFO] 00:49:40:333 Coordinador/(7408:7408): Listo para escuchar a cualquier Cliente...
+[INFO] 00:49:50:995 Coordinador/(7408:7408): Listo para escuchar a cualquier Cliente...
+[INFO] 00:49:51:12 Coordinador/(7408:7412): Cliente conectado
+[INFO] 00:49:51:15 Coordinador/(7408:7412): El cliente es ESI
+[INFO] 00:49:51:16 Coordinador/(7408:7412): Espero un paquete del ESI
+[WARNING] 00:49:51:990 Coordinador/(7408:7412): El ESI se ha desconectado
+[INFO] 00:50:35:288 Coordinador/(7434:7434): Se crea la tabla de intancias
+[INFO] 00:50:35:297 Coordinador/(7434:7434): Servidor conectado.
+[INFO] 00:50:35:300 Coordinador/(7434:7434): Listo para escuchar a cualquier Cliente...
+[INFO] 00:51:44:879 Coordinador/(7462:7462): Se crea la tabla de intancias
+[INFO] 00:51:44:881 Coordinador/(7462:7462): Servidor conectado.
+[INFO] 00:51:44:882 Coordinador/(7462:7462): Listo para escuchar a cualquier Cliente...
+[INFO] 00:52:01:408 Coordinador/(7462:7462): Listo para escuchar a cualquier Cliente...
+[INFO] 00:52:01:432 Coordinador/(7462:7482): Cliente conectado
+[INFO] 00:52:01:440 Coordinador/(7462:7482): El cliente es ESI
+[INFO] 00:52:01:459 Coordinador/(7462:7482): Espero un paquete del ESI
+[WARNING] 01:01:59:344 Coordinador/(7462:7482): El ESI se ha desconectado

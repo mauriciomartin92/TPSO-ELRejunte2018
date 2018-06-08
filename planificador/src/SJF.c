@@ -1,12 +1,20 @@
 #include "SJF.h"
 
+int socketDeEscucha;
+
 void planificacionSJF(){
+
+	log_info(logPlanificador, "Comienza planificacion SJF");
 
 	liberarBloqueados();
 
-	socketDeEscucha = conectarComoServidor(logPlanificador, ipPropia, puertoPropio, backlog);
+	log_info(logPlanificador, "Escucho un ESI...");
 
-	int socketESI = escucharCliente(logPlanificador, *(int*) socketDeEscucha, backlog);
+	socketDeEscucha = conectarComoServidor(logPlanificador, ip, puerto, 1);
+
+	int socketESI = escucharCliente(logPlanificador, socketDeEscucha, 1);
+
+	log_info(logPlanificador, "Se conecto un ESI!");
 
 	pthread_create(&hiloEscuchaConsola,NULL, (void *) escucharPedidos, &socketESI);
 	pthread_create(&hiloEscuchaESI, NULL, (void *) lanzarConsola, NULL);
@@ -136,12 +144,11 @@ void armarColaListos(){
 void escucharPedidos(int conexion){
 
 
-	int a= 1234;
+	uint32_t a = 1234;
 	send(conexion, &a, sizeof(uint32_t),  0); // Envio al ESI lo que se eligio en consola
-	int respuesta;
+	uint32_t respuesta;
 	recv(conexion, &respuesta , sizeof (uint32_t), 0);
-	log_info(logPlanificador, " entra al hilo ");
-
+	printf("Me respondio: %d\n", respuesta);
 }
 
 void liberarRecursos(int recursoID){
@@ -181,7 +188,7 @@ void planificacionSJFConDesalojo(){
 
 
 	liberarBloqueados();
-	int socketESI = escucharCliente(logPlanificador, *(int*) socketDeEscucha, backlog);
+	int socketESI = escucharCliente(logPlanificador, *(int*) socketDeEscucha, 1);
 	pthread_create(&hiloEscuchaConsola,NULL, (void *) escucharPedidos, NULL);
 
 	log_info(logPlanificador,"Arraca SJF con desalojo");

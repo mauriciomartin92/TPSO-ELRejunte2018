@@ -1,4 +1,5 @@
-#include "Planificador.h"
+#include "planificador.h"
+
 #include "SJF.h"
 #include "HRRN.h"
 
@@ -13,14 +14,14 @@
 
 int main(void) {
 
-	logPlanificador = log_create("logPlanificador.log",rutaLog , true, LOG_LEVEL_INFO);
+	logPlanificador = log_create("planificador.log", "Planificador" , true, LOG_LEVEL_INFO);
 	listaBloqueados = list_create();
 	colaListos = queue_create();
 	listaListos = list_create();
 	listaFinalizados = list_create();
 	deadlockeados = list_create();
 	listaRecursos = list_create();
-	int backlog = 2;
+
 
 	log_info(logPlanificador,"Arranca el proceso planificador");
 	configurar();
@@ -53,6 +54,8 @@ void configurar(){
 
 	algoritmoDePlanificacion = string_new();
 	ipCoordinador = string_new();
+	ip = string_new();
+	puerto = string_new();
 
 	log_info(logPlanificador, "leyendo archivo configuracion ");
 
@@ -68,17 +71,25 @@ void configurar(){
 
 	log_info(logPlanificador, "constante estimacion leida = %d", alfa);
 
-	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP_COORDINADOR));
-
-	log_info(logPlanificador, "ip del coordinador leida = %s", ipCoordinador);
-
 	estimacionInicial = config_get_int_value(archivoConfiguracion, KEY_ESTIMACION_INICIAL);
 
 	log_info(logPlanificador, "estimacion inicial leida = %d", estimacionInicial);
 
+	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP_COORDINADOR));
+
+	log_info(logPlanificador, "ip del coordinador leida = %s", ipCoordinador);
+
 	puertoCoordinador = config_get_int_value(archivoConfiguracion, KEY_PUERTO_COORDINADOR);
 
 	log_info(logPlanificador, "puerto coordinador leido = %d", puertoCoordinador);
+
+	string_append(&ip,config_get_string_value(archivoConfiguracion, KEY_IP));
+
+	log_info(logPlanificador, "mi ip leida = %s", ip);
+
+	string_append(&puerto,config_get_string_value(archivoConfiguracion, KEY_PUERTO));
+
+	log_info(logPlanificador, "mi puerto leido = %s", puerto);
 
 	clavesBloqueadas = config_get_array_value(archivoConfiguracion, KEY_CLAVES_BLOQUEADAS);
 
@@ -88,7 +99,7 @@ void configurar(){
 
 	int i = 0;
 
-	while (clavesBloqueadas[i] != NULL)
+	/*while (clavesBloqueadas[i] != NULL)
 	{
 
 		char ** claves = string_n_split(clavesBloqueadas[i],2,":");
@@ -98,8 +109,7 @@ void configurar(){
 		log_info(logPlanificador, "con su subrecurso %s", claves[1]);
 		i++;
 		free (claves);
-
-	}
+	}*/
 	log_info(logPlanificador, "se llenó la cola de bloqueados");
 
 	config_destroy(archivoConfiguracion);
