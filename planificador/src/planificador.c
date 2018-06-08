@@ -4,11 +4,8 @@
 
 // \n
 // todo free de los char*
-/* todo
- *
- *
- *CADA RECURSO RECURSO TIENE SUBRECURSOS. Tengo que tener una lista por recurso con sus subrecursos.
- *Esos subrecursos son una estructura con una cola de ESI bloqueados, candidatos a usarlos.
+/* todo ahora hay que adaptar todas las funciones al sistema nuevo de recursos.
+ * todo meter los sockets.
  *
  *
  *
@@ -23,6 +20,7 @@ int main(void) {
 	listaFinalizados = list_create();
 	deadlockeados = list_create();
 	listaRecursos = list_create();
+	int backlog = 2;
 
 	log_info(logPlanificador,"Arranca el proceso planificador");
 	configurar();
@@ -120,8 +118,8 @@ ESI * crearESI(char * clave){ // Y EL RECURSO DE DONDE SALE!!!!!!!!!!!!!!!!!!!!!
 	nuevoESI-> estimacionSiguiente = 0;
 	nuevoESI->rafagasRealizadas =0;
 	nuevoESI-> tiempoEspera = 0;
-	nuevoESI->recursoAsignado = 0;
-	nuevoESI->recursoPedido = 0;
+	nuevoESI->recursoAsignado = NULL;
+	nuevoESI->recursoPedido = NULL;
 
 	return nuevoESI;
 
@@ -150,9 +148,9 @@ void crearSubrecurso (char* claveRecurso, char * claveSubrecurso)
 		if(string_equals_ignore_case(list_get(listaRecursos,i),claveRecurso))
 		{
 
-			//todo aca me maree un poco. Busco si el recurso esta dentro de la lista. Caso contrario, lo creo.
-			//el tema es que no se como añadir el subrecurso si el recurso está en lista. Será con un list_map?
-			// para mañana, tengo la cabeza quemada.
+			t_recurso * auxiliar = list_get(listaRecursos,i);
+			list_add(auxiliar->subrecursos,nuevoSubrecurso);
+			list_replace_and_destroy_element(listaBloqueados, i, auxiliar, (void *) recursoDestroy);
 			encontrado = true;
 		}
 	}
@@ -164,6 +162,7 @@ void crearSubrecurso (char* claveRecurso, char * claveSubrecurso)
 	}
 
 }
+
 
 void recursoDestroy(t_recurso * recurso){
 
@@ -189,12 +188,17 @@ void recursoFinalDestroy(t_recursoFinal * recuFinal){
 void ESI_destroy(ESI * estructura)
 {
 	free(estructura->id);
+	free(estructura->recursoAsignado);
+	free(estructura->recursoPedido);
 	free(estructura);
+
 }
 
 void DEADLOCK_destroy(t_deadlockeados * ESI){
 
-	list_destroy(ESI->ESIasociados);
+	free(ESI->clave);
+	list_destroy_and_destroy_elements(ESI->ESIasociados, (void *) free);
+
 
 }
 

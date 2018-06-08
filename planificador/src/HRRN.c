@@ -10,7 +10,7 @@ planificacionHRRN ()
 
 
   liberarProcesosBloqueados ();
-  pthread_create (&hiloEscucha, NULL, (void *) escucharPedidos, NULL);
+  pthread_create (&hiloEscuchaConsola, NULL, (void *) escucharPedidos, NULL);
 
   log_info (logPlanificador, "Arraca HRRN");
 
@@ -218,7 +218,7 @@ planificacionHRRNConDesalojo ()
 
 
   liberarProcesosBloqueados ();
-  pthread_create (&hiloEscucha, NULL, (void *) escucharPedidos, NULL);
+  pthread_create (&hiloEscuchaConsola, NULL, (void *) escucharPedidos, NULL);
 
   log_info (logPlanificador, "Arraca SJF con desalojo");
 
