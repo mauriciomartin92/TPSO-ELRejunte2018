@@ -8,7 +8,7 @@ void planificacionSJF(){
 
 	liberarBloqueados();
 
-	log_info(logPlanificador, "Escucho un ESI...");
+	log_info(logPlanificador, "Conectando servidor");
 
 	socketDeEscucha = conectarComoServidor(logPlanificador, ip, puerto, 1);
 
@@ -42,50 +42,44 @@ void planificacionSJF(){
 
 		while(!finalizar){
 
-
-			recursoGenericoEnUso = true;
 			log_info(logPlanificador, " ejecuta una sentencia ");
 			//send a ESI el permiso para ejecutar
 
 			nuevo -> rafagaAnterior = nuevo-> rafagaAnterior +1;
 			nuevo -> rafagasRealizadas = nuevo -> rafagasRealizadas +1;
 			log_info(logPlanificador, "rafagas realizadas del esi %s son %d", nuevo-> id, nuevo->rafagasRealizadas);
+			send(socketESI,CONTINUAR,sizeof(int),NULL );
 
+			int respuesta ;
+			recv(socketESI, &respuesta, sizeof(int),NULL);
 
-			if (l == 3) //harcodeo para testear que funcione. acá debería llegar el mensaje de terminacion
+			if (respuesta != CONTINUAR || string_equals_ignore_case(nuevo->id, claveParaBloquearESI))
 			{
 				finalizar = true;
 			}
-
-			l++;
 
 		}
 
 		log_info(logPlanificador,"finalizada su rafaga");
 		liberarRecursos(1); // acá debería liberarse el recurso que usó el ESI
 
-		if( 1 == 1){ //aca con el mensaje del ESI, determino si se bloquea o se finaliza
+		if( finalizar ){ //aca con el mensaje del ESI, determino si se bloquea o se finaliza
 
 			list_add ( listaFinalizados, nuevo);
 			log_info(logPlanificador, " ESI de clave %s en finalizados!", nuevo->id);
 
-		} else if (2 == 2){ // acá bloqueo por recurso si terminó su rafaga (bloqueado por recurso)
-
-			nuevo->rafagasRealizadas = 0;
-			nuevo->bloqueadoPorRecurso = true;
-			list_add(listaBloqueados, nuevo);
-			log_info(logPlanificador, " ESI de clave %s en bloqueados !", nuevo->id);
-
-
-		} else { // este caso sería para bloqueados por usuario o desalojados, como no me termina el proceso, sigo teniendo en cuenta las rafagas que realizó en su pasada.
+		} else if( string_equals_ignore_case(nuevo->id, claveParaBloquearESI) ){ // este caso sería para bloqueados por usuario o desalojados, como no me termina el proceso, sigo teniendo en cuenta las rafagas que realizó en su pasada.
 
 			nuevo->bloqueadoPorUsuario = true;
-			list_add(listaBloqueados, nuevo);
-			log_info(logPlanificador, " ESI de clave %s en bloqueados!", nuevo->id);
+			t_ESIBloqueado * nuevoBloqueado;
+			nuevoBloqueado -> bloqueado = nuevo;
+			nuevoBloqueado -> claveRecurso = claveParaBloquearRecurso;
+			queue_push(listaBloqueados, nuevo);
+
+			log_info(logPlanificador, " ESI de clave %s en bloqueados para recurso %s", nuevo->id, claveParaBloquearESI);
 
 		}
 
-		liberarBloqueados();
 	}
 
 	planificacionSJFTerminada = true;
@@ -149,6 +143,10 @@ void escucharPedidos(int conexion){
 	uint32_t respuesta;
 	recv(conexion, &respuesta , sizeof (uint32_t), 0);
 	printf("Me respondio: %d\n", respuesta);
+
+
+
+
 }
 
 void liberarRecursos(int recursoID){

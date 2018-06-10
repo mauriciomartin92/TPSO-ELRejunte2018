@@ -99,7 +99,7 @@ void configurar(){
 
 	int i = 0;
 
-	/*while (clavesBloqueadas[i] != NULL)
+	while (clavesBloqueadas[i] != NULL)
 	{
 
 		char ** claves = string_n_split(clavesBloqueadas[i],2,":");
@@ -109,7 +109,7 @@ void configurar(){
 		log_info(logPlanificador, "con su subrecurso %s", claves[1]);
 		i++;
 		free (claves);
-	}*/
+	}
 	log_info(logPlanificador, "se llenó la cola de bloqueados");
 
 	config_destroy(archivoConfiguracion);
@@ -122,7 +122,6 @@ ESI * crearESI(char * clave){ // Y EL RECURSO DE DONDE SALE!!!!!!!!!!!!!!!!!!!!!
 	nuevoESI->id = string_new();
 	string_append(&nuevoESI->id, clave);
 	nuevoESI->estimacionAnterior= estimacionInicial;
-	nuevoESI->bloqueadoPorRecurso = true;
 	nuevoESI-> bloqueadoPorUsuario = false;
 	nuevoESI-> rafagaAnterior = 0;
 	nuevoESI-> estimacionSiguiente = 0;

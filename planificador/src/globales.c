@@ -142,14 +142,13 @@ void lanzarConsola(){
 			//todo funcion que bloquee
 			linea = readline("CLAVE:");
 			//mandar clave al planificador
-			// Manda al ESI a la lista de bloqueados si esta en ejecucion o listo para ejecurar
+			// Manda al ESI a la cola de bloqueados del recurso CLAVE si el mismo esta en ejecucion o listo para ejecurar
 			break;
 		}
 		else if (string_equals_ignore_case(linea,DESBLOQUEAR_ESI))
 		{
-			//todo funcion que desbloquee
+			//todo funcion que desbloquee al primer bloqueado de la cola del recurso
 			linea = readline("CLAVE:");
-			// Vuelve a meter el ESI a la cola de listos -> podria ser una sola opcion, como en mi comentario anterior
 			break;
 		}
 		else if (string_equals_ignore_case(linea, LISTAR_POR_RECURSO)){

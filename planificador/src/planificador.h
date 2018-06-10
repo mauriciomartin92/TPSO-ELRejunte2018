@@ -59,8 +59,8 @@ int rafaga;
 t_config * archivoConfiguracion;
 t_log * logPlanificador;
 t_queue * colaListos;
+t_queue * colaBloqueados; // nota importante: uso una sola para los bloqueados. No le veo sentido tener varias
 t_list * listaListos;
-t_list * listaBloqueados;
 t_list * listaFinalizados;
 t_list * listaRecursos;
 int puertoEscucha;
@@ -78,7 +78,8 @@ pthread_t hiloEscuchaESI;
 pthread_t * hiloPlanifica;
 char * claveActual;
 t_list * deadlockeados;
-
+char * claveParaBloquearESI;
+char * claveParaBloquearRecurso;
 
 // ESTRUCTURAS DE PROCESOS
 
@@ -90,7 +91,6 @@ typedef struct{
 	int estimacionAnterior;
 	int estimacionSiguiente;
 	float tiempoEspera;
-	bool bloqueadoPorRecurso;
 	bool bloqueadoPorUsuario;
 	char * recursoAsignado; // clave
 	char * recursoPedido; // clave
@@ -118,6 +118,13 @@ typedef struct{ // en la lista de recursosFinales: futbolLeoMessi, futbolLuisSua
 	char * valor;
 
 } t_recursoFinal;
+
+typedef struct{
+
+	ESI * bloqueado;
+	char * claveRecurso;
+
+} t_ESIBloqueado;
 
 
 typedef struct{
