@@ -23,6 +23,34 @@ int socketDeEscucha;
 int clave_tid;
 uint32_t paquete_ok = 1;
 
+/*
+(t_tcb*) algoritmoLSU(cola_istancias, Instancia, clave){
+	analizar tamaño de entradas();
+	analizar tamanño de instancias(); //tamaño = cantidad de entradas libres
+	if(hay entradas libres){
+		if(tamEntLibre == tamLoQQuieroGuardar) // si lo quiero guardar es atómico
+				asignar clave en ésta entrada(); 
+				else if (tamEntLibre < tamLoQQuieroGuardar) // si lo que quiero guardar ocupa más de una entrada
+					buscar espacio continuo() //dos entradas libres contiguas
+					   si hay 
+					    asignar clave en estas entradas()
+					   si no hay
+					   	compactar o posiblemente seguir buscando
+	}
+}
+
+(t_tcb*) algoritmoKE(cola_instancias, Instancia, char clave){
+	inicial = getChar("clave"); // tomar primer caracter clave EN MINUSCULA, ésto 
+	inicialEnMinuscula = tolower(inicial) // convierte un tipo de dato caracter a minuscula (A-Z a a-z).
+	verificar donde guardar(inicialEnMinuscula == inicialInstancia) // inicial debera ser un numero, ejemplo "a" es 97
+	if(está la instancia con la misma inicial){
+		guardar en esa instancia
+	} else {
+		ACA NO SE SABE QUE HACE
+	}
+}
+ */
+
 t_tcb* algoritmoDeDistribucion() {
 	// implementar
 	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
