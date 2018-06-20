@@ -13,8 +13,8 @@
  *
  * 	No se contemplan el manejo de errores en el sistema por una cuestion didactica. Tener en cuenta esto al desarrollar.
  */
-
-#include "planificador.h"
+/*
+#include "planificadorviejo.h"
 
 t_log* logger;
 bool error_config;
@@ -188,3 +188,4 @@ int main() {
 
 	return EXIT_SUCCESS;
 }
+*/
