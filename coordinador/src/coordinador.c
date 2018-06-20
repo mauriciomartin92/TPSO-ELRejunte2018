@@ -59,10 +59,10 @@ t_tcb* algoritmoDeDistribucion() {
 	// obs: hacer el case de los demas casos pero sin implementacion
 
 	switch (protocolo_algoritmo_distribucion) {
-	case 1:
+	case 1: // LSU
 		//return algoritmoLSU();
 
-	case 2:
+	case 2: // KE
 		//return algoritmoKE();
 
 	default: // Equitative Load
