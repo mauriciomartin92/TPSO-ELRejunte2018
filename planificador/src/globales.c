@@ -7,8 +7,8 @@ char * KEY_ALGORITMO_PLANIFICACION = "ALGORITMO_PLANIFICACION";
 char * KEY_ESTIMACION_INICIAL = "ESTIMACION_INICIAL";
 char * KEY_IP_COORDINADOR = "IP_COORDINADOR";
 char * KEY_PUERTO_COORDINADOR = "PUERTO_COORDINADOR";
-extern char * KEY_IP = "IP";
-extern char * KEY_PUERTO = "PUERTO";
+char * KEY_IP = "IP";
+char * KEY_PUERTO = "PUERTO";
 char * KEY_CLAVES_BLOQUEADAS = "CLAVES_BLOQUEADAS";
 char * KEY_CONSTANTE_ESTIMACION = "CONSTANTE_ESTIMACION";
 char * RUTA_CONFIGURACION = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/config_planificador.cfg";
@@ -190,3 +190,113 @@ void lanzarConsola(){
 
 	}
 }
+
+
+
+t_recurso * crearRecurso (char * id){
+
+	t_recurso * nuevo = malloc(sizeof(t_recurso));
+	nuevo->clave = id;
+	nuevo->subrecursos = list_create();
+	return nuevo;
+
+}
+
+void crearSubrecurso (char* claveRecurso, char * claveSubrecurso)
+{
+
+	t_subrecurso * nuevoSubrecurso = malloc (sizeof(t_subrecurso));
+	nuevoSubrecurso->clave = claveSubrecurso;
+	nuevoSubrecurso->recursosFinales = list_create();
+
+	int i = 0;
+	bool encontrado = false;
+	while(list_size(listaRecursos) >= i)
+	{
+		if(string_equals_ignore_case(list_get(listaRecursos,i),claveRecurso))
+		{
+			t_recurso * auxiliar = list_get(listaRecursos,i);
+			list_add(auxiliar->subrecursos,nuevoSubrecurso);
+			list_replace_and_destroy_element(listaRecursos, i, auxiliar, (void *) recursoDestroy);
+			encontrado = true;
+		}
+	}
+
+	if(encontrado == false){
+
+		t_recurso * nuevoRecurso = crearRecurso(claveRecurso);
+		list_add( nuevoRecurso->subrecursos, nuevoSubrecurso);
+	}
+
+}
+
+
+void recursoDestroy(t_recurso * recurso){
+
+	free(recurso->clave);
+	list_destroy_and_destroy_elements(recurso->subrecursos, (void *) subrecursoDestroy);
+
+}
+
+void subrecursoDestroy (t_subrecurso * subrecurso){
+
+	free (subrecurso-> clave);
+	queue_destroy_and_destroy_elements(subrecurso->ESIEncolados, (void*) ESI_destroy);
+	list_destroy_and_destroy_elements(subrecurso->recursosFinales, (void *)recursoFinalDestroy);
+
+}
+
+void recursoFinalDestroy(t_recursoFinal * recuFinal){
+
+	free(recuFinal->clave);
+	free(recuFinal->valor);
+
+}
+
+void ESI_destroy(ESI * estructura)
+{
+	free(estructura->id);
+	free(estructura->recursoAsignado);
+	free(estructura->recursoPedido);
+	free(estructura);
+
+}
+
+void DEADLOCK_destroy(t_deadlockeados * ESI){
+
+	free(ESI->clave);
+	list_destroy_and_destroy_elements(ESI->ESIasociados, (void *) free);
+
+
+}
+
+
+//todo esperar respuesta de ayudante.
+void bloquearSubrecurso (char* claveRecurso, char * claveESI) // agarra la clave entera del recurso (futbol:messi), encuentra el subrecurso y mete el ESI que se bloquea en su cola de bloqueados
+{
+
+	//char ** claves = string_n_split(claveRecurso,2,":");
+	t_subrecurso * nuevoSubrecurso = malloc (sizeof(t_subrecurso));
+
+	int i = 0;
+	bool encontrado = false;
+	while(list_size(listaRecursos) >= i)
+	{
+		if(string_equals_ignore_case(list_get(listaRecursos,i),claveRecurso))
+		{
+			t_recurso * auxiliar = list_get(listaRecursos,i);
+			list_add(auxiliar->subrecursos,nuevoSubrecurso);
+			list_replace_and_destroy_element(listaRecursos, i, auxiliar, (void *) recursoDestroy);
+			encontrado = true;
+		}
+	}
+
+	if(encontrado == false){
+
+		t_recurso * nuevoRecurso = crearRecurso(claveRecurso);
+		list_add( nuevoRecurso->subrecursos, nuevoSubrecurso);
+	}
+
+}
+
+

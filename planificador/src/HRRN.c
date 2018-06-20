@@ -9,10 +9,10 @@ planificacionHRRN ()
 {
 
 
-  liberarProcesosBloqueados ();
   pthread_create (&hiloEscuchaConsola, NULL, (void *) escucharPedidos, NULL);
 
   log_info (logPlanificador, "Arraca HRRN");
+
 
   estimarYCalcularTiempos ();
 
@@ -23,70 +23,77 @@ planificacionHRRN ()
   log_info (logPlanificador, "Cola armada");
 
 
-  while (!queue_is_empty (colaListos))
+  while (!queue_is_empty (colaListos)) //todo implementar los hilos
     {
 
       bool finalizar = false;
+      bool bloquear = false;
 
       ESI* nuevoESI = queue_pop (colaListos);
+
+      log_info(logPlanificador, "Conectando servidor");
+
+      socketDeEscucha = conectarComoServidor(logPlanificador, nuevoESI->ip, nuevoESI-> puerto, 1);
+
+      int socketESI = escucharCliente(logPlanificador, socketDeEscucha, 1);
+
+      log_info(logPlanificador, "Se conecto un ESI!");
 
       log_info (logPlanificador, " ESI de clave %s entra al planificador",
 		nuevoESI->id);
 
 
 
-      while (!finalizar)
+      while (!finalizar && !bloquear)
 	{
 
-	  recursoGenericoEnUso = true;
 	  log_info (logPlanificador, " ejecuta una sentencia ");
-	  //send a ESI el permiso para ejecutar
+	  send(socketESI,(void *)CONTINUAR,sizeof(int),0 );
 	  nuevoESI->rafagaAnterior = nuevoESI->rafagaAnterior + 1;
 	  nuevoESI->rafagasRealizadas = nuevoESI->rafagasRealizadas + 1;
+
 	  log_info (logPlanificador, "rafagas realizadas del esi %s son %d",
 		    nuevoESI->id, nuevoESI->rafagasRealizadas);
 
+	  int respuesta ;
 
-	  if (nuevoESI->rafagasRealizadas == 3)	//de nuevo, harcodeo para testear que funcione. acá debería llegar el mensaje de terminacion
+	  recv(socketESI, &respuesta, sizeof(int),0);
+
+	  if (respuesta != CONTINUAR)	//de nuevo, harcodeo para testear que funcione. acá debería llegar el mensaje de terminacion
 	    {
 	      finalizar = true;
+	    } else if(string_equals_ignore_case(nuevoESI->id, claveParaBloquearESI))
+	    {
+	    	send(socketESI,(void *)FINALIZAR,sizeof(int),0 );
+	    	bloquear = true;
 	    }
 
 	}
 
       log_info (logPlanificador, "finalizada su rafaga");
-      liberarRecursos (1);	// acá debería liberarse el recurso que usó el ESI
 
-      if (1 == 2)
+      if (finalizar)
 	{			//aca con el mensaje del ESI, determino si se bloquea o se finaliza
 
-	  list_add (listaFinalizados, nuevoESI);
-	  log_info (logPlanificador, " ESI de clave %s en finalizados!",
-		    nuevoESI->id);
+		  list_add (listaFinalizados, nuevoESI);
+		  log_info (logPlanificador, " ESI de clave %s en finalizados!",
+				nuevoESI->id);
 
 	}
-      else if (1 == 2)
-	{			// acá bloqueo por recurso
+      else if (bloquear)
+	{			// acá bloqueo usuario
 
-	  nuevoESI->rafagasRealizadas = 0;
-	  nuevoESI->bloqueadoPorRecurso = true;
-	  list_add (listaBloqueados, nuevoESI);
-	  log_info (logPlanificador, " ESI de clave %s en bloqueados !",
-		    nuevoESI->id);
+    	  nuevoESI->bloqueadoPorUsuario = true;
+    	  t_ESIBloqueado * nuevoBloqueado = malloc(sizeof(t_ESIBloqueado));
+    	  nuevoBloqueado -> bloqueado = nuevoESI;
+    	  nuevoBloqueado -> claveRecurso = claveParaBloquearRecurso;
+    	  queue_push(colaBloqueados, nuevoBloqueado);
+    	  free(nuevoBloqueado);
 
+    	  log_info(logPlanificador, " ESI de clave %s en bloqueados para recurso %s", nuevoESI->id, claveParaBloquearESI);
 
-	}
-      else
-	{			// este caso sería para bloqueados por usuario
-
-	  nuevoESI->bloqueadoPorUsuario = true;
-	  list_add (listaBloqueados, nuevoESI);
-	  log_info (logPlanificador, " ESI de clave %s en bloqueados!",
-		    nuevoESI->id);
 
 	}
-
-      liberarProcesosBloqueados ();
 
     }
   planificacionHRRNTerminada = true;
@@ -183,20 +190,20 @@ calcularTiempoEspera (float espera, int estimacionSiguiente)
 
 }
 
-
+/*
 void
 liberarProcesosBloqueados ()
 {
 
   int i = 0;
-  while (i < list_size (listaBloqueados))
+  while (i < queue_size (colaBloqueados))
     {
 
       if (!recursoGenericoEnUso)
 	{			//deberia meter a todos en listos porque el recurso esta libre siempre basicamente
 
-	  list_remove (listaBloqueados, i);
-	  list_add (listaListos, list_remove (listaBloqueados, i));
+	  queue_pop (colaBloqueados);
+	  queue_push (colaBloqueados, list_remove (colaBloqueados, i));
 	  log_info (logPlanificador,
 		    " se libero un ESI bloqueado por recurso");
 
@@ -209,7 +216,7 @@ liberarProcesosBloqueados ()
 
 
 }
-
+*/
 
 
 void
@@ -217,14 +224,14 @@ planificacionHRRNConDesalojo ()
 {
 
 
-  liberarProcesosBloqueados ();
+
   pthread_create (&hiloEscuchaConsola, NULL, (void *) escucharPedidos, NULL);
 
   log_info (logPlanificador, "Arraca SJF con desalojo");
 
   planificacionHRRNTerminada = false;
 
-  while (1 && !planificacionHRRNTerminada)
+  while (!planificacionHRRNTerminada) //todo acá voy a tener que copypastear lo de arriba, no permitiría el desalojo esto
     {
 
       planificacionHRRN ();

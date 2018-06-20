@@ -94,6 +94,8 @@ typedef struct{
 	bool bloqueadoPorUsuario;
 	char * recursoAsignado; // clave
 	char * recursoPedido; // clave
+	char * ip;
+	char * puerto;
 
 }ESI;
 
@@ -107,8 +109,10 @@ typedef struct{ // esta en la lista de recursos: materia, deporte ..
 
 typedef struct{ // en la lista de subrecursos: futbol, basquet..
 
+	int estado;
 	char * clave;
 	t_list * recursosFinales;
+	t_queue * ESIEncolados;
 
 } t_subrecurso;
 
@@ -155,6 +159,7 @@ void recursoDestroy(t_recurso * recurso);
 void subrecursoDestroy (t_subrecurso * subrecurso);
 void recursoFinalDestroy(t_recursoFinal * recuFinal);
 extern void lanzarConsola();
+extern void bloquearESI();
 
 
 
