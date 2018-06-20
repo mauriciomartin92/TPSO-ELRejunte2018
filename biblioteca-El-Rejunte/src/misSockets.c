@@ -10,6 +10,8 @@
 
 #include "misSockets.h"
 
+const int CANT_CONEXIONES = 100;
+
 /*
  * -----------------------------------------------------------------------------------------------------------------
  *
@@ -18,7 +20,7 @@
  * -----------------------------------------------------------------------------------------------------------------
  */
 
-int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,	int backlog) {
+int conectarComoServidor(t_log* logger, const char* ip, const char* puerto) {
 
 	/*
 	 *  ¿Quien soy? ¿Donde estoy? ¿Existo?
@@ -69,9 +71,9 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,	int 
 	return listenningSocket;
 }
 
-int escucharCliente(t_log* logger, int listenningSocket, int backlog) {
+int escucharCliente(t_log* logger, int listenningSocket) {
 	log_info(logger, "Listo para escuchar a cualquier Cliente...");
-	listen(listenningSocket, backlog); // IMPORTANTE: listen() es una syscall BLOQUEANTE.
+	listen(listenningSocket, CANT_CONEXIONES); // IMPORTANTE: listen() es una syscall BLOQUEANTE.
 
 	/*
 	 * 	El sistema esperara hasta que reciba una conexion entrante...
@@ -161,7 +163,7 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
  */
 
 void enviarPaqueteNumerico(int socketDestino, int paqueteNumerico) {
-	char* buffer = malloc(sizeof(int));
+	char* buffer = (char*) malloc(sizeof(int));
 	sprintf(buffer, "%d", paqueteNumerico); // HABRIA QUE UTILIZAR MEMCPY
 	//memcpy(buffer, (void*) &paqueteNumerico, sizeof(paqueteNumerico));
 	send(socketDestino, buffer, strlen(buffer) + 1, 0);

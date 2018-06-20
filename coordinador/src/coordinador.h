@@ -25,10 +25,11 @@
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
 typedef struct {
-	int tid;
+	int id;
 	int socket;
+	int entradas_libres;
 	t_list* esis_asignados;
-} __attribute__((packed)) t_tcb;
+} __attribute__((packed)) t_instancia;
 
 int cargarConfiguracion();
 void establecerProtocoloDistribucion();
@@ -37,7 +38,7 @@ void atenderESI(int socketESI);
 void loguearOperacion(uint32_t id, char* paquete);
 int enviarAInstancia(char* paquete, uint32_t tam_paquete);
 void atenderInstancia(int socketInstancia);
-t_tcb* algoritmoDeDistribucion();
+t_instancia* algoritmoDeDistribucion();
 void finalizar();
 
 #endif /* COORDINADOR_H_ */

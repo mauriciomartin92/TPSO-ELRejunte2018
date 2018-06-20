@@ -17,40 +17,74 @@ char* ip;
 char* port;
 char* algoritmo_distribucion;
 int protocolo_algoritmo_distribucion;
-int backlog, packagesize, retardo;
+int retardo;
 uint32_t cant_entradas, tam_entradas;
 t_queue* cola_instancias;
 int socketDeEscucha;
-int clave_tid;
+int clave_id;
 const uint32_t PAQUETE_OK = 1;
 
-t_tcb* algoritmoDeDistribucion() {
+/*
+(t_instancia*) algoritmoLSU(cola_istancias, instancia, clave){
+	analizar tamaño de entradas();
+	analizar tamanño de instancias(); //tamaño = cantidad de entradas libres
+	if(hay entradas libres){
+		if(tamEntLibre == tamLoQQuieroGuardar) // si lo quiero guardar es atómico
+			asignar clave en ésta entrada();
+		else if (tamEntLibre < tamLoQQuieroGuardar) // si lo que quiero guardar ocupa más de una entrada
+			buscar espacio continuo() //dos entradas libres contiguas
+			si hay
+				asignar clave en estas entradas()
+		   	si no hay
+				compactar o posiblemente seguir buscando
+	}
+}
+(t_instancia*) algoritmoKE(cola_instancias, instancia, char clave){
+	inicial = getChar("clave"); // tomar primer caracter clave EN MINUSCULA, ésto
+	inicialEnMinuscula = tolower(inicial) // convierte un tipo de dato caracter a minuscula (A-Z a a-z).
+	verificar donde guardar(inicialEnMinuscula == inicialInstancia) // inicial debera ser un numero, ejemplo "a" es 97
+	if(está la instancia con la misma inicial){
+		guardar en esa instancia
+	} else {
+		ACA NO SE SABE QUE HACE
+	}
+}
+ */
+
+t_instancia* algoritmoDeDistribucion() {
 	// implementar
 	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
 	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve de la tabla_instancias
 	// obs: hacer el case de los demas casos pero sin implementacion
-	/*switch (algoritmo_distribucion) {
-	 case "EL":
-	 case "LSU":
-	 case "KSE":
-	 }*/
-	switch (protocolo_algoritmo_distribucion) {
-	//case 1:
 
-	//case 2:
+	switch (protocolo_algoritmo_distribucion) {
+	case 1: // LSU
+		//return algoritmoLSU();
+
+	case 2: // KE
+		//return algoritmoKE();
 
 	default: // Equitative Load
-		return (t_tcb*) queue_pop(cola_instancias); // OJO: falta volver a encolar en algun punto
+		return (t_instancia*) queue_pop(cola_instancias); // OJO: falta volver a encolar en algun punto
 	}
 }
 
 int enviarAInstancia(char* paquete, uint32_t tam_paquete) {
-	t_tcb* tcb_elegido = algoritmoDeDistribucion();
-	send(tcb_elegido->socket, &tam_paquete, sizeof(uint32_t), 0);
-	send(tcb_elegido->socket, paquete, tam_paquete, 0);
+	t_instancia* instancia_elegida = algoritmoDeDistribucion();
+	send(instancia_elegida->socket, &tam_paquete, sizeof(uint32_t), 0);
+	send(instancia_elegida->socket, paquete, tam_paquete, 0);
 
 	log_info(logger, "Espero la respuesta de la Instancia");
+	uint32_t respuesta_instancia;
+	recv(instancia_elegida->socket, &respuesta_instancia, sizeof(uint32_t), 0);
 
+	if (respuesta_instancia <= 0) {
+		log_warning(logger, "La instancia se ha desconectado");
+		return -1;
+	} else if (respuesta_instancia == PAQUETE_OK) {
+		log_info(logger, "La instancia pudo procesar el paquete");
+		queue_push(cola_instancias, instancia_elegida); // Lo vuelvo a encolar
+	}
 	return 1;
 }
 
@@ -83,10 +117,12 @@ void atenderESI(int socketESI) {
 			log_warning(logger, "El ESI se ha desconectado");
 			break;
 		}
-		char* paquete = malloc(tam_paquete);
-		recv(socketESI, paquete, tam_paquete, 0);
 
-		//loguearOperacion(unESI->id, paquete);
+		// Retardo fictisio
+		sleep(retardo * 0.001);
+
+		char* paquete = (char*) malloc(tam_paquete);
+		recv(socketESI, paquete, tam_paquete, 0);
 
 		log_info(logger, "Le informo al ESI que el paquete llego correctamente");
 		send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0); // Envio respuesta al ESI
@@ -99,18 +135,22 @@ void atenderESI(int socketESI) {
 
 		log_info(logger, "Le envio la instruccion a la Instancia correspondiente");
 		int resultadoInstancia = enviarAInstancia(paquete, tam_paquete);
-		destruirPaquete(paquete);
 		if (resultadoInstancia < 0) // Instancia desconectada
+			// se le avisa al planificador que la instancia no existe mas?
 			break;
+		/*else
+			loguearOperacion(ESI->id, paquete);*/
+		destruirPaquete(paquete);
 	} while (1);
 }
 
 void atenderInstancia(int socketInstancia) {
-	t_tcb* tcb = malloc(sizeof(t_tcb));
-	tcb->tid = clave_tid;
-	clave_tid++;
-	tcb->socket = socketInstancia;
-	queue_push(cola_instancias, tcb);
+	t_instancia* unaInstancia = (t_instancia*) malloc(sizeof(t_instancia));
+	unaInstancia->id = clave_id;
+	clave_id++;
+	unaInstancia->socket = socketInstancia;
+	unaInstancia->entradas_libres = cant_entradas;
+	queue_push(cola_instancias, unaInstancia);
 	log_info(logger, "TCB de Instancia agregado a la tabla de instancias");
 	printf("La cantidad de instancias actual es %d\n", queue_size(cola_instancias));
 
@@ -124,7 +164,7 @@ void atenderInstancia(int socketInstancia) {
 	while (recv(socketInstancia, &respuesta_instancia, sizeof(uint32_t), 0) > 0) {
 		if (respuesta_instancia == PAQUETE_OK) {
 			log_info(logger, "La Instancia pudo procesar el paquete");
-			queue_push(cola_instancias, tcb); // Lo vuelvo a encolar
+			queue_push(cola_instancias, unaInstancia); // Lo vuelvo a encolar
 		}
 	}
 	log_warning(logger, "La instancia se ha desconectado");
@@ -171,7 +211,7 @@ void establecerProtocoloDistribucion() {
 
 int cargarConfiguracion() {
 	error_config = false;
-	clave_tid = 0; // Son unicas
+	clave_id = 0; // Son unicas
 
 	/*
 	 * Se crea en la carpeta Coordinador un archivo "config_coordinador.cfg", la idea es que utilizando la
@@ -184,8 +224,6 @@ int cargarConfiguracion() {
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
-	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
-	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
 	algoritmo_distribucion = obtenerCampoString(logger, config, "ALGORITMO_DISTRIBUCION", &error_config);
 	cant_entradas = obtenerCampoInt(logger, config, "CANT_ENTRADAS", &error_config);
 	tam_entradas = obtenerCampoInt(logger, config, "TAM_ENTRADAS", &error_config);
@@ -223,10 +261,10 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	log_info(logger, "Se crea la tabla de intancias");
 	cola_instancias = queue_create();
 
-	socketDeEscucha = conectarComoServidor(logger, ip, port, backlog);
+	socketDeEscucha = conectarComoServidor(logger, ip, port);
 
 	while (1) { // Infinitamente escucha a la espera de que se conecte alguien
-		int socketCliente = escucharCliente(logger, socketDeEscucha, backlog);
+		int socketCliente = escucharCliente(logger, socketDeEscucha);
 		pthread_t unHilo; // Cada conexion la delega en un hilo
 		pthread_create(&unHilo, NULL, establecerConexion, (void*) &socketCliente);
 	}

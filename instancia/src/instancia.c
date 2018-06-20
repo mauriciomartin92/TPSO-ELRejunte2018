@@ -20,8 +20,7 @@ t_log* logger;
 bool error_config;
 char* ip;
 char* port;
-int packagesize;
-int socketCoordinador;
+int socketCoordinador, intervalo_dump;
 uint32_t cant_entradas, tam_entradas;
 t_list* tabla_entradas;
 uint32_t paquete_ok = 1;
@@ -130,7 +129,7 @@ void procesar(t_instruccion* instruccion) {
 		if (instruccion->operacion == 1) {
 			// es GET: crearla
 			log_info(logger, "Creo la clave en la tabla");
-			t_entrada* nueva_entrada = malloc(sizeof(t_entrada));
+			t_entrada* nueva_entrada = (t_entrada*) malloc(sizeof(t_entrada));
 			nueva_entrada->clave = instruccion->clave;
 			nueva_entrada->entrada_asociada = tabla_entradas->elements_count;
 			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
@@ -184,7 +183,7 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 	uint32_t tam_paquete;
 	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
-	char* paquete = malloc(tam_paquete);
+	char* paquete = (char*) malloc(tam_paquete);
 	recv(socketCoordinador, paquete, tam_paquete, 0); // MSG_WAITALL
 	log_info(logger, "Recibi un paquete que me envia el Coordinador");
 
@@ -260,7 +259,7 @@ void generarTablaDeEntradas() {
 				una_entrada = string_new();
 				una_entrada = string_substring(mapa_archivo, contador, i - contador);
 				vec_clave_valor = string_split(una_entrada, "-");
-				t_entrada* entrada = malloc(sizeof(t_entrada));
+				t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 				entrada->clave = vec_clave_valor[0];
 				entrada->entrada_asociada = contador;
 				entrada->size_valor_almacenado = string_length(vec_clave_valor[1]);
@@ -285,7 +284,7 @@ int cargarConfiguracion() {
 
 	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
-	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
+	intervalo_dump = obtenerComoInt(logger, config, "INTERVALO_DUMP", &error_config);
 
 	// Valido si hubo errores
 	if (error_config) {
