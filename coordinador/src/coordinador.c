@@ -1,4 +1,5 @@
- ============================================================================
+/*
+============================================================================
  Name        : coordinador.c
  Author      : 
  Version     :
@@ -24,22 +25,22 @@ int clave_tid;
 uint32_t paquete_ok = 1;
 
 /*
-(t_tcb*) algoritmoLSU(cola_istancias, Instancia, clave){
+(t_tcb*) algoritmoLSU(cola_istancias, instancia, clave){
 	analizar tamaño de entradas();
 	analizar tamanño de instancias(); //tamaño = cantidad de entradas libres
 	if(hay entradas libres){
 		if(tamEntLibre == tamLoQQuieroGuardar) // si lo quiero guardar es atómico
-				asignar clave en ésta entrada(); 
-				else if (tamEntLibre < tamLoQQuieroGuardar) // si lo que quiero guardar ocupa más de una entrada
-					buscar espacio continuo() //dos entradas libres contiguas
-					   si hay 
-					    asignar clave en estas entradas()
-					   si no hay
-					   	compactar o posiblemente seguir buscando
+			asignar clave en ésta entrada();
+		else if (tamEntLibre < tamLoQQuieroGuardar) // si lo que quiero guardar ocupa más de una entrada
+			buscar espacio continuo() //dos entradas libres contiguas
+			si hay
+				asignar clave en estas entradas()
+		   	si no hay
+				compactar o posiblemente seguir buscando
 	}
 }
 
-(t_tcb*) algoritmoKE(cola_instancias, Instancia, char clave){
+(t_tcb*) algoritmoKE(cola_instancias, instancia, char clave){
 	inicial = getChar("clave"); // tomar primer caracter clave EN MINUSCULA, ésto 
 	inicialEnMinuscula = tolower(inicial) // convierte un tipo de dato caracter a minuscula (A-Z a a-z).
 	verificar donde guardar(inicialEnMinuscula == inicialInstancia) // inicial debera ser un numero, ejemplo "a" es 97
@@ -56,15 +57,13 @@ t_tcb* algoritmoDeDistribucion() {
 	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
 	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve de la tabla_instancias
 	// obs: hacer el case de los demas casos pero sin implementacion
-	/*switch (algoritmo_distribucion) {
-	 case "EL":
-	 case "LSU":
-	 case "KSE":
-	 }*/
-	switch (protocolo_algoritmo_distribucion) {
-	//case 1:
 
-	//case 2:
+	switch (protocolo_algoritmo_distribucion) {
+	case 1:
+		//return algoritmoLSU();
+
+	case 2:
+		//return algoritmoKE();
 
 	default: // Equitative Load
 		return (t_tcb*) queue_pop(cola_instancias); // OJO: falta volver a encolar en algun punto
