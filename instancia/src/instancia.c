@@ -25,6 +25,7 @@ int socketCoordinador;
 uint32_t cant_entradas, tam_entradas;
 t_list* tabla_entradas;
 uint32_t paquete_ok = 1;
+char* mapa_archivo;
 
 void imprimirTablaDeEntradas() {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
@@ -35,8 +36,78 @@ void imprimirTablaDeEntradas() {
 	printf("\n");
 }
 
-void setClaveValor(char* clave, char* valor) {
-	// implementar
+void operacionStore(char* clave) {
+	char* _nombreArchivo;
+	char* _entrada;
+	char* _valor;
+	char** _vecClaveValor;
+	int _contador = 0;
+	int _estaClave = 0;
+	int _file;
+
+	//Recorre las entradas hasta encontrar la clave pedida.
+	for(int i = 0; i < string_length(mapa_archivo); i++) {
+			if (mapa_archivo[i] == ';'){
+				_entrada = string_new();
+				_entrada = string_substring(mapa_archivo, _contador, i - _contador);
+				_vecClaveValor = string_split(_entrada, "-");
+				//Si el string del vector es igual al string de la clave pasada, guardame el valor.
+				if (strcmp(_vecClaveValor[0], clave)) {
+					_estaClave = 1;
+					_valor = string_new();
+					strncpy(_valor, _vecClaveValor[1], string_length(_vecClaveValor[1]));
+					break;
+				}
+				_contador = i + 1;
+			}
+		}
+	//Si fué encontrada la clave y el valor, creame un archivo con el nombre de la clave
+	//y después guardame el valor dentro.
+	if (_estaClave > 0) {
+		_nombreArchivo = string_new();
+		strcpy(_nombreArchivo, _vecClaveValor[0]);
+		_file = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+		if (_file < 0) {
+			perror("Error al crear archivo para la clave");
+			close(_file);
+			exit(1);
+		}
+		if ((int)write(_file, _valor, string_length(_valor)) < 0) {
+			perror("Error al escribir el valor en la entrada");
+			close(_file);
+			exit(1);
+		}
+		close(_file);
+	}
+}
+
+void setClaveValor(t_entrada* entrada, char* valor) {
+	// Guardar valor en el mapa de memoria
+	int fd, mapa_pos, mapa_pos_valor;
+	struct stat sb;
+	mapa_archivo = string_new();
+
+	abrirArchivoInstancia(&fd);
+	if (fstat(fd, &sb) < 0) {
+		log_error(logger, "No se pudo obtener el tamaño de archivo");
+		finalizar();
+	}
+	mapa_pos = entrada->entrada_asociada;
+	mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	for(int i = mapa_pos; i < string_length(mapa_archivo); i++){
+		if(mapa_archivo[i] == '-'){
+			mapa_pos_valor = i + 1;
+			break;
+		}
+	}
+	int contador = 0;
+	for(int j = mapa_pos_valor; j <= entrada->size_valor_almacenado; j++){
+		mapa_archivo[j] = valor[contador];
+		contador++;
+	}
+
+	munmap(mapa_archivo, sizeof(mapa_archivo));
+	close(fd);
 }
 
 void procesar(t_instruccion* instruccion) {
@@ -58,13 +129,14 @@ void procesar(t_instruccion* instruccion) {
 		log_warning(logger, "LA CLAVE NO EXISTE EN LA TABLA");
 		if (instruccion->operacion == 1) {
 			// es GET: crearla
+			log_info(logger, "Creo la clave en la tabla");
 			t_entrada* nueva_entrada = malloc(sizeof(t_entrada));
 			nueva_entrada->clave = instruccion->clave;
 			nueva_entrada->entrada_asociada = tabla_entradas->elements_count;
 			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
 			list_add(tabla_entradas, nueva_entrada);
-			imprimirTablaDeEntradas();
 		} else if (instruccion->operacion == 2) {
+			log_info(logger, "No hay que hacer nada");
 			// es SET: no hacer nada
 		} else {
 			// es STORE
@@ -72,15 +144,16 @@ void procesar(t_instruccion* instruccion) {
 	} else { // la entrada si estaba
 		log_warning(logger, "LA CLAVE EXISTE EN LA TABLA");
 		if (instruccion->operacion == 1) {
-			// es GET
-			// ¿QUE HAGO ACA?
+			// es GET: bloquearla
+			log_info(logger, "Bloqueo la clave");
 		} else if (instruccion->operacion == 2) {
 			// es SET: insertar valor
-			setClaveValor(instruccion->clave, instruccion->valor);
+			setClaveValor(entrada, instruccion->valor);
 		} else {
-			// es STORE
+			operacionStore(instruccion->clave);
 		}
 	}
+	imprimirTablaDeEntradas();
 	log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
 	send(socketCoordinador, &paquete_ok, sizeof(uint32_t), 0);
 }
@@ -141,7 +214,6 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 
 void generarTablaDeEntradas() {
 	int fd, contador;
-	char* mapa_archivo;
 	char* una_entrada;
 	char** vec_clave_valor;
 	struct stat sb;
@@ -221,53 +293,6 @@ int cargarConfiguracion() {
 		return -1;
 	}
 	return 1;
-}
-
-void operacionStore(char* mapa, char* clave){
-	char* _nombreArchivo;
-	char* _entrada;
-	char* _valor;
-	char** _vecClaveValor;
-	int _contador = 0;
-	int _estaClave = 0;
-	int _file;
-
-	//Recorre las entradas hasta encontrar la clave pedida.
-	for(int i = 0; i < string_length(mapa); i++){
-			if(mapa[i] == ';'){
-				_entrada = string_new();
-				_entrada = string_substring(mapa, _contador, i - _contador);
-				_vecClaveValor = string_split(_entrada, "-");
-				//Si el string del vector es igual al string de la clave pasada, guardame el valor.
-				if(strcmp(_vecClaveValor[0], clave)){
-					_estaClave = 1;
-					_valor = string_new();
-					strncpy(_valor, _vecClaveValor[1], string_length(_vecClaveValor[1]));
-					break;
-				}
-				_contador = i + 1;
-			}
-		}
-	//Si fué encontrada la clave y el valor, creame un archivo con el nombre de la clave
-	//y después guardame el valor dentro.
-	if (_estaClave > 0){
-		_nombreArchivo = string_new();
-		strcpy(_nombreArchivo, _vecClaveValor[0]);
-		_file = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-		if(_file < 0){
-			perror("Error al crear archivo para la clave");
-			close(_file);
-			exit(1);
-		}
-		if((int)write(_file, _valor, string_length(_valor)) < 0){
-			perror("Error al escribir el valor en la entrada");
-			close(_file);
-			exit(1);
-		}
-
-		close(_file);
-
-	}
 }
 
 void finalizar() {

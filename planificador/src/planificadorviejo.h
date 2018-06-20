@@ -4,7 +4,7 @@
  *  Created on: 2 may. 2018
  *      Author: utnso
  */
-/*
+
 #ifndef PLANIFICADOR_H_
 #define PLANIFICADOR_H_
 

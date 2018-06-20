@@ -33,7 +33,7 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto,	int 
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;		// No importa si uso IPv4 o IPv6
-	hints.ai_flags = atoi(ip);		// Asigna el address que le envia el proceso
+	hints.ai_flags = AI_PASSIVE;		// Asigna el address que le envia el proceso
 	hints.ai_socktype = SOCK_STREAM;	// Indica que usaremos el protocolo TCP
 
 	getaddrinfo(ip, puerto, &hints, &serverInfo);

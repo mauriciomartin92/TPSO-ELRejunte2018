@@ -13,8 +13,8 @@
  *
  * 	No se contemplan el manejo de errores en el sistema por una cuestion didactica. Tener en cuenta esto al desarrollar.
  */
-/*
-#include "planificadorviejo.h"
+
+#include "planificador.h"
 
 t_log* logger;
 bool error_config;
@@ -27,6 +27,7 @@ t_queue* terminados;
 sem_t sem_bin_menu;
 sem_t sem_bin_esi;
 int pid_asignacion;
+const uint32_t PAQUETE_OK = 1;
 
 void estimar() {
 	// Hay que implementarlo
@@ -124,7 +125,6 @@ int imprimirMenu() {
 		log_error(logger, "No es una opcion valida, intente nuevamente.");
 		break;
 	}
-	printf("%d\n", seleccion);
 	return seleccion;
 }
 
@@ -133,16 +133,11 @@ int cargarConfiguracion() {
 
 	// Importo los datos del archivo de configuracion
 	t_config* config =
-			conectarAlArchivo(logger,
-					"/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/config_planificador.cfg",
-					&error_config);
+			conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/config_planificador.cfg", &error_config);
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
-	backlog = obtenerCampoInt(logger, config, "BACKLOG", &error_config);
-	packagesize = obtenerCampoInt(logger, config, "PACKAGESIZE", &error_config);
-	algoritmo = obtenerCampoString(logger, config, "ALGORITMO_PLANIFICACION",
-			&error_config);
+	algoritmo = obtenerCampoString(logger, config, "ALGORITMO_PLANIFICACION", &error_config);
 
 	// Valido posibles errores
 	if (error_config) {
@@ -173,24 +168,23 @@ int main() {
 
 	// Se crea un hilo que administre a los demas hilos (los que charlen con los ESI)
 	pthread_t hiloAdministrador;
-	pthread_create(&hiloAdministrador, NULL, administrarHilosESI,
-			(void*) &socketDeEscucha);
+	pthread_create(&hiloAdministrador, NULL, administrarHilosESI, (void*) &socketDeEscucha);
 
 	while (1) { // Va leyendo la seleccion del menu y la envia a ESI (por ahora solo entiende "1")
-		char* seleccion = malloc(sizeof(int));
-		sprintf(seleccion, "%d", imprimirMenu()); // sprintf agarra lo que devuelve imprimir_menu() y lo guarda en seleccion
-
-		 int resultado = imprimirMenu();
-		 memcpy(seleccion, (void*) &resultado, sizeof(int));
-
+		uint32_t seleccion = imprimirMenu();
 		t_pcb* pcb = (t_pcb*) queue_pop(listos); // Agarra el primero que haya en la cola de listos
-		send(pcb->socket, seleccion, strlen(seleccion) + 1, 0); // Envio al ESI lo que se eligio en consola
-		free(seleccion);
+		send(pcb->socket, &seleccion, sizeof(uint32_t), 0); // Envio al ESI lo que se eligio en consola
+		uint32_t respuesta_esi;
+		recv(pcb->socket, &respuesta_esi, sizeof(uint32_t), 0);
+		if (respuesta_esi == PAQUETE_OK) {
+			log_info(logger, "El ESI ejecuto una sentencia");
+		} else {
+			log_error(logger, "No se pudo ejecutar la sentencia");
+		}
+		queue_push(listos, pcb); // Vuelvo a encolar
 	}
 
 	finalizarSocket(socketDeEscucha);
 
 	return EXIT_SUCCESS;
 }
-
-*/

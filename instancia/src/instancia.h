@@ -41,7 +41,8 @@ void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 void procesar(t_instruccion* instruccion);
-void setClaveValor(char* clave, char* valor);
+void setClaveValor(t_entrada* entrada, char* valor);
+void operacionStore(char* clave);
 bool comparadorDeClaves(void* estructura);
 void finalizar();
 

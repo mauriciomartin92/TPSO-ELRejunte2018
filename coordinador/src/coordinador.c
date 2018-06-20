@@ -22,48 +22,22 @@ uint32_t cant_entradas, tam_entradas;
 t_queue* cola_instancias;
 int socketDeEscucha;
 int clave_tid;
-uint32_t paquete_ok = 1;
-
-/*
-(t_tcb*) algoritmoLSU(cola_istancias, instancia, clave){
-	analizar tamaño de entradas();
-	analizar tamanño de instancias(); //tamaño = cantidad de entradas libres
-	if(hay entradas libres){
-		if(tamEntLibre == tamLoQQuieroGuardar) // si lo quiero guardar es atómico
-			asignar clave en ésta entrada();
-		else if (tamEntLibre < tamLoQQuieroGuardar) // si lo que quiero guardar ocupa más de una entrada
-			buscar espacio continuo() //dos entradas libres contiguas
-			si hay
-				asignar clave en estas entradas()
-		   	si no hay
-				compactar o posiblemente seguir buscando
-	}
-}
-
-(t_tcb*) algoritmoKE(cola_instancias, instancia, char clave){
-	inicial = getChar("clave"); // tomar primer caracter clave EN MINUSCULA, ésto 
-	inicialEnMinuscula = tolower(inicial) // convierte un tipo de dato caracter a minuscula (A-Z a a-z).
-	verificar donde guardar(inicialEnMinuscula == inicialInstancia) // inicial debera ser un numero, ejemplo "a" es 97
-	if(está la instancia con la misma inicial){
-		guardar en esa instancia
-	} else {
-		ACA NO SE SABE QUE HACE
-	}
-}
- */
+const uint32_t PAQUETE_OK = 1;
 
 t_tcb* algoritmoDeDistribucion() {
 	// implementar
 	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
 	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve de la tabla_instancias
 	// obs: hacer el case de los demas casos pero sin implementacion
-
+	/*switch (algoritmo_distribucion) {
+	 case "EL":
+	 case "LSU":
+	 case "KSE":
+	 }*/
 	switch (protocolo_algoritmo_distribucion) {
-	case 1: // LSU
-		//return algoritmoLSU();
+	//case 1:
 
-	case 2: // KE
-		//return algoritmoKE();
+	//case 2:
 
 	default: // Equitative Load
 		return (t_tcb*) queue_pop(cola_instancias); // OJO: falta volver a encolar en algun punto
@@ -76,16 +50,7 @@ int enviarAInstancia(char* paquete, uint32_t tam_paquete) {
 	send(tcb_elegido->socket, paquete, tam_paquete, 0);
 
 	log_info(logger, "Espero la respuesta de la Instancia");
-	uint32_t respuesta_instancia;
-	recv(tcb_elegido->socket, &respuesta_instancia, sizeof(uint32_t), 0);
 
-	if (respuesta_instancia <= 0) {
-		log_warning(logger, "La instancia se ha desconectado");
-		return -1;
-	} else if (respuesta_instancia == paquete_ok) {
-		log_info(logger, "La instancia pudo procesar el paquete");
-		queue_push(cola_instancias, tcb_elegido); // Lo vuelvo a encolar
-	}
 	return 1;
 }
 
@@ -124,7 +89,7 @@ void atenderESI(int socketESI) {
 		//loguearOperacion(unESI->id, paquete);
 
 		log_info(logger, "Le informo al ESI que el paquete llego correctamente");
-		send(socketESI, &paquete_ok, sizeof(uint32_t), 0); // Envio respuesta al ESI
+		send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0); // Envio respuesta al ESI
 
 		log_info(logger, "Aguarde mientras se busca una Instancia");
 		while (queue_is_empty(cola_instancias)) { // HAY QUE UTILIZAR UN SEMAFORO CONTADOR
@@ -154,6 +119,17 @@ void atenderInstancia(int socketInstancia) {
 
 	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
 	send(socketInstancia, &tam_entradas, sizeof(uint32_t), 0);
+
+	uint32_t respuesta_instancia = PAQUETE_OK;
+	while (recv(socketInstancia, &respuesta_instancia, sizeof(uint32_t), 0) > 0) {
+		if (respuesta_instancia == PAQUETE_OK) {
+			log_info(logger, "La Instancia pudo procesar el paquete");
+			queue_push(cola_instancias, tcb); // Lo vuelvo a encolar
+		}
+	}
+	log_warning(logger, "La instancia se ha desconectado");
+	//queue_pop(cola_instancias, tcb); // Habria que buscarlo en la "cola" para sacarlo, entonces mejor una lista?
+	finalizarSocket(socketInstancia);
 }
 
 void* establecerConexion(void* socketCliente) {

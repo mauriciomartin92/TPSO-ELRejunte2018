@@ -25,8 +25,8 @@ char* port_planificador;
 int packagesize;
 int socketCoordinador, socketPlanificador;
 FILE *fp;
-uint32_t paquete_ok = 1;
-uint32_t continuar_pausar = 1;
+const uint32_t PAQUETE_OK = 1;
+const uint32_t continuar_pausar = 1;
 
 int cargarConfiguracion() {
 	error_config = false;
@@ -113,14 +113,14 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
 			send(socketCoordinador, paquete, tam_paquete, 0);
 
-				//Esperar respuesta coordinador.
+			//Esperar respuesta coordinador.
 			uint32_t respuesta_coordinador;
 			recv(socketCoordinador, &respuesta_coordinador, sizeof(uint32_t), 0);
 
-			if (respuesta_coordinador == paquete_ok) {
+			if (respuesta_coordinador == PAQUETE_OK) {
 				log_info(logger, "El coordinador informa que llego correctamente");
 				log_info(logger, "Le envio el resultado al planificador");
-				//send(socketPlanificador, respuesta_coordinador, sizeof(uint32_t), 0);
+				send(socketPlanificador, &respuesta_coordinador, sizeof(uint32_t), 0);
 			} else {
 				log_error(logger, "El coordinador informa que no la pudo recibir");
 			}
