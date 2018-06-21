@@ -24,6 +24,7 @@ char* port_coordinador;
 char* port_planificador;
 int socketCoordinador, socketPlanificador;
 FILE *fp;
+
 const uint32_t PAQUETE_OK = 1;
 const uint32_t continuar_pausar = 1;
 

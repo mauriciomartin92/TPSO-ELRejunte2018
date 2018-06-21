@@ -27,8 +27,9 @@
 typedef struct {
 	int id;
 	int socket;
-	int entradas_libres;
-	t_list* esis_asignados;
+	int entradas_libres; // se actualizan a medida que la Instancia procesa
+	int activa; // 1 = activa, 0 = inactiva
+	//t_list* esis_asignados;
 } __attribute__((packed)) t_instancia;
 
 int cargarConfiguracion();

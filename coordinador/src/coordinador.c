@@ -21,7 +21,7 @@ int retardo;
 uint32_t cant_entradas, tam_entradas;
 t_queue* cola_instancias;
 int socketDeEscucha;
-int clave_id;
+
 const uint32_t PAQUETE_OK = 1;
 
 /*
@@ -76,10 +76,11 @@ int enviarAInstancia(char* paquete, uint32_t tam_paquete) {
 
 	log_info(logger, "Espero la respuesta de la Instancia");
 	uint32_t respuesta_instancia;
-	recv(instancia_elegida->socket, &respuesta_instancia, sizeof(uint32_t), 0);
+	recv(instancia_elegida->socket, &respuesta_instancia, sizeof(uint32_t), 0); // DEBERIA DEVOLVER LA CANT_ENTRADAS_LIBRES
 
 	if (respuesta_instancia <= 0) {
 		log_warning(logger, "La instancia se ha desconectado");
+		instancia_elegida->activa = 0; // Pongo a la instancia como inactiva
 		return -1;
 	} else if (respuesta_instancia == PAQUETE_OK) {
 		log_info(logger, "La instancia pudo procesar el paquete");
@@ -136,6 +137,7 @@ void atenderESI(int socketESI) {
 		log_info(logger, "Le envio la instruccion a la Instancia correspondiente");
 		int resultadoInstancia = enviarAInstancia(paquete, tam_paquete);
 		if (resultadoInstancia < 0) // Instancia desconectada
+
 			// se le avisa al planificador que la instancia no existe mas?
 			break;
 		/*else
@@ -145,13 +147,19 @@ void atenderESI(int socketESI) {
 }
 
 void atenderInstancia(int socketInstancia) {
+	// Recibo la ID
+	uint32_t id_instancia;
+	recv(socketInstancia, &id_instancia, sizeof(uint32_t), 0);
+
+	// Guarda el struct de la Instancia en mi lista
 	t_instancia* unaInstancia = (t_instancia*) malloc(sizeof(t_instancia));
-	unaInstancia->id = clave_id;
-	clave_id++;
+	unaInstancia->id = id_instancia;
 	unaInstancia->socket = socketInstancia;
 	unaInstancia->entradas_libres = cant_entradas;
+	unaInstancia->activa = 1;
 	queue_push(cola_instancias, unaInstancia);
-	log_info(logger, "TCB de Instancia agregado a la tabla de instancias");
+	log_info(logger, "Instancia agregada a la tabla de instancias");
+
 	printf("La cantidad de instancias actual es %d\n", queue_size(cola_instancias));
 
 	log_info(logger, "Envio a la Instancia su cantidad de entradas");
@@ -168,7 +176,7 @@ void atenderInstancia(int socketInstancia) {
 		}
 	}
 	log_warning(logger, "La instancia se ha desconectado");
-	//queue_pop(cola_instancias, tcb); // Habria que buscarlo en la "cola" para sacarlo, entonces mejor una lista?
+	unaInstancia->activa = 0;
 	finalizarSocket(socketInstancia);
 }
 
@@ -211,7 +219,6 @@ void establecerProtocoloDistribucion() {
 
 int cargarConfiguracion() {
 	error_config = false;
-	clave_id = 0; // Son unicas
 
 	/*
 	 * Se crea en la carpeta Coordinador un archivo "config_coordinador.cfg", la idea es que utilizando la

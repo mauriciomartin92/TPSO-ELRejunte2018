@@ -18,13 +18,15 @@
 
 t_log* logger;
 bool error_config;
-char* ip;
-char* port;
+char* ip_coordinador;
+char* port_coordinador;
+uint32_t id_instancia;
 int socketCoordinador, intervalo_dump;
 uint32_t cant_entradas, tam_entradas;
 t_list* tabla_entradas;
-uint32_t paquete_ok = 1;
 char* mapa_archivo;
+
+const uint32_t PAQUETE_OK = 1;
 
 void imprimirTablaDeEntradas() {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
@@ -109,54 +111,6 @@ void setClaveValor(t_entrada* entrada, char* valor) {
 	close(fd);
 }
 
-void procesar(t_instruccion* instruccion) {
-	log_info(logger, "Procesando instruccion...");
-
-	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
-	bool comparadorDeClaves(void* estructura) {
-		t_entrada* entrada = (t_entrada*) estructura;
-		if (strcmp(instruccion->clave, entrada->clave) == 0)
-			return true;
-		return false;
-	}
-
-	// Busco la clave en la tabla usando la funcion magica
-	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
-
-	// Evaluo como procesar segun las condiciones
-	if (!entrada) { // la entrada no estaba
-		log_warning(logger, "LA CLAVE NO EXISTE EN LA TABLA");
-		if (instruccion->operacion == 1) {
-			// es GET: crearla
-			log_info(logger, "Creo la clave en la tabla");
-			t_entrada* nueva_entrada = (t_entrada*) malloc(sizeof(t_entrada));
-			nueva_entrada->clave = instruccion->clave;
-			nueva_entrada->entrada_asociada = tabla_entradas->elements_count;
-			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
-			list_add(tabla_entradas, nueva_entrada);
-		} else if (instruccion->operacion == 2) {
-			log_info(logger, "No hay que hacer nada");
-			// es SET: no hacer nada
-		} else {
-			// es STORE
-		}
-	} else { // la entrada si estaba
-		log_warning(logger, "LA CLAVE EXISTE EN LA TABLA");
-		if (instruccion->operacion == 1) {
-			// es GET: bloquearla
-			log_info(logger, "Bloqueo la clave");
-		} else if (instruccion->operacion == 2) {
-			// es SET: insertar valor
-			setClaveValor(entrada, instruccion->valor);
-		} else {
-			operacionStore(instruccion->clave);
-		}
-	}
-	imprimirTablaDeEntradas();
-	log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
-	send(socketCoordinador, &paquete_ok, sizeof(uint32_t), 0);
-}
-
 void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
 	printf("La instruccion recibida es: ");
 	switch (instruccion->operacion) {
@@ -176,26 +130,6 @@ void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
 		log_error(logger, "No comprendo la instruccion.\n");
 		break;
 	}
-}
-
-t_instruccion* recibirInstruccion(int socketCoordinador) {
-	// Recibo linea de script parseada
-	uint32_t tam_paquete;
-	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
-
-	char* paquete = (char*) malloc(tam_paquete);
-	recv(socketCoordinador, paquete, tam_paquete, 0); // MSG_WAITALL
-	log_info(logger, "Recibi un paquete que me envia el Coordinador");
-
-	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
-	destruirPaquete(paquete);
-
-	imprimirArgumentosInstruccion(instruccion);
-
-	log_info(logger, "Le informo al Coordinador que el paquete llego correctamente");
-	send(socketCoordinador, &paquete_ok, sizeof(uint32_t), 0); // Envio respuesta al Coordinador
-
-	return instruccion;
 }
 
 void abrirArchivoInstancia(int* fileDescriptor) {
@@ -278,13 +212,82 @@ void generarTablaDeEntradas() {
 	close(fd);
 }
 
+void procesar(t_instruccion* instruccion) {
+	log_info(logger, "Procesando instruccion...");
+
+	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
+	bool comparadorDeClaves(void* estructura) {
+		t_entrada* entrada = (t_entrada*) estructura;
+		if (strcmp(instruccion->clave, entrada->clave) == 0)
+			return true;
+		return false;
+	}
+
+	// Busco la clave en la tabla usando la funcion magica
+	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
+
+	// Evaluo como procesar segun las condiciones
+	if (!entrada) { // la entrada no estaba
+		log_warning(logger, "LA CLAVE NO EXISTE EN LA TABLA");
+		if (instruccion->operacion == 1) {
+			// es GET: crearla
+			log_info(logger, "Creo la clave en la tabla");
+			t_entrada* nueva_entrada = (t_entrada*) malloc(sizeof(t_entrada));
+			nueva_entrada->clave = instruccion->clave;
+			nueva_entrada->entrada_asociada = tabla_entradas->elements_count;
+			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
+			list_add(tabla_entradas, nueva_entrada);
+		} else if (instruccion->operacion == 2) {
+			log_info(logger, "No hay que hacer nada");
+			// es SET: no hacer nada
+		} else {
+			// es STORE
+		}
+	} else { // la entrada si estaba
+		log_warning(logger, "LA CLAVE EXISTE EN LA TABLA");
+		if (instruccion->operacion == 1) {
+			// es GET: bloquearla
+			log_info(logger, "Bloqueo la clave");
+		} else if (instruccion->operacion == 2) {
+			// es SET: insertar valor
+			setClaveValor(entrada, instruccion->valor);
+		} else {
+			operacionStore(instruccion->clave);
+		}
+	}
+	imprimirTablaDeEntradas();
+	log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
+	send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0); // DEBERIA AVISAR LA CANT_ENTRADAS_LIBRES
+}
+
+t_instruccion* recibirInstruccion(int socketCoordinador) {
+	// Recibo linea de script parseada
+	uint32_t tam_paquete;
+	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
+
+	char* paquete = (char*) malloc(tam_paquete);
+	recv(socketCoordinador, paquete, tam_paquete, 0); // MSG_WAITALL
+	log_info(logger, "Recibi un paquete que me envia el Coordinador");
+
+	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
+	destruirPaquete(paquete);
+
+	imprimirArgumentosInstruccion(instruccion);
+
+	log_info(logger, "Le informo al Coordinador que el paquete llego correctamente");
+	send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0); // Envio respuesta al Coordinador
+
+	return instruccion;
+}
+
 int cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
 	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg", &error_config);
 
-	ip = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
-	port = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
-	intervalo_dump = obtenerComoInt(logger, config, "INTERVALO_DUMP", &error_config);
+	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
+	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
+	id_instancia = obtenerCampoInt(logger, config, "ID_INSTANCIA", &error_config);
+	intervalo_dump = obtenerCampoInt(logger, config, "INTERVALO_DUMP", &error_config);
 
 	// Valido si hubo errores
 	if (error_config) {
@@ -314,9 +317,12 @@ int main() {
 	}
 
 	// Me conecto con el Servidor y le mando mensajes
-	socketCoordinador = conectarComoCliente(logger, ip, port);
+	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
 	uint32_t handshake = 2;
 	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
+
+	// Le aviso cual es mi ID
+	send(socketCoordinador, &id_instancia, sizeof(uint32_t), 0);
 
 	recv(socketCoordinador, &cant_entradas, sizeof(uint32_t), 0);
 	recv(socketCoordinador, &tam_entradas, sizeof(uint32_t), 0);
