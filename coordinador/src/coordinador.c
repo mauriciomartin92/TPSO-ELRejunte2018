@@ -65,7 +65,7 @@ t_instancia* algoritmoDeDistribucion() {
 		//return algoritmoKE();
 
 	default: // Equitative Load
-		return (t_instancia*) queue_pop(cola_instancias); // OJO: falta volver a encolar en algun punto
+		return (t_instancia*) queue_pop(cola_instancias);
 	}
 }
 
@@ -109,8 +109,6 @@ void loguearOperacion(uint32_t id, char* paquete) {
 
 void atenderESI(int socketESI) {
 	do {
-		//printf("atenderESI: La cola de instancias esta vacia? %d\n", queue_is_empty(cola_instancias));
-
 		log_info(logger, "Espero un paquete del ESI");
 
 		uint32_t tam_paquete;
