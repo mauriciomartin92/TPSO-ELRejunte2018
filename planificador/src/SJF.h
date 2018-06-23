@@ -13,4 +13,5 @@ void liberarBloqueados();
 
 bool planificacionSJFTerminada;
 
+
 #endif /* SJF_H_ */

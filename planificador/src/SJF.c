@@ -6,18 +6,9 @@ void planificacionSJF(){
 
 	log_info(logPlanificador, "Comienza planificacion SJF");
 
-	liberarBloqueados();
+	log_info(logPlanificador, "Conectando servidor");
 
-	log_info(logPlanificador, "Escucho un ESI...");
-
-	socketDeEscucha = conectarComoServidor(logPlanificador, ip, puerto, 1);
-
-	int socketESI = escucharCliente(logPlanificador, socketDeEscucha, 1);
-
-	log_info(logPlanificador, "Se conecto un ESI!");
-
-	pthread_create(&hiloEscuchaConsola,NULL, (void *) escucharPedidos, &socketESI);
-	pthread_create(&hiloEscuchaESI, NULL, (void *) lanzarConsola, NULL);
+	pthread_create(&hiloEscuchaConsola, NULL, (void *) lanzarConsola, NULL);
 
 	log_info(logPlanificador,"Arraca SJF");
 
@@ -34,58 +25,69 @@ void planificacionSJF(){
 
 		bool finalizar = false;
 
+		bool bloquear = false;
+
 		ESI * nuevo = queue_pop(colaListos);
+
+		int socketESI = escucharCliente(logPlanificador, socketDeEscucha, 1);
+
+		char * recursoAUsar = nuevo->recursoPedido;
+
+		bloquearRecurso(recursoAUsar);
+
+		log_info(logPlanificador, "Se conecto un ESI!");
+
+		pthread_create(&hiloEscuchaESI,NULL, (void *) escucharPedidos, &socketESI);
 
 		log_info(logPlanificador, " ESI de clave %s entra al planificador", nuevo->id );
 
-		int l = 0;
+		while(!finalizar && !bloquear){
 
-		while(!finalizar){
-
-
-			recursoGenericoEnUso = true;
 			log_info(logPlanificador, " ejecuta una sentencia ");
 			//send a ESI el permiso para ejecutar
-
+			send(socketESI,(void *)CONTINUAR,sizeof(int),0 );
 			nuevo -> rafagaAnterior = nuevo-> rafagaAnterior +1;
 			nuevo -> rafagasRealizadas = nuevo -> rafagasRealizadas +1;
 			log_info(logPlanificador, "rafagas realizadas del esi %s son %d", nuevo-> id, nuevo->rafagasRealizadas);
 
+			int respuesta ;
+			recv(socketESI, &respuesta, sizeof(int),0);
 
-			if (l == 3) //harcodeo para testear que funcione. acá debería llegar el mensaje de terminacion
+			if (respuesta != CONTINUAR)
 			{
 				finalizar = true;
-			}
+			} else if (string_equals_ignore_case(nuevo->id, claveParaBloquearESI))
+			{
+				send(socketESI,(void *)FINALIZAR,sizeof(int),0 );
+				bloquear = true;
 
-			l++;
+			}
 
 		}
 
 		log_info(logPlanificador,"finalizada su rafaga");
-		liberarRecursos(1); // acá debería liberarse el recurso que usó el ESI
 
-		if( 1 == 1){ //aca con el mensaje del ESI, determino si se bloquea o se finaliza
+		if( finalizar ){ //aca con el mensaje del ESI, determino si se bloquea o se finaliza
 
 			list_add ( listaFinalizados, nuevo);
 			log_info(logPlanificador, " ESI de clave %s en finalizados!", nuevo->id);
+			//todo liberar clave
 
-		} else if (2 == 2){ // acá bloqueo por recurso si terminó su rafaga (bloqueado por recurso)
-
-			nuevo->rafagasRealizadas = 0;
-			nuevo->bloqueadoPorRecurso = true;
-			list_add(listaBloqueados, nuevo);
-			log_info(logPlanificador, " ESI de clave %s en bloqueados !", nuevo->id);
-
-
-		} else { // este caso sería para bloqueados por usuario o desalojados, como no me termina el proceso, sigo teniendo en cuenta las rafagas que realizó en su pasada.
+		} else if( bloquear ){ // este caso sería para bloqueados por usuario. No se libera clave acá
 
 			nuevo->bloqueadoPorUsuario = true;
-			list_add(listaBloqueados, nuevo);
-			log_info(logPlanificador, " ESI de clave %s en bloqueados!", nuevo->id);
+			t_ESIBloqueado * nuevoBloqueado = malloc(sizeof(t_ESIBloqueado));
+			nuevoBloqueado -> bloqueado = nuevo;
+			nuevoBloqueado -> claveRecurso = claveParaBloquearRecurso;
+
+
+			queue_push(colaBloqueados, nuevoBloqueado);
+			free(nuevoBloqueado);
+
+			log_info(logPlanificador, " ESI de clave %s en bloqueados para recurso %s", nuevo->id, claveParaBloquearESI);
 
 		}
 
-		liberarBloqueados();
 	}
 
 	planificacionSJFTerminada = true;
@@ -149,6 +151,10 @@ void escucharPedidos(int conexion){
 	uint32_t respuesta;
 	recv(conexion, &respuesta , sizeof (uint32_t), 0);
 	printf("Me respondio: %d\n", respuesta);
+
+
+
+
 }
 
 void liberarRecursos(int recursoID){
@@ -163,7 +169,7 @@ void liberarRecursos(int recursoID){
 
 
 void liberarBloqueados(){
-
+/*
 	int i = 0;
 	while(i < list_size(listaBloqueados)){
 
@@ -179,23 +185,22 @@ void liberarBloqueados(){
 	}
 
 	armarColaListos(); //rearmo la cola de listos cuando entra el nuevo ESI.
-
+*/
 
 }
 
 
 void planificacionSJFConDesalojo(){
 
-
-	liberarBloqueados();
-	int socketESI = escucharCliente(logPlanificador, *(int*) socketDeEscucha, 1);
+	socketDeEscucha = conectarComoServidor(logPlanificador, ip, puerto, 1);
+//	int socketESI = escucharCliente(logPlanificador, *(int*) socketDeEscucha, 1);
 	pthread_create(&hiloEscuchaConsola,NULL, (void *) escucharPedidos, NULL);
 
 	log_info(logPlanificador,"Arraca SJF con desalojo");
 
 	planificacionSJFTerminada = false;
 
-	while(1 && !planificacionSJFTerminada){ // Aca la idea sería que el hilo que escucha los pedidos de la consola, me tire una varaible global para que termine el while y replanifique por desalojo
+	while(!planificacionSJFTerminada){ // Aca la idea sería que el hilo que escucha los pedidos de la consola, me tire una varaible global para que termine el while y replanifique por desalojo
 
 		planificacionSJF(); // planificacion SJF comun si no se desbloquean nuevos procesos
 
