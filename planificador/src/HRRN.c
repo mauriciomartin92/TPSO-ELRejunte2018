@@ -33,7 +33,7 @@ planificacionHRRN ()
 
       log_info(logPlanificador, "Conectando servidor");
 
-      socketDeEscucha = conectarComoServidor(logPlanificador, nuevoESI->ip, nuevoESI-> puerto, 1);
+      socketDeEscucha = conectarComoServidor(logPlanificador, ip,puerto, 1);
 
       int socketESI = escucharCliente(logPlanificador, socketDeEscucha, 1);
 

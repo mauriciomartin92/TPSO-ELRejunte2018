@@ -29,9 +29,11 @@ void planificacionSJF(){
 
 		ESI * nuevo = queue_pop(colaListos);
 
-		socketDeEscucha = conectarComoServidor(logPlanificador, nuevo->ip, nuevo->puerto, 1);
-
 		int socketESI = escucharCliente(logPlanificador, socketDeEscucha, 1);
+
+		char * recursoAUsar = nuevo->recursoPedido;
+
+		bloquearRecurso(recursoAUsar);
 
 		log_info(logPlanificador, "Se conecto un ESI!");
 

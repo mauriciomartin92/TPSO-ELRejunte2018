@@ -1,5 +1,9 @@
 #include "planificador.h"
 
+void recursoDestroy(t_recurso * recurso);
+void lanzarConsola();
+
+
 
 //char* rutaLog = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/Debug/logs";
 char * KEY_PUERTO_CLIENTE = "PUERTO_CLIENTE";
@@ -18,7 +22,9 @@ char * ipPropia = "127.0.0.2";
 char * puertoPropio = "8080";
 int CONTINUAR = 1;
 int FINALIZAR = 2;
-
+int socketDeEscucha = 1; //conectarComoServidor(logPlanificador, ip, puerto,1);
+uint32_t idESI = 0;
+uint32_t GET = 0;
 
 // CONSOLA
 
@@ -69,11 +75,9 @@ bool compararClaves (ESI * esi){
 
 	}
 
-void comprobarDeadlock(){ //todo preguntar si el deadlock solo es por espera circular o influyen planificaciones y tiempos
+void comprobarDeadlock(){ //todo modificar DL para cola de bloqueados
 
-	list_clean_and_destroy_elements(deadlockeados, (void *) DEADLOCK_destroy);
-
-	int contador = 0;
+/*	int contador = 0;
 
 	while ( contador <= list_size(listaListos) ){
 
@@ -85,7 +89,7 @@ void comprobarDeadlock(){ //todo preguntar si el deadlock solo es por espera cir
 		while (contador2 <= list_size(listaListos)){
 
 			ESI * Aux = list_get(listaListos, contador2);
-			if ( (Aux -> recursoPedido == nuevo -> recursoAsignado) && (Aux -> recursoAsignado == nuevo -> recursoPedido)){
+			if ( (Aux -> recursoPedido == nuevo -> recursosAsignado) && (Aux -> recursosAsignado == nuevo -> recursoPedido)){
 
 				posibleDeadlock->clave = nuevo->id;
 				list_add(posibleDeadlock->ESIasociados, Aux->id);
@@ -101,7 +105,7 @@ void comprobarDeadlock(){ //todo preguntar si el deadlock solo es por espera cir
 
 	} //todo estoy metiendo repetidos los deadlock porque no compruebo si la clave ya está dentro de otra estructura deadlock. ARREGLAR
 
-
+*/
 
 }
 
@@ -191,112 +195,115 @@ void lanzarConsola(){
 	}
 }
 
+/*
+void escucharNuevosESIS(){ //todo meter el nuevo gestor de paquetes
 
+	int socketESINuevo = escucharCliente(logPlanificador,socketDeEscucha);
+	send(socketESINuevo,&idESI,sizeof(uint32_t),0);
+	uint32_t operacion;
+
+	recv(socketESINuevo, &operacion, sizeof(uint32_t),0);
+
+	if(operacion == GET){
+
+		char * recursoPedido;
+		uint32_t tamanioClave;
+		recv(socketESINuevo, &tamanioClave, sizeof(uint32_t),0);
+		recursoPedido = malloc(sizeof(char)*tamanioClave);
+		//recv(socketESINuevo)
+
+	}
+
+
+}
+*/
 
 t_recurso * crearRecurso (char * id){
 
 	t_recurso * nuevo = malloc(sizeof(t_recurso));
 	nuevo->clave = id;
-	nuevo->subrecursos = list_create();
+	nuevo->ESIEncolados = queue_create();
 	return nuevo;
-
-}
-
-void crearSubrecurso (char* claveRecurso, char * claveSubrecurso)
-{
-
-	t_subrecurso * nuevoSubrecurso = malloc (sizeof(t_subrecurso));
-	nuevoSubrecurso->clave = claveSubrecurso;
-	nuevoSubrecurso->recursosFinales = list_create();
-
-	int i = 0;
-	bool encontrado = false;
-	while(list_size(listaRecursos) >= i)
-	{
-		if(string_equals_ignore_case(list_get(listaRecursos,i),claveRecurso))
-		{
-			t_recurso * auxiliar = list_get(listaRecursos,i);
-			list_add(auxiliar->subrecursos,nuevoSubrecurso);
-			list_replace_and_destroy_element(listaRecursos, i, auxiliar, (void *) recursoDestroy);
-			encontrado = true;
-		}
-	}
-
-	if(encontrado == false){
-
-		t_recurso * nuevoRecurso = crearRecurso(claveRecurso);
-		list_add( nuevoRecurso->subrecursos, nuevoSubrecurso);
-	}
-
-}
-
-
-void recursoDestroy(t_recurso * recurso){
-
-	free(recurso->clave);
-	list_destroy_and_destroy_elements(recurso->subrecursos, (void *) subrecursoDestroy);
-
-}
-
-void subrecursoDestroy (t_subrecurso * subrecurso){
-
-	free (subrecurso-> clave);
-	queue_destroy_and_destroy_elements(subrecurso->ESIEncolados, (void*) ESI_destroy);
-	list_destroy_and_destroy_elements(subrecurso->recursosFinales, (void *)recursoFinalDestroy);
-
-}
-
-void recursoFinalDestroy(t_recursoFinal * recuFinal){
-
-	free(recuFinal->clave);
-	free(recuFinal->valor);
-
 }
 
 void ESI_destroy(ESI * estructura)
 {
-	free(estructura->id);
-	free(estructura->recursoAsignado);
-	free(estructura->recursoPedido);
-	free(estructura);
+		free(estructura->id);
+		list_destroy_and_destroy_elements(estructura->recursosAsignado, (void * ) recursoDestroy);
+		free(estructura->recursoPedido);
+		free(estructura);
+}
+
+
+void recursoDestroy(t_recurso * recurso)
+{
+	free(recurso->clave);
+	queue_destroy_and_destroy_elements(recurso->ESIEncolados, (void *) ESI_destroy);
+	free(recurso);
 
 }
+
+
 
 void DEADLOCK_destroy(t_deadlockeados * ESI){
 
 	free(ESI->clave);
 	list_destroy_and_destroy_elements(ESI->ESIasociados, (void *) free);
 
-
 }
 
+/**
+ *
+ * Bloquea un recurso cuando se pone en uso.
+ * De no existir la clave que llega, crea el recurso y lo mete en lista.
+ *
+ */
+void bloquearRecurso (char* claveRecurso) {
 
-//todo esperar respuesta de ayudante.
-void bloquearSubrecurso (char* claveRecurso, char * claveESI) // agarra la clave entera del recurso (futbol:messi), encuentra el subrecurso y mete el ESI que se bloquea en su cola de bloqueados
-{
-
-	//char ** claves = string_n_split(claveRecurso,2,":");
-	t_subrecurso * nuevoSubrecurso = malloc (sizeof(t_subrecurso));
+	t_recurso * recurso = crearRecurso(claveRecurso);
 
 	int i = 0;
 	bool encontrado = false;
-	while(list_size(listaRecursos) >= i)
+	while(list_size(listaRecursos) >= i || encontrado)
 	{
-		if(string_equals_ignore_case(list_get(listaRecursos,i),claveRecurso))
+		t_recurso * nuevoRecurso = list_get(listaRecursos,i);
+		if(string_equals_ignore_case(nuevoRecurso->clave,recurso->clave))
 		{
-			t_recurso * auxiliar = list_get(listaRecursos,i);
-			list_add(auxiliar->subrecursos,nuevoSubrecurso);
-			list_replace_and_destroy_element(listaRecursos, i, auxiliar, (void *) recursoDestroy);
-			encontrado = true;
+			if(nuevoRecurso->estado == 0){
+
+				nuevoRecurso->estado = 1;
+				list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
+				log_info(logPlanificador, "Recurso de clave %s bloqueado", nuevoRecurso->clave);
+				recursoDestroy(nuevoRecurso);
+				encontrado = true;
+
+			} else {
+
+				while(1){
+					nuevoRecurso = list_get(listaRecursos,i);
+					if(nuevoRecurso->estado == 1){}
+					else
+					{
+					nuevoRecurso->estado = 1;
+					list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
+					log_info(logPlanificador, "Recurso de clave %s bloqueado", nuevoRecurso->clave);
+					recursoDestroy(nuevoRecurso);
+					encontrado = true;
+					break;
+					}
+
+				}
+
+			}
 		}
+		i++;
 	}
 
 	if(encontrado == false){
-
-		t_recurso * nuevoRecurso = crearRecurso(claveRecurso);
-		list_add( nuevoRecurso->subrecursos, nuevoSubrecurso);
+		recurso->estado = 1;
+		list_add(listaRecursos,recurso);
 	}
 
+	recursoDestroy(recurso);
+
 }
-
-

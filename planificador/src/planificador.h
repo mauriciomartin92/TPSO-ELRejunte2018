@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
@@ -50,6 +51,7 @@ extern char * puertoPropio;
 extern int backlog;
 extern int CONTINUAR;
 extern int FINALIZAR;
+extern uint32_t idESI;
 
 // GLOBALES
 
@@ -92,36 +94,19 @@ typedef struct{
 	int estimacionSiguiente;
 	float tiempoEspera;
 	bool bloqueadoPorUsuario;
-	char * recursoAsignado; // clave
+	t_list * recursosAsignado; // clave
 	char * recursoPedido; // clave
-	char * ip;
-	char * puerto;
+	int proximaOperacion; //todo inicializar char **
 
 }ESI;
-
-
-typedef struct{ // esta en la lista de recursos: materia, deporte ..
-
-	char * clave;
-	t_list * subrecursos;
-
-} t_recurso;
 
 typedef struct{ // en la lista de subrecursos: futbol, basquet..
 
 	int estado;
 	char * clave;
-	t_list * recursosFinales;
 	t_queue * ESIEncolados;
 
-} t_subrecurso;
-
-typedef struct{ // en la lista de recursosFinales: futbolLeoMessi, futbolLuisSuarez ..
-
-	char * clave;
-	char * valor;
-
-} t_recursoFinal;
+} t_recurso;
 
 typedef struct{
 
@@ -155,11 +140,12 @@ void comprobarDeadlock();
 void DEADLOCK_destroy(t_deadlockeados * ESI);
 t_recurso * crearRecurso (char * id);
 void crearSubrecurso (char* claveRecurso, char * claveSubrecurso);
-void recursoDestroy(t_recurso * recurso);
-void subrecursoDestroy (t_subrecurso * subrecurso);
-void recursoFinalDestroy(t_recursoFinal * recuFinal);
+extern void recursoDestroy(t_recurso * recurso);
 extern void lanzarConsola();
 extern void bloquearESI();
+extern void escucharNuevosESIS();
+extern void bloquearRecurso(char * claveRecurso);
+extern void bloquearESI (char * recurso, char * claveEsi);
 
 
 

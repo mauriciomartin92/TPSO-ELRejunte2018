@@ -21,7 +21,6 @@ int main(void) {
 	deadlockeados = list_create();
 	listaRecursos = list_create();
 
-
 	log_info(logPlanificador,"Arranca el proceso planificador");
 	configurar();
 
@@ -100,14 +99,8 @@ void configurar(){
 
 	while (clavesBloqueadas[i] != NULL)
 	{
+		list_add(listaRecursos, clavesBloqueadas[i]);
 
-		char ** claves = string_n_split(clavesBloqueadas[i],2,":");
-		list_add(listaRecursos,crearRecurso(claves[0]));
-		log_info(logPlanificador, " entra a bloqueados el recurso %s", claves[0]);
-		crearSubrecurso(claves[0],claves[1]);
-		log_info(logPlanificador, "con su subrecurso %s", claves[1]);
-		i++;
-		free (claves);
 	}
 	log_info(logPlanificador, "se llenó la cola de bloqueados");
 
@@ -126,7 +119,7 @@ ESI * crearESI(char * clave){ // Y EL RECURSO DE DONDE SALE!!!!!!!!!!!!!!!!!!!!!
 	nuevoESI-> estimacionSiguiente = 0;
 	nuevoESI->rafagasRealizadas =0;
 	nuevoESI-> tiempoEspera = 0;
-	nuevoESI->recursoAsignado = NULL;
+	nuevoESI->recursosAsignado= list_create();
 	nuevoESI->recursoPedido = NULL;
 
 	return nuevoESI;
