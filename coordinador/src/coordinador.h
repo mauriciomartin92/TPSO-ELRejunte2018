@@ -18,28 +18,46 @@
 #include <stdbool.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include <commons/collections/queue.h>
-#include <parsi/parser.h>
+#include <commons/collections/list.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
+
+typedef enum {
+	CONFIGURACION_OK,
+	CONFIGURACION_ERROR
+} t_control_configuracion;
+
+enum handshake {
+	ESI = 1,
+	INSTANCIA = 2,
+	PLANIFICADOR = 3
+};
+
+enum chequeo_planificador {
+	SE_EJECUTA_ESI = 1,
+	SE_BLOQUEA_ESI = 0
+};
 
 typedef struct {
 	int id;
 	int socket;
 	int entradas_libres; // se actualizan a medida que la Instancia procesa
-	int activa; // 1 = activa, 0 = inactiva
-	//t_list* esis_asignados;
+	int estado; // 1 = activa, 0 = inactiva
+	t_list* claves_asignadas;
 } __attribute__((packed)) t_instancia;
 
-int cargarConfiguracion();
+t_control_configuracion cargarConfiguracion();
 void establecerProtocoloDistribucion();
 void* establecerConexion(void* parametros);
-void atenderESI(int socketESI);
-void loguearOperacion(uint32_t id, char* paquete);
-int enviarAInstancia(char* paquete, uint32_t tam_paquete);
 void atenderInstancia(int socketInstancia);
+void atenderESI(int socketESI);
+void procesarPaquete(char* paquete);
+bool instanciaTieneLaClave(void* nodo);
+bool claveEsLaActual(void* nodo);
+void loguearOperacion(uint32_t esi_ID, char* paquete);
 t_instancia* algoritmoDeDistribucion();
+t_instancia* algoritmoEL();
 void finalizar();
 
 #endif /* COORDINADOR_H_ */

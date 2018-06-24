@@ -23,7 +23,12 @@
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
-int cargarConfiguracion();
+typedef enum {
+	CONFIGURACION_OK,
+	CONFIGURACION_ERROR
+} t_control_configuracion;
+
+t_control_configuracion cargarConfiguracion();
 t_esi_operacion parsearLineaScript(FILE* fp);
 void finalizar();
 

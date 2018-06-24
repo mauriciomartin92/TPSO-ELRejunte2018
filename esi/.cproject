@@ -37,7 +37,7 @@
 									<listOptionValue builtIn="false" value="biblioteca-El-Rejunte"/>
 								</option>
 								<option id="gnu.c.link.option.paths.63614685" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/home/utnso/workspace/tp-2018-1c-El-Rejunte/biblioteca-El-Rejunte/Debug"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/biblioteca-El-Rejunte/Debug}&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1199033052" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

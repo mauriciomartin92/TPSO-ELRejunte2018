@@ -17,6 +17,7 @@
 #include "esi.h"
 
 t_log* logger;
+uint32_t miID;
 bool error_config = false;
 char* ip_coordinador;
 char* ip_planificador;
@@ -26,9 +27,8 @@ int socketCoordinador, socketPlanificador;
 FILE *fp;
 
 const uint32_t PAQUETE_OK = 1;
-const uint32_t continuar_pausar = 1;
 
-int cargarConfiguracion() {
+t_control_configuracion cargarConfiguracion() {
 	error_config = false;
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
@@ -43,9 +43,9 @@ int cargarConfiguracion() {
 	// Valido posibles errores
 	if (error_config) {
 		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
-		return -1;
+		return CONFIGURACION_ERROR;
 	}
-	return 1;
+	return CONFIGURACION_OK;
 }
 
 t_esi_operacion parsearLineaScript(FILE* fp) {
@@ -73,7 +73,7 @@ void finalizar() {
 int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
 	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
 
-	if (cargarConfiguracion() < 0) {
+	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		log_error(logger, "No se pudo cargar la configuracion");
 		finalizar(); // Si hubo error, se corta la ejecucion.
 	}
@@ -85,6 +85,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		finalizar();
 	}
 
+	log_info(logger, "Me conecto como cliente al Coordinador y al Planificador");
 	// Me conecto como Cliente al Coordinador y al Planificador
 	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
 	uint32_t handshake = 1;
@@ -92,11 +93,30 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 
 	socketPlanificador = conectarComoCliente(logger, ip_planificador, port_planificador);
 	// El planificador me asigna mi ID
-	/*
-	uint32_t idESI;
-	recv(socketPlanificador, &idESI, sizeof(uint32_t), 0);
-	*/
+	recv(socketPlanificador, &miID, sizeof(uint32_t), 0);
+	log_info(logger, "El planificador me asigno mi ID: %d", miID);
 
+	uint32_t comando;
+	while(!feof(fp)) {
+
+		recv(socketPlanificador, &comando, sizeof(uint32_t), 0);
+
+		//if (comando == SIGUIENTE_INSTRUCCION) {
+			log_info(logger, "El planificador me pide que parsee la siguiente instruccion");
+			// Se parsea la instruccion que se le enviara al coordinador
+			t_esi_operacion instruccion = parsearLineaScript(fp);
+			log_info(logger, "La instruccion fue parseada");
+
+			// Se empaqueta la instruccion
+			char* paquete = empaquetarInstruccion(instruccion, logger);
+
+			log_info(logger, "Envio la instruccion al cooordinador");
+			uint32_t tam_paquete = strlen(paquete);
+			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
+			send(socketCoordinador, paquete, tam_paquete, 0); // Envio el paquete
+		//}
+	}
+	/*
 	while (!feof(fp)) {
 		uint32_t seleccion;
 		recv(socketPlanificador, &seleccion, sizeof(uint32_t), 0);
@@ -104,7 +124,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		if (seleccion == 1) { // ¿Es lo que esperaba? (1 = CONTINUAR)
 			log_info(logger, "El planificador solicita una instruccion");
 
-			// Se parsea la instruccion que se le enviara al coordiandor
+			// Se parsea la instruccion que se le enviara al coordinador
 			t_esi_operacion instruccion = parsearLineaScript(fp);
 			log_info(logger, "La instruccion fue parseada");
 
@@ -121,7 +141,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			uint32_t tam_paquete = strlen(paquete);
 			send(socketPlanificador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
 			send(socketPlanificador, paquete, tam_paquete, 0); // Envio el paquete
-			*/
+			*//*
 
 			log_info(logger, "Envio la instruccion al coordinador");
 
@@ -129,7 +149,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
 			send(socketCoordinador, paquete, tam_paquete, 0); // Envio el paquete
 
-			//Esperar respuesta coordinador.
+			// Esperar respuesta coordinador
 			uint32_t respuesta_coordinador;
 			recv(socketCoordinador, &respuesta_coordinador, sizeof(uint32_t), 0);
 
@@ -142,7 +162,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			}
 			if (paquete) destruirPaquete(paquete);
 		}
-	}
+	}*/
 
 	finalizar();
 	return EXIT_SUCCESS;

@@ -15,6 +15,7 @@
  */
 
 #include "instancia.h"
+#include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
 t_log* logger;
 bool error_config;
@@ -280,7 +281,7 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 	return instruccion;
 }
 
-int cargarConfiguracion() {
+t_control_configuracion cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
 	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg", &error_config);
 
@@ -292,14 +293,13 @@ int cargarConfiguracion() {
 	// Valido si hubo errores
 	if (error_config) {
 		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
-		return -1;
+		return CONFIGURACION_ERROR;
 	}
-	return 1;
+	return CONFIGURACION_OK;
 }
 
 void finalizar() {
-	if (socketCoordinador > 0)
-		finalizarSocket(socketCoordinador);
+	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	list_destroy(tabla_entradas);
 	log_destroy(logger);
 	exit(0);
@@ -311,7 +311,7 @@ int main() {
 	// Creo el logger
 	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
 
-	if (cargarConfiguracion() < 0) {
+	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		finalizar(); // Si hubo error, se corta la ejecucion.
 		return -1;
 	}

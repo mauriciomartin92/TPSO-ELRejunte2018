@@ -23,10 +23,14 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
-#include <parsi/parser.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
+
+typedef enum {
+	CONFIGURACION_OK,
+	CONFIGURACION_ERROR
+} t_control_configuracion;
 
 typedef struct {
 	char* clave;
@@ -34,7 +38,7 @@ typedef struct {
 	int size_valor_almacenado;
 } __attribute__((packed)) t_entrada;
 
-int cargarConfiguracion();
+t_control_configuracion cargarConfiguracion();
 void generarTablaDeEntradas();
 void abrirArchivoInstancia(int* fileDescriptor);
 void imprimirTablaDeEntradas();

@@ -12,6 +12,12 @@
 #ifndef SRC_MISERIALIZADOR_H_
 #define SRC_MISERIALIZADOR_H_
 
+enum operacion {
+	opGET = 1,
+	opSET = 2,
+	opSTORE = 3
+};
+
 typedef struct {
 	int32_t  operacion;
 	char* clave;

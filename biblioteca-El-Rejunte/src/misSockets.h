@@ -23,10 +23,12 @@ typedef struct {
 	int backlog;
 } __attribute__((packed)) t_parametros;
 
-/*
- * Funciones de sockets que definen a los procesos como Servidor o Cliente
- * obs: backlog = cant. maxima de procesos que puede aceptar el Servidor en simultaneo
+// Funciones de sockets que definen a los procesos como Servidor o Cliente
+
+/* PARA QUE EL SERVIDOR OBTENGA SU PROPIA IP REVISAR:
+ * http://www.forosdelweb.com/f96/como-obtener-mi-direccion-ip-con-c-c-381891/
  */
+
 int conectarComoServidor(t_log* logger, const char* ip, const char* puerto);
 int escucharCliente(t_log* logger, int listenningSocket);
 void recibirMensajeConsola(t_log* logger, int socketCliente, int packagesize);
