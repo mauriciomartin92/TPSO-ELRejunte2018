@@ -25,8 +25,23 @@ char* port_coordinador;
 char* port_planificador;
 int socketCoordinador, socketPlanificador;
 FILE *fp;
+uint32_t respuesta;
 
-const uint32_t PAQUETE_OK = 1;
+const int PAQUETE_OK = 1;
+
+t_esi_operacion parsearLineaScript(FILE* fp) {
+	char * line = NULL;
+	size_t len = 0;
+
+	getline(&line, &len, fp);
+	printf("%s", line);
+	t_esi_operacion parsed = parse(line);
+
+	if (line)
+		free(line);
+
+	return parsed;
+}
 
 t_control_configuracion cargarConfiguracion() {
 	error_config = false;
@@ -48,26 +63,11 @@ t_control_configuracion cargarConfiguracion() {
 	return CONFIGURACION_OK;
 }
 
-t_esi_operacion parsearLineaScript(FILE* fp) {
-	char * line = NULL;
-	size_t len = 0;
-
-	getline(&line, &len, fp);
-	printf("%s", line);
-	t_esi_operacion parsed = parse(line);
-
-	if (line)
-		free(line);
-
-	return parsed;
-}
-
 void finalizar() {
 	if (fp) fclose(fp);
 	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	if (socketPlanificador > 0) finalizarSocket(socketPlanificador);
 	log_destroy(logger);
-	exit(0);
 }
 
 int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		log_error(logger, "No se pudo cargar la configuracion");
 		finalizar(); // Si hubo error, se corta la ejecucion.
+		return EXIT_FAILURE;
 	}
 
 	// Abro el fichero del script
@@ -83,86 +84,53 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	if (!fp) {
 		log_error(logger, "Error al abrir el archivo");
 		finalizar();
+		return EXIT_FAILURE;
 	}
 
 	log_info(logger, "Me conecto como cliente al Coordinador y al Planificador");
-	// Me conecto como Cliente al Coordinador y al Planificador
+	// Me conecto como cliente al Coordinador y al Planificador
 	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
-	uint32_t handshake = 1;
+	uint32_t handshake = ESI;
 	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
 
 	socketPlanificador = conectarComoCliente(logger, ip_planificador, port_planificador);
 	// El planificador me asigna mi ID
 	recv(socketPlanificador, &miID, sizeof(uint32_t), 0);
-	log_info(logger, "El planificador me asigno mi ID: %d", miID);
+	log_info(logger, "El Planificador me asigno mi ID: %d", miID);
 
-	uint32_t comando;
+	uint32_t orden;
+
 	while(!feof(fp)) {
+		log_info(logger, "Espero a que el Planificador me ordene parsear una instruccion");
+		recv(socketPlanificador, &orden, sizeof(uint32_t), 0);
 
-		recv(socketPlanificador, &comando, sizeof(uint32_t), 0);
-
-		//if (comando == SIGUIENTE_INSTRUCCION) {
+		//if (señal == SIGUIENTE_INSTRUCCION) {
+		if (orden == 1) {
 			log_info(logger, "El planificador me pide que parsee la siguiente instruccion");
 			// Se parsea la instruccion que se le enviara al coordinador
 			t_esi_operacion instruccion = parsearLineaScript(fp);
 			log_info(logger, "La instruccion fue parseada");
-
 			// Se empaqueta la instruccion
 			char* paquete = empaquetarInstruccion(instruccion, logger);
 
-			log_info(logger, "Envio la instruccion al cooordinador");
-			uint32_t tam_paquete = strlen(paquete);
-			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
-			send(socketCoordinador, paquete, tam_paquete, 0); // Envio el paquete
-		//}
-	}
-	/*
-	while (!feof(fp)) {
-		uint32_t seleccion;
-		recv(socketPlanificador, &seleccion, sizeof(uint32_t), 0);
+			log_info(logger, "Le aviso al Coordinador que soy el ESI %d", miID);
+			send(socketCoordinador, &miID, sizeof(uint32_t), 0);
 
-		if (seleccion == 1) { // ¿Es lo que esperaba? (1 = CONTINUAR)
-			log_info(logger, "El planificador solicita una instruccion");
+			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
+			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que me detecto correctamente");
 
-			// Se parsea la instruccion que se le enviara al coordinador
-			t_esi_operacion instruccion = parsearLineaScript(fp);
-			log_info(logger, "La instruccion fue parseada");
-
-			// Se empaqueta la instruccion
-			char* paquete = empaquetarInstruccion(instruccion, logger);
-
-			/*
-			log_info(logger, "Envio la instruccion al planificador");
-			/*
-			 * Se la envio al planificador porque es el proceso encargado de
-			 * administrar la claves que tienen las instrucciones de los ESI
-			 */
-			/*
-			uint32_t tam_paquete = strlen(paquete);
-			send(socketPlanificador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
-			send(socketPlanificador, paquete, tam_paquete, 0); // Envio el paquete
-			*//*
-
-			log_info(logger, "Envio la instruccion al coordinador");
-
+			log_info(logger, "Envio la instruccion al Cooordinador");
 			uint32_t tam_paquete = strlen(paquete);
 			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
 			send(socketCoordinador, paquete, tam_paquete, 0); // Envio el paquete
 
-			// Esperar respuesta coordinador
-			uint32_t respuesta_coordinador;
-			recv(socketCoordinador, &respuesta_coordinador, sizeof(uint32_t), 0);
+			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
+			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que el paquete llego correctamente");
 
-			if (respuesta_coordinador == PAQUETE_OK) {
-				log_info(logger, "El coordinador informa que llego correctamente");
-				log_info(logger, "Le envio el resultado al planificador");
-				send(socketPlanificador, &respuesta_coordinador, sizeof(uint32_t), 0);
-			} else {
-				log_error(logger, "El coordinador informa que no la pudo recibir");
-			}
-			if (paquete) destruirPaquete(paquete);
+			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
+			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que la instruccion se proceso satisfactoriamente");
 		}
-	}*/
+	}
 
 	finalizar();
 	return EXIT_SUCCESS;

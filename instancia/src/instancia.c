@@ -302,7 +302,6 @@ void finalizar() {
 	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	list_destroy(tabla_entradas);
 	log_destroy(logger);
-	exit(0);
 }
 
 int main() {
@@ -312,13 +311,14 @@ int main() {
 	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
 
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
+		log_error(logger, "No se pudo cargar la configuracion");
 		finalizar(); // Si hubo error, se corta la ejecucion.
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	// Me conecto con el Servidor y le mando mensajes
 	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
-	uint32_t handshake = 2;
+	uint32_t handshake = INSTANCIA;
 	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
 
 	// Le aviso cual es mi ID

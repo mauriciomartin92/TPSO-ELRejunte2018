@@ -26,11 +26,7 @@
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
-
-typedef enum {
-	CONFIGURACION_OK,
-	CONFIGURACION_ERROR
-} t_control_configuracion;
+#include "../../coordinador/src/coordinador.h"
 
 typedef struct {
 	char* clave;

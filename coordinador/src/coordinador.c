@@ -36,6 +36,7 @@ int socketPlanificador;
 char* clave_actual;
 
 const uint32_t PAQUETE_OK = 1;
+const int TAM_MAXIMO_CLAVE = 40;
 
 /*
 t_instancia* algoritmoLSU(cola_istancias, instancia, clave) {
@@ -123,15 +124,26 @@ bool instanciaTieneLaClave(void* nodo) {
 	return list_any_satisfy(instancia->claves_asignadas, claveEsLaActual);
 }
 
-void procesarPaquete(char* paquete) {
+int procesarPaquete(char* paquete) {
 	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
+
+	if (strlen(instruccion->clave) > TAM_MAXIMO_CLAVE) {
+		log_error(logger, "Error de Tamano de Clave");
+		return -1;
+	}
 
 	log_info(logger, "El Coordinador esta chequeando si la clave ya existe");
 	t_instancia* instancia = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave);
+
 	if (!instancia) {
 		log_info(logger, "La clave %s no esta en ninguna Instancia", instruccion->clave);
 	} else {
 		log_info(logger, "La clave %s esta asignada a Instancia %d", instancia->id);
+	}
+
+	if (instancia->estado == INACTIVA) {
+		log_error(logger, "Error de Clave Inaccesible");
+		return -1;
 	}
 
 	if (instruccion->operacion == opGET) {
@@ -140,7 +152,7 @@ void procesarPaquete(char* paquete) {
 		// no existe => la creo
 
 		if (!instancia) {
-			log_info(logger, "La clave %s no existe en ninguna instancia", instruccion->clave);
+			log_info(logger, "La clave %s no existe en ninguna Instancia", instruccion->clave);
 			log_info(logger, "Escojo una Instancia segun el algoritmo %s", algoritmo_distribucion);
 			t_instancia* instancia = algoritmoDeDistribucion();
 			log_info(logger, "La Instancia sera la %d", instancia->id);
@@ -152,7 +164,7 @@ void procesarPaquete(char* paquete) {
 	} else { // SET o STORE
 
 		// existe => la envio a Instancia
-		// no existe => no hago nada
+		// no existe => Error de Clave no Identificada
 
 		if (instancia) {
 			log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
@@ -160,14 +172,18 @@ void procesarPaquete(char* paquete) {
 			send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
 			send(instancia->socket, &paquete, tam_paquete, 0);
 
+			// La Instancia me devuelve la cantidad de entradas libres que tiene
 			uint32_t respuesta;
 			recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
-			// ACA TENGO QUE CHEQUEAR LO QUE ME DEVUELVA LA INSTANCIA
+			instancia->entradas_libres = respuesta;
+			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
 
 		} else {
-			log_info(logger, "Como la clave no existe no hago nada");
+			log_error(logger, "Error de Clave no Identificada");
+			return -1;
 		}
 	}
+	return 1;
 }
 
 void atenderESI(int socketESI) {
@@ -177,6 +193,7 @@ void atenderESI(int socketESI) {
 	uint32_t esi_ID;
 	recv(socketESI, &esi_ID, sizeof(uint32_t), 0);
 	log_info(logger, "Se ha conectado un ESI con ID: %d", esi_ID);
+	send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
 
 	while(1) {
 		uint32_t tam_paquete;
@@ -203,12 +220,16 @@ void atenderESI(int socketESI) {
 
 		if (respuesta == SE_EJECUTA_ESI) {
 			log_info(logger, "El Planificador me informa que el ESI %d puede utilizar el recurso", esi_ID);
-			procesarPaquete(paquete);
+			if (procesarPaquete(paquete) == -1) { // Hay que abortar el ESI
+				log_error(logger, "Se aborta ESI %d y le aviso al Planificador", esi_ID);
+				//send(socketPlanificador, &ABORTAR_ESI, sizeof(uint32_t), 0);
+				break;
+			}
 			loguearOperacion(esi_ID, paquete);
 
-			// ME FALTA RESPONDER DESPUES DE PROCESAR LA INSTRUCCION
+			log_info(logger, "Le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
+			send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
 		}
-
 		destruirPaquete(paquete);
 	}
 }
@@ -217,6 +238,16 @@ void atenderInstancia(int socketInstancia) {
 	// Recibo la ID
 	uint32_t instancia_ID;
 	recv(socketInstancia, &instancia_ID, sizeof(uint32_t), 0);
+	log_info(logger, "Es la Instancia %d", instancia_ID);
+
+	log_info(logger, "Busco si ya fue creada en la Tabla de Instancias");
+	//t_instancia* instancia = list_find(tabla_instancias, existeID);
+	t_instancia* instancia = NULL; // no va
+	if (instancia) {
+		log_info(logger, "La Instancia %d ya existia, la pongo ACTIVA", instancia_ID);
+		instancia->estado = ACTIVA;
+		return;
+	}
 
 	// Guarda el struct de la Instancia en mi lista
 	t_instancia* unaInstancia = (t_instancia*) malloc(sizeof(t_instancia));
@@ -326,9 +357,10 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		log_error(logger, "No se pudo cargar la configuracion");
 		finalizar();
+		return EXIT_FAILURE;
 	}
 
-	log_info(logger, "Se crea la tabla de intancias");
+	log_info(logger, "Se crea la Tabla de Instancias");
 	tabla_instancias = list_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port);
