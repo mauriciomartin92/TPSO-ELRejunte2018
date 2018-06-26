@@ -132,18 +132,18 @@ int procesarPaquete(char* paquete) {
 		return -1;
 	}
 
-	log_info(logger, "El Coordinador esta chequeando si la clave ya existe");
+	log_info(logger, "El Coordinador esta chequeando si la clave ya existe...");
 	t_instancia* instancia = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave);
 
 	if (!instancia) {
 		log_info(logger, "La clave %s no esta en ninguna Instancia", instruccion->clave);
 	} else {
 		log_info(logger, "La clave %s esta asignada a Instancia %d", instancia->id);
-	}
 
-	if (instancia->estado == INACTIVA) {
-		log_error(logger, "Error de Clave Inaccesible");
-		return -1;
+		if (instancia->estado == INACTIVA) {
+			log_error(logger, "Error de Clave Inaccesible");
+			return -1;
+		}
 	}
 
 	if (instruccion->operacion == opGET) {
@@ -154,35 +154,35 @@ int procesarPaquete(char* paquete) {
 		if (!instancia) {
 			log_info(logger, "La clave %s no existe en ninguna Instancia", instruccion->clave);
 			log_info(logger, "Escojo una Instancia segun el algoritmo %s", algoritmo_distribucion);
-			t_instancia* instancia = algoritmoDeDistribucion();
+			instancia = algoritmoDeDistribucion();
 			log_info(logger, "La Instancia sera la %d", instancia->id);
 			list_add(instancia->claves_asignadas, instruccion->clave);
 			log_info(logger, "La clave %s fue asignada a la Instancia %d", instruccion->clave, instancia->id);
 		} else {
 			log_info(logger, "Como la clave ya esta asignada no hago nada");
+			return 1;
 		}
 	} else { // SET o STORE
 
 		// existe => la envio a Instancia
 		// no existe => Error de Clave no Identificada
 
-		if (instancia) {
-			log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
-			uint32_t tam_paquete = strlen(paquete);
-			send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
-			send(instancia->socket, &paquete, tam_paquete, 0);
-
-			// La Instancia me devuelve la cantidad de entradas libres que tiene
-			uint32_t respuesta;
-			recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
-			instancia->entradas_libres = respuesta;
-			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
-
-		} else {
+		if (!instancia) {
 			log_error(logger, "Error de Clave no Identificada");
 			return -1;
 		}
 	}
+
+	log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
+	uint32_t tam_paquete = strlen(paquete);
+	send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
+	send(instancia->socket, &paquete, tam_paquete, 0);
+
+	// La Instancia me devuelve la cantidad de entradas libres que tiene
+	uint32_t respuesta;
+	recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
+	instancia->entradas_libres = respuesta;
+	log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
 	return 1;
 }
 
