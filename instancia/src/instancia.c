@@ -154,7 +154,7 @@ void agregarAlDiccionario(char* key, char* val){
 }
 
 void almacenarValorYGenerarTabla(char* val){
-	t_entrada* entrada = malloc(sizeof(t_entrada));
+	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
 	if(strlen(val) <= 100){
 		for(int i = 0; i < cant_entradas * sizeof(tam_entradas); i = i + tam_entradas){
@@ -302,7 +302,7 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 	uint32_t tam_paquete;
 	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
-	char* paquete = (char*) malloc(tam_paquete);
+	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
 	recv(socketCoordinador, paquete, tam_paquete, 0); // MSG_WAITALL
 	log_info(logger, "Recibi un paquete que me envia el Coordinador");
 
