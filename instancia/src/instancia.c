@@ -257,9 +257,7 @@ void procesar(t_instruccion* instruccion) {
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
 	bool comparadorDeClaves(void* estructura) {
 		t_entrada* entrada = (t_entrada*) estructura;
-		if (strcmp(instruccion->clave, entrada->clave) == 0)
-			return true;
-		return false;
+		return (strcmp(instruccion->clave, entrada->clave) == 0);
 	}
 
 	// Busco la clave en la tabla usando la funcion magica
