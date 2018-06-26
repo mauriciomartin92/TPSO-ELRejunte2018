@@ -22,10 +22,14 @@ bool error_config;
 char* ip_coordinador;
 char* port_coordinador;
 uint32_t id_instancia;
-int socketCoordinador, intervalo_dump;
+int socketCoordinador, intervalo_dump, fd;
 uint32_t cant_entradas, tam_entradas;
 t_list* tabla_entradas;
+t_dictionary* dic_entradas;
 char* mapa_archivo;
+char* bloque_instancia;
+
+struct stat sb;
 
 const uint32_t PAQUETE_OK = 1;
 
@@ -85,8 +89,7 @@ void operacionStore(char* clave) {
 
 void setClaveValor(t_entrada* entrada, char* valor) {
 	// Guardar valor en el mapa de memoria
-	int fd, mapa_pos, mapa_pos_valor;
-	struct stat sb;
+	int mapa_pos, mapa_pos_valor;
 	mapa_archivo = string_new();
 
 	abrirArchivoInstancia(&fd);
@@ -146,16 +149,52 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 	}
 }
 
+void agregarAlDiccionario(char* key, char* val){
+	dictionary_put(dic_entradas, key, val);
+}
+
+void almacenarValorYGenerarTabla(char* val){
+	t_entrada* entrada = malloc(sizeof(t_entrada));
+
+	if(strlen(val) <= 100){
+		for(int i = 0; i < cant_entradas * sizeof(tam_entradas); i = i + tam_entradas){
+			if(bloque_instancia[i] == '0'){
+				strncpy(bloque_instancia+i, val, 101);
+
+				entrada->clave = val;
+				entrada->entrada_asociada = i;
+				entrada->size_valor_almacenado = strlen(val);
+				list_add(tabla_entradas, entrada);
+				break;
+			}
+		}
+	} else {
+		for(int i = 0; i < cant_entradas * sizeof(tam_entradas); i = i + tam_entradas){
+			if(bloque_instancia[i] == '0'){
+				strncpy(bloque_instancia+i, val, strlen(val));
+				entrada->clave = val;
+				entrada->entrada_asociada = i;
+				entrada->size_valor_almacenado = strlen(val);
+				list_add(tabla_entradas, entrada);
+				break;
+			}
+		}
+	}
+
+}
+
 void generarTablaDeEntradas() {
-	int fd, contador;
+	int contador;
 	char* una_entrada;
 	char** vec_clave_valor;
-	struct stat sb;
+
 
 	log_info(logger, "Cargo la Tabla de Entradas con lo que esta en el disco");
 
 	//Creo la tabla de entradas de la instancia, que consiste en una lista.
 	tabla_entradas = list_create();
+	//Creo el diccionario de (claves -> valores).
+	dic_entradas = dictionary_create();
 
 	//void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entradas)));
 
@@ -194,11 +233,13 @@ void generarTablaDeEntradas() {
 				una_entrada = string_new();
 				una_entrada = string_substring(mapa_archivo, contador, i - contador);
 				vec_clave_valor = string_split(una_entrada, "-");
-				t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
+				agregarAlDiccionario(vec_clave_valor[0], vec_clave_valor[1]);
+				almacenarValorYGenerarTabla(vec_clave_valor[1]);
+				/*t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 				entrada->clave = vec_clave_valor[0];
 				entrada->entrada_asociada = contador;
 				entrada->size_valor_almacenado = string_length(vec_clave_valor[1]);
-				list_add(tabla_entradas, entrada);
+				list_add(tabla_entradas, entrada);*/
 				contador = i + 1;
 			}
 		}
@@ -208,9 +249,6 @@ void generarTablaDeEntradas() {
 	}
 
 	printf("Lista size: %i\n", list_size(tabla_entradas));
-
-	munmap(mapa_archivo, sizeof(mapa_archivo));
-	close(fd);
 }
 
 void procesar(t_instruccion* instruccion) {
@@ -339,7 +377,10 @@ int main() {
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		procesar(instruccion);
 	}
-
+	munmap(mapa_archivo, sizeof(mapa_archivo));
+	close(fd);
+	free(bloque_instancia);
+	free(tabla_entradas);
 	finalizar();
 	return EXIT_SUCCESS;
 }

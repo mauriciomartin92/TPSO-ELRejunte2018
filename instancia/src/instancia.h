@@ -23,6 +23,7 @@
 #include <commons/config.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
@@ -35,7 +36,10 @@ typedef struct {
 } __attribute__((packed)) t_entrada;
 
 t_control_configuracion cargarConfiguracion();
+void crearAlmacenamiento();
 void generarTablaDeEntradas();
+void agregarAlDiccionario(char* key, char* val);
+void almacenarValorYGenerarTabla(char* val);
 void abrirArchivoInstancia(int* fileDescriptor);
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
