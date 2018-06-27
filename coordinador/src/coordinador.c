@@ -167,22 +167,23 @@ int procesarPaquete(char* paquete) {
 		// existe => la envio a Instancia
 		// no existe => Error de Clave no Identificada
 
-		if (!instancia) {
+		if (instancia) {
+			log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
+			uint32_t tam_paquete = strlen(paquete);
+			send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
+			send(instancia->socket, &paquete, tam_paquete, 0);
+
+			// La Instancia me devuelve la cantidad de entradas libres que tiene
+			uint32_t respuesta;
+			recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
+			instancia->entradas_libres = respuesta;
+			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
+		} else {
 			log_error(logger, "Error de Clave no Identificada");
 			return -1;
 		}
 	}
 
-	log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
-	uint32_t tam_paquete = strlen(paquete);
-	send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
-	send(instancia->socket, &paquete, tam_paquete, 0);
-
-	// La Instancia me devuelve la cantidad de entradas libres que tiene
-	uint32_t respuesta;
-	recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
-	instancia->entradas_libres = respuesta;
-	log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
 	return 1;
 }
 

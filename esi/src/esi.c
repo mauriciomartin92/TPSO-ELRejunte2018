@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		log_info(logger, "Espero a que el Planificador me ordene parsear una instruccion");
 		recv(socketPlanificador, &orden, sizeof(uint32_t), 0);
 
-		//if (señal == SIGUIENTE_INSTRUCCION) {
+		//if (orden == SIGUIENTE_INSTRUCCION) {
 		if (orden == 1) {
 			log_info(logger, "El planificador me pide que parsee la siguiente instruccion");
 			// Se parsea la instruccion que se le enviara al coordinador
@@ -128,7 +128,16 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que el paquete llego correctamente");
 
 			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
-			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que la instruccion se proceso satisfactoriamente");
+			if (respuesta == PAQUETE_OK) {
+				log_info(logger, "El Coordinador informa que la instruccion se proceso satisfactoriamente");
+				log_info(logger, "Le aviso al Planificador que la instruccion pudo ser procesada");
+				send(socketPlanificador, &PAQUETE_OK, sizeof(uint32_t), 0);
+			} else {
+				log_error(logger, "El Coordinador informa que la instruccion no se pudo procesar");
+				log_error(logger, "SE ABORTA EL ESI");
+				finalizar();
+				return EXIT_FAILURE;
+			}
 		}
 	}
 
