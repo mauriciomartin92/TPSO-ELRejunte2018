@@ -23,7 +23,7 @@ char* ip_coordinador;
 char* port_coordinador;
 uint32_t id_instancia;
 int socketCoordinador, intervalo_dump, fd;
-uint32_t cant_entradas, tam_entradas;
+uint32_t cant_entradas, tam_entradas, entradas_libres;
 t_list* tabla_entradas;
 t_dictionary* dic_entradas;
 char* mapa_archivo;
@@ -32,6 +32,7 @@ char* bloque_instancia;
 struct stat sb;
 
 const uint32_t PAQUETE_OK = 1;
+const int32_t PAQUETE_ERR = -1;
 
 void imprimirTablaDeEntradas() {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
@@ -90,15 +91,15 @@ void operacionStore(char* clave) {
 void setClaveValor(t_entrada* entrada, char* valor) {
 	// Guardar valor en el mapa de memoria
 	int mapa_pos, mapa_pos_valor;
-	mapa_archivo = string_new();
+	//mapa_archivo = string_new();
 
-	abrirArchivoInstancia(&fd);
+	/*abrirArchivoInstancia(&fd);
 	if (fstat(fd, &sb) < 0) {
 		log_error(logger, "No se pudo obtener el tamaño de archivo");
 		finalizar();
-	}
+	}*/
 	mapa_pos = entrada->entrada_asociada;
-	mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	//mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	for(int i = mapa_pos; i < string_length(mapa_archivo); i++){
 		if(mapa_archivo[i] == '-'){
 			mapa_pos_valor = i + 1;
@@ -111,8 +112,8 @@ void setClaveValor(t_entrada* entrada, char* valor) {
 		contador++;
 	}
 
-	munmap(mapa_archivo, sizeof(mapa_archivo));
-	close(fd);
+	//munmap(mapa_archivo, sizeof(mapa_archivo));
+	//close(fd);
 }
 
 void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
@@ -157,7 +158,7 @@ void almacenarValorYGenerarTabla(char* val){
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
 	if(strlen(val) <= 100){
-		for(int i = 0; i < cant_entradas * sizeof(tam_entradas); i = i + tam_entradas){
+		for(int i = 0; i < cant_entradas * tam_entradas; i = i + tam_entradas){
 			if(bloque_instancia[i] == '0'){
 				strncpy(bloque_instancia+i, val, 101);
 
@@ -169,7 +170,7 @@ void almacenarValorYGenerarTabla(char* val){
 			}
 		}
 	} else {
-		for(int i = 0; i < cant_entradas * sizeof(tam_entradas); i = i + tam_entradas){
+		for(int i = 0; i < cant_entradas * tam_entradas; i = i + tam_entradas){
 			if(bloque_instancia[i] == '0'){
 				strncpy(bloque_instancia+i, val, strlen(val));
 				entrada->clave = val;
@@ -251,7 +252,21 @@ void generarTablaDeEntradas() {
 	printf("Lista size: %i\n", list_size(tabla_entradas));
 }
 
-void procesar(t_instruccion* instruccion) {
+uint32_t obtenerCantidadEntradasLibres(){
+	int cont;
+
+	for (int i = 0; i < tam_entradas * cant_entradas; i = i + tam_entradas){
+		if(bloque_instancia[i] == '0'){
+			cont++;
+		}
+	}
+
+	return cont;
+}
+
+int procesar(t_instruccion* instruccion) {
+	int bandera = 0;
+
 	log_info(logger, "Procesando instruccion...");
 
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
@@ -275,10 +290,11 @@ void procesar(t_instruccion* instruccion) {
 			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
 			list_add(tabla_entradas, nueva_entrada);
 		} else if (instruccion->operacion == 2) {
-			log_info(logger, "No hay que hacer nada");
-			// es SET: no hacer nada
+			log_error(logger, "Intento de SET a una clave inexistente");
+			bandera = 1;
 		} else {
-			// es STORE
+			log_error(logger, "Intento de STORE para una clave inexistente");
+			bandera = 1;
 		}
 	} else { // la entrada si estaba
 		log_warning(logger, "LA CLAVE EXISTE EN LA TABLA");
@@ -293,8 +309,15 @@ void procesar(t_instruccion* instruccion) {
 		}
 	}
 	imprimirTablaDeEntradas();
-	log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
-	send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0); // DEBERIA AVISAR LA CANT_ENTRADAS_LIBRES
+
+	if(bandera == 0){
+		entradas_libres = obtenerCantidadEntradasLibres();
+		return entradas_libres;
+	}
+
+	return bandera;
+	//log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
+	//send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0); // DEBERIA AVISAR LA CANT_ENTRADAS_LIBRES
 }
 
 t_instruccion* recibirInstruccion(int socketCoordinador) {
@@ -373,7 +396,14 @@ int main() {
 
 	while (1) {
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
-		procesar(instruccion);
+		if (procesar(instruccion) >= 0){
+			log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
+			send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
+		} else {
+			log_error(logger, "Le aviso al coordinador que no pude procesar correctamente");
+			send(socketCoordinador, &PAQUETE_ERR, sizeof(uint32_t), 0);
+			break;
+		}
 	}
 	munmap(mapa_archivo, sizeof(mapa_archivo));
 	close(fd);

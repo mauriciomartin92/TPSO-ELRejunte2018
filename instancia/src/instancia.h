@@ -44,9 +44,10 @@ void abrirArchivoInstancia(int* fileDescriptor);
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
-void procesar(t_instruccion* instruccion);
+int procesar(t_instruccion* instruccion);
 void setClaveValor(t_entrada* entrada, char* valor);
 void operacionStore(char* clave);
+uint32_t obtenerCantidadEntradasLibres();
 bool comparadorDeClaves(void* estructura);
 void finalizar();
 
