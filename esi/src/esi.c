@@ -37,8 +37,7 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	printf("%s", line);
 	t_esi_operacion parsed = parse(line);
 
-	if (line)
-		free(line);
+	if (line) free(line);
 
 	return parsed;
 }

@@ -44,6 +44,7 @@ char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	log_info(logger, "La instruccion fue empaquetada");
 	printf("El paquete a enviar es: %s\n", buffer);
 
+	destruir_operacion(instruccion);
 	return buffer;
 }
 
@@ -55,11 +56,13 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 
 	char** vector_componentes_buffer = string_split(buffer, "-");
 
+	/*
 	int i = 0;
 	while (vector_componentes_buffer[i] != NULL) {
 		printf("%s\n", vector_componentes_buffer[i]);
 		i++;
 	}
+	*/
 
 	instruccionMutada->operacion = atoi(vector_componentes_buffer[0]);
 	instruccionMutada->clave = vector_componentes_buffer[1];
@@ -70,13 +73,28 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 	 * instruccionMutada->operacion == 3, STORE
 	 */
 
-	if (instruccionMutada->operacion == 2) { // Si es SET
+	if (instruccionMutada->operacion == opSET) {
 		instruccionMutada->valor = vector_componentes_buffer[2];
 	}
+
+	//destruirVectorComponentesBuffer(vector_componentes_buffer, instruccionMutada->operacion);
 
 	return instruccionMutada;
 }
 
+void destruirVectorComponentesBuffer(char** vector_componentes_buffer, int operacion) {
+	free(vector_componentes_buffer[0]);
+	free(vector_componentes_buffer[1]);
+	if (operacion == opSET) free(vector_componentes_buffer[2]);
+	free(vector_componentes_buffer);
+}
+
 void destruirPaquete(void* paquete) {
 	free(paquete);
+}
+
+void destruirInstruccion(t_instruccion* instruccion) {
+	free(instruccion->clave);
+	if (instruccion->operacion == opSET) free(instruccion->valor);
+	free(instruccion);
 }

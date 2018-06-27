@@ -26,6 +26,8 @@ typedef struct {
 
 char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger);
 t_instruccion* desempaquetarInstruccion(char* paqueteSerializado, t_log* logger);
+void destruirVectorComponentesBuffer(char** vector_componentes_buffer, int operacion);
 void destruirPaquete(void* paquete);
+void destruirInstruccion(t_instruccion* instruccion);
 
 #endif /* SRC_MISERIALIZADOR_H_ */

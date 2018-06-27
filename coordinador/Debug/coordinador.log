@@ -3796,3 +3796,6 @@
 [INFO] 00:52:01:440 Coordinador/(7462:7482): El cliente es ESI
 [INFO] 00:52:01:459 Coordinador/(7462:7482): Espero un paquete del ESI
 [WARNING] 01:01:59:344 Coordinador/(7462:7482): El ESI se ha desconectado
+[INFO] 01:03:20:97 Coordinador/(6511:6511): Se crea la Tabla de Instancias
+[INFO] 01:03:20:184 Coordinador/(6511:6511): Servidor conectado.
+[INFO] 01:03:20:187 Coordinador/(6511:6511): Listo para escuchar a cualquier Cliente...
