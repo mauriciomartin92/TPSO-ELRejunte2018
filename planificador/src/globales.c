@@ -221,10 +221,9 @@ void escucharNuevosESIS(){
 	while(1){
 		uint32_t socketESINuevo = escucharCliente(logPlanificador,socketDeEscucha);
 		send(socketESINuevo,&socketESINuevo,sizeof(uint32_t),0);
-		uint32_t instruccion = 6		;
-		send(socketESINuevo,&instruccion, sizeof(instruccion), 0);
 		ESI * nuevoESI = crearESI(socketESINuevo);
 		list_add(listaListos,nuevoESI);
+
 		ESI_destroy(nuevoESI);
 	}
 }
@@ -339,14 +338,13 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
  */
 void bloquearRecurso (char* claveRecurso) {
 
-	t_recurso * recurso = crearRecurso(claveRecurso);
 
 	int i = 0;
 	bool encontrado = false;
 	while(list_size(listaRecursos) >= i || encontrado)
 	{
 		t_recurso * nuevoRecurso = list_get(listaRecursos,i);
-		if(string_equals_ignore_case(nuevoRecurso->clave,recurso->clave))
+		if(string_equals_ignore_case(nuevoRecurso->clave,claveRecurso))
 		{
 			if(nuevoRecurso->estado == 0){
 
@@ -364,7 +362,34 @@ void bloquearRecurso (char* claveRecurso) {
 		i++;
 	}
 
-	recursoDestroy(recurso);
+}
+
+void desbloquearRecurso (char* claveRecurso) {
+
+	int i = 0;
+	bool encontrado = false;
+	while(list_size(listaRecursos) >= i || encontrado)
+	{
+		t_recurso * nuevoRecurso = list_get(listaRecursos,i);
+		if(string_equals_ignore_case(nuevoRecurso->clave,claveRecurso))
+		{
+			if(nuevoRecurso->estado == 1){ // libera el recurso y saca de la cola a SOLO UN ESI que lo estaba esperando
+
+				nuevoRecurso->estado = 0;
+				encontrado = true;
+				ESI * nuevo = queue_pop(nuevoRecurso->ESIEncolados);
+				list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
+				log_info(logPlanificador, "Recurso de clave %s desbloqueado", nuevoRecurso->clave);
+				list_add(listaListos,nuevo);
+				recursoDestroy(nuevoRecurso);
+
+			} else {
+				log_info(logPlanificador, " se intento desbloquear un recurso no bloqueado. Se ignora");
+			}
+
+		}
+		i++;
+	}
 
 }
 
@@ -384,5 +409,34 @@ void bloquearESI(char * claveRecurso, ESI * esi){
 		recursoDestroy(recursoAuxiliar);
 
 	}
+
+}
+
+bool recursoEnLista(char * r, t_list * lista){
+
+	bool retorno = false;
+	int i = 0;
+	while( i<= list_size(lista)){
+		if(string_equals_ignore_case(list_get(lista,i), r)){
+			retorno = true;
+		}
+		i++;
+	}
+
+	return retorno;
+}
+
+void liberarRecursos(ESI * esi){
+
+	int i=0;
+
+	while(i < list_size(esi->recursosAsignado)){
+
+		char * recurso = list_get(esi->recursosAsignado, i);
+		desbloquearRecurso( recurso );
+		free (recurso);
+		i++;
+	}
+
 
 }

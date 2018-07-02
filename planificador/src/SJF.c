@@ -46,86 +46,90 @@ void planificacionSJF(bool desalojo){
 		uint32_t tamanioRecurso;
 		char * recursoPedido;
 
-		send(socketCoordinador,&nuevo->id,sizeof(uint32_t),0);
-		int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
-		int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
-		recursoPedido = malloc(sizeof(tamanioRecurso));
-		int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
 
-		if(respuesta1 < 0 || respuesta2 < 0 || respuesta3 < 0){
-			log_info(logPlanificador, "conexion con el coordinador rota");
-			exit(-1);
-		} else {
-			nuevo->recursoPedido = recursoPedido;
-			nuevo->proximaOperacion = operacion;
+		while(!finalizar && !bloquear && permiso){
 
-		}
-
-		permiso = validarPedido(nuevo->recursoPedido,nuevo);
-
-		if(permiso){
-
-			char * recursoAUsar = nuevo->recursoPedido;
-
-			bloquearRecurso(recursoAUsar);
-
-			log_info(logPlanificador, "Se conecto un ESI!");
-
-			log_info(logPlanificador, " ESI de clave %s entra al planificador", nuevo->id );
-
-			while(!finalizar && !bloquear){
+				send(nuevo->id,&CONTINUAR,sizeof(uint32_t),0);
+				int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
+				int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
+				recursoPedido = malloc(sizeof(tamanioRecurso));
+				int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
 
 
-				log_info(logPlanificador, " ejecuta una sentencia ");
-				//send a ESI el permiso para ejecutar
-				send(nuevo->id ,(void *)CONTINUAR,sizeof(int),0 );
-				nuevo -> rafagaAnterior = nuevo-> rafagaAnterior +1;
-				nuevo -> rafagasRealizadas = nuevo -> rafagasRealizadas +1;
-				log_info(logPlanificador, "rafagas realizadas del esi %s son %d", nuevo-> id, nuevo->rafagasRealizadas);
-
-				int respuesta ;
-				recv(nuevo->id, &respuesta, sizeof(int),0);
-
-				if (respuesta != CONTINUAR)
-				{
-					finalizar = true;
-				} else if (nuevo->id == claveParaBloquearESI)
-				{
-					send(nuevo->id,(void *)FINALIZAR,sizeof(int),0 );
-					bloquear = true;
+				if(respuesta1 < 0 || respuesta2 < 0 || respuesta3 < 0){
+					log_info(logPlanificador, "conexion con el coordinador rota");
+					exit(-1);
+				} else {
+					nuevo->recursoPedido = recursoPedido;
+					nuevo->proximaOperacion = operacion;
 
 				}
+
+				permiso = validarPedido(nuevo->recursoPedido,nuevo);
+
+				if(permiso){
+
+					char * recursoAUsar = nuevo->recursoPedido;
+
+					if(!recursoEnLista(nuevo->recursoPedido, nuevo->recursosAsignado)){
+
+						list_add(listaRecursos, nuevo->recursosAsignado);
+
+					}
+
+					bloquearRecurso(recursoAUsar);
+
+					log_info(logPlanificador, " ESI de clave %s entra al planificador", nuevo->id );
+
+					send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
+
+					log_info(logPlanificador, " ejecuta una sentencia ");
+
+					nuevo -> rafagaAnterior = nuevo-> rafagaAnterior +1;
+					nuevo -> rafagasRealizadas = nuevo -> rafagasRealizadas +1;
+
+					log_info(logPlanificador, "rafagas realizadas del esi %s son %d", nuevo-> id, nuevo->rafagasRealizadas);
+
+					int respuesta ;
+					recv(nuevo->id, &respuesta, sizeof(int),0);
+
+					if (respuesta != CONTINUAR)
+					{
+						finalizar = true;
+					} else if (nuevo->id == claveParaBloquearESI)
+					{
+						bloquear = true;
+
+					}
+
+				} else {
+
+					bloquearESI(nuevo->recursoPedido, nuevo);
+
+
+				}
+
 			}
 
-		} else {
-
-			bloquearESI(nuevo->recursoPedido, nuevo);
-			ESI_destroy(nuevo);
-
-		}
-
-		log_info(logPlanificador,"finalizada su rafaga");
+		log_info(logPlanificador,"fin de ciclo");
 
 		if( finalizar ){ //aca con el mensaje del ESI, determino si se bloquea o se finaliza
 
 			list_add ( listaFinalizados, nuevo);
 			log_info(logPlanificador, " ESI de clave %s en finalizados!", nuevo->id);
-			//todo liberar clave
+			liberarRecursos(nuevo);
+			armarColaListos();
 
 		} else if( bloquear ){ // este caso sería para bloqueados por usuario. No se libera clave acá
 
 			nuevo->bloqueadoPorUsuario = true;
-			t_ESIBloqueado * nuevoBloqueado = malloc(sizeof(t_ESIBloqueado));
-			nuevoBloqueado -> bloqueado = nuevo;
-			nuevoBloqueado -> claveRecurso = claveParaBloquearRecurso;
-
-
-			queue_push(colaBloqueados, nuevoBloqueado);
-			free(nuevoBloqueado);
-
+			bloquearRecurso(claveParaBloquearRecurso);
+			bloquearESI(claveParaBloquearRecurso,nuevo);
 			log_info(logPlanificador, " ESI de clave %s en bloqueados para recurso %s", nuevo->id, claveParaBloquearESI);
 
 		}
+
+		ESI_destroy(nuevo);
 
 	}
 
@@ -196,15 +200,6 @@ void escucharPedidos(int conexion){
 
 }
 
-void liberarRecursos(int recursoID){
-
-
-	//todo acorde a lo que se defina de recursos, acá busco por ID y libero. Por ahora tengo uno solo
-
-	recursoGenericoEnUso = false;
-
-
-}
 
 
 void liberarBloqueados(){
