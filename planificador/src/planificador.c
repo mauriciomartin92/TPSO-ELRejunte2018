@@ -5,7 +5,7 @@
 
 // \n
 // todo free de los char*
-/* todo ahora hay que adaptar todas las funciones al sistema nuevo de recursos.
+/*
  * todo meter los sockets.
  *
  *
@@ -24,15 +24,51 @@ int main(void) {
 	log_info(logPlanificador,"Arranca el proceso planificador");
 	configurar();
 
+	socketCoordinador = conectarComoCliente(logPlanificador, ipCoordinador, puertoCoordinador);
+
+	if(socketCoordinador == -1)
+	{
+		log_info(logPlanificador, "se rompio todo wacho");
+		liberarGlobales();
+		exit(-1);
+	}
+
+	uint32_t handshake = 3;
+	send(socketCoordinador, &handshake, sizeof(handshake),0);
+
+	uint32_t respuesta = 0;
+	int comprobar = 0;
+
+	comprobar = recv(socketCoordinador, &respuesta, sizeof(respuesta),0);
+
+	if(respuesta != 1 || comprobar < 0)
+	{
+		log_info(logPlanificador,"Conexion rota");
+		liberarGlobales();
+		exit(-1);
+	}
+
+	socketDeEscucha = conectarComoServidor(logPlanificador, "127.0.0.1", "7070");
+
 	if(string_equals_ignore_case(algoritmoDePlanificacion, SJF) == true)
 		{
-			log_info(logPlanificador, "la planificacion elegida es SJF");
-			planificacionSJF();
+			log_info(logPlanificador, "la planificacion elegida es SJF sin desalojo");
+			planificacionSJF(false);
 
-		} else {
+		} else if (string_equals_ignore_case(algoritmoDePlanificacion,SJFConDesalojo))
+		{
+			log_info(logPlanificador, " la planificacion elegida es SJF con desalojo");
+			planificacionSJF(true);
+		} else if(string_equals_ignore_case(algoritmoDePlanificacion,HRRN)){
 
-			log_info(logPlanificador, " la planificacion elegida es HRRN");
-			//planficacionHRRN();
+			log_info(logPlanificador, " la planficacion elegida es HRRN sin desalojo");
+			planificacionHRRN(false);
+
+		} else if (string_equals_ignore_case(algoritmoDePlanificacion,HRRNConDesalojo)){
+
+			log_info(logPlanificador, " la planficacion elegida es HRRN con desalojo");
+			planificacionHRRN(true);
+
 		}
 
 	liberarGlobales();
@@ -52,8 +88,8 @@ void configurar(){
 
 	algoritmoDePlanificacion = string_new();
 	ipCoordinador = string_new();
-	ip = string_new();
-	puerto = string_new();
+	ipCoordinador = string_new();
+	puertoCoordinador = string_new();
 
 	log_info(logPlanificador, "leyendo archivo configuracion ");
 
@@ -77,17 +113,17 @@ void configurar(){
 
 	log_info(logPlanificador, "ip del coordinador leida = %s", ipCoordinador);
 
-	puertoCoordinador = config_get_int_value(archivoConfiguracion, KEY_PUERTO_COORDINADOR);
+	puertoCoordinador = config_get_string_value(archivoConfiguracion, KEY_PUERTO_COORDINADOR);
 
 	log_info(logPlanificador, "puerto coordinador leido = %d", puertoCoordinador);
 
-	string_append(&ip,config_get_string_value(archivoConfiguracion, KEY_IP));
+	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP));
 
-	log_info(logPlanificador, "mi ip leida = %s", ip);
+	log_info(logPlanificador, "puerto leida = %s", ipCoordinador);
 
-	string_append(&puerto,config_get_string_value(archivoConfiguracion, KEY_PUERTO));
+	string_append(&puertoCoordinador,config_get_string_value(archivoConfiguracion, KEY_PUERTO));
 
-	log_info(logPlanificador, "mi puerto leido = %s", puerto);
+	log_info(logPlanificador, " puerto coordinador leido = %s", puertoCoordinador);
 
 	clavesBloqueadas = config_get_array_value(archivoConfiguracion, KEY_CLAVES_BLOQUEADAS);
 
@@ -107,24 +143,6 @@ void configurar(){
 	config_destroy(archivoConfiguracion);
 }
 
-
-ESI * crearESI(char * clave){ // Y EL RECURSO DE DONDE SALE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?
-
-	ESI * nuevoESI = malloc(sizeof(ESI));
-	nuevoESI->id = string_new();
-	string_append(&nuevoESI->id, clave);
-	nuevoESI->estimacionAnterior= estimacionInicial;
-	nuevoESI-> bloqueadoPorUsuario = false;
-	nuevoESI-> rafagaAnterior = 0;
-	nuevoESI-> estimacionSiguiente = 0;
-	nuevoESI->rafagasRealizadas =0;
-	nuevoESI-> tiempoEspera = 0;
-	nuevoESI->recursosAsignado= list_create();
-	nuevoESI->recursoPedido = NULL;
-
-	return nuevoESI;
-
-}
 
 
 void liberarGlobales (){
@@ -149,6 +167,3 @@ void liberarGlobales (){
 	queue_destroy_and_destroy_elements(colaListos,(void *)ESI_destroy);
 	list_destroy_and_destroy_elements(listaRecursos, (void *) recursoDestroy);
 }
-
-
-

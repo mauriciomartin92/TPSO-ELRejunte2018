@@ -33,10 +33,10 @@ planificacionHRRN ()
 
       log_info(logPlanificador, "Conectando servidor");
 
-      socketDeEscucha = conectarComoServidor(logPlanificador, ip,puerto, 1);
+  /*    socketDeEscucha = conectarComoServidor(logPlanificador, ip,puerto, 1);
 
       int socketESI = escucharCliente(logPlanificador, socketDeEscucha, 1);
-
+*/
       log_info(logPlanificador, "Se conecto un ESI!");
 
       log_info (logPlanificador, " ESI de clave %s entra al planificador",
@@ -48,23 +48,23 @@ planificacionHRRN ()
 	{
 
 	  log_info (logPlanificador, " ejecuta una sentencia ");
-	  send(socketESI,(void *)CONTINUAR,sizeof(int),0 );
+//	  send(socketESI,(void *)CONTINUAR,sizeof(int),0 );
 	  nuevoESI->rafagaAnterior = nuevoESI->rafagaAnterior + 1;
 	  nuevoESI->rafagasRealizadas = nuevoESI->rafagasRealizadas + 1;
 
 	  log_info (logPlanificador, "rafagas realizadas del esi %s son %d",
 		    nuevoESI->id, nuevoESI->rafagasRealizadas);
 
-	  int respuesta ;
+	  int respuesta = 0 ;
 
-	  recv(socketESI, &respuesta, sizeof(int),0);
+//	  recv(socketESI, &respuesta, sizeof(int),0);
 
 	  if (respuesta != CONTINUAR)	//de nuevo, harcodeo para testear que funcione. acá debería llegar el mensaje de terminacion
 	    {
 	      finalizar = true;
-	    } else if(string_equals_ignore_case(nuevoESI->id, claveParaBloquearESI))
+	    } else if(nuevoESI->id ==claveParaBloquearESI)
 	    {
-	    	send(socketESI,(void *)FINALIZAR,sizeof(int),0 );
+	//    	send(socketESI,(void *)FINALIZAR,sizeof(int),0 );
 	    	bloquear = true;
 	    }
 
