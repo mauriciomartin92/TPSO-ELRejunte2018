@@ -44,7 +44,7 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto) {
 	 * 	Descubiertos los misterios de la vida (por lo menos, para la conexion de red actual), necesito enterarme de alguna forma
 	 * 	cuales son las conexiones que quieren establecer conmigo.
 	 *
-	 * 	Para ello, y basandome en el postulado de que en Linux TODO es un archivo, voy a utilizar... Si, un archivo!
+	 * 	Para ello, y basandome en el postulado de que en Linux todo es un archivo, voy a utilizar... Si, un archivo!
 	 *
 	 * 	Mediante socket(), obtengo el File Descriptor que me proporciona el sistema (un integer identificador).
 	 *

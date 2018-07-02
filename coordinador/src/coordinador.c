@@ -222,8 +222,8 @@ void atenderESI(int socketESI) {
 		if (respuesta == SE_EJECUTA_ESI) {
 			log_info(logger, "El Planificador me informa que el ESI %d puede utilizar el recurso", esi_ID);
 			if (procesarPaquete(paquete) == -1) { // Hay que abortar el ESI
-				log_error(logger, "Se aborta ESI %d y le aviso al Planificador", esi_ID);
-				//send(socketPlanificador, &ABORTAR_ESI, sizeof(uint32_t), 0);
+				log_error(logger, "Se aborta el ESI %d", esi_ID);
+				//send(socketESI, &ABORTAR_ESI, sizeof(uint32_t), 0);
 				break;
 			}
 			loguearOperacion(esi_ID, paquete);

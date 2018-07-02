@@ -134,6 +134,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			} else {
 				log_error(logger, "El Coordinador informa que la instruccion no se pudo procesar");
 				log_error(logger, "SE ABORTA EL ESI");
+				//send(socketPlanificador, &ABORTAR_ESI, sizeof(uint32_t), 0);
 				finalizar();
 				return EXIT_FAILURE;
 			}
