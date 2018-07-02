@@ -18,6 +18,8 @@ char * KEY_CONSTANTE_ESTIMACION = "CONSTANTE_ESTIMACION";
 char * RUTA_CONFIGURACION = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/config_planificador.cfg";
 char * SJF = "SJF";
 char * HRRN = "HRRN";
+char * SJFConDesalojo = "SJFConDesalojo";
+char * HRRNConDesalojo = "HRRNConDesalojo";
 char * ipPropia = "127.0.0.2";
 char * puertoPropio = "8080";
 int CONTINUAR = 1;
@@ -63,7 +65,7 @@ bool compararClaves (ESI * esi){
 
 		log_info(logPlanificador, "entra a la comparacion de claves");
 
-		if(string_equals_ignore_case(esi->id, claveActual) == true){
+		if(esi->id ==claveActual){
 
 			return true;
 
@@ -73,7 +75,7 @@ bool compararClaves (ESI * esi){
 
 		}
 
-	}
+}
 
 void comprobarDeadlock(){ //todo modificar DL para cola de bloqueados
 
@@ -195,28 +197,38 @@ void lanzarConsola(){
 	}
 }
 
-/*
-void escucharNuevosESIS(){ //todo meter el nuevo gestor de paquetes
 
-	int socketESINuevo = escucharCliente(logPlanificador,socketDeEscucha);
-	send(socketESINuevo,&idESI,sizeof(uint32_t),0);
-	uint32_t operacion;
+ESI * crearESI(uint32_t clave){
 
-	recv(socketESINuevo, &operacion, sizeof(uint32_t),0);
+	ESI * nuevoESI = malloc(sizeof(ESI));
+	nuevoESI->id = clave;
+	nuevoESI->estimacionAnterior= estimacionInicial;
+	nuevoESI-> bloqueadoPorUsuario = false;
+	nuevoESI-> rafagaAnterior = 0;
+	nuevoESI-> estimacionSiguiente = 0;
+	nuevoESI->rafagasRealizadas =0;
+	nuevoESI-> tiempoEspera = 0;
+	nuevoESI->recursosAsignado= list_create();
+	nuevoESI->recursoPedido = NULL;
+	nuevoESI->proximaOperacion = -1;
 
-	if(operacion == GET){
-
-		char * recursoPedido;
-		uint32_t tamanioClave;
-		recv(socketESINuevo, &tamanioClave, sizeof(uint32_t),0);
-		recursoPedido = malloc(sizeof(char)*tamanioClave);
-		//recv(socketESINuevo)
-
-	}
-
+	return nuevoESI;
 
 }
-*/
+
+void escucharNuevosESIS(){
+
+	while(1){
+		uint32_t socketESINuevo = escucharCliente(logPlanificador,socketDeEscucha);
+		send(socketESINuevo,&socketESINuevo,sizeof(uint32_t),0);
+		uint32_t instruccion = 6		;
+		send(socketESINuevo,&instruccion, sizeof(instruccion), 0);
+		ESI * nuevoESI = crearESI(socketESINuevo);
+		list_add(listaListos,nuevoESI);
+		ESI_destroy(nuevoESI);
+	}
+}
+
 
 t_recurso * crearRecurso (char * id){
 
@@ -228,7 +240,6 @@ t_recurso * crearRecurso (char * id){
 
 void ESI_destroy(ESI * estructura)
 {
-		free(estructura->id);
 		list_destroy_and_destroy_elements(estructura->recursosAsignado, (void * ) recursoDestroy);
 		free(estructura->recursoPedido);
 		free(estructura);
@@ -247,10 +258,78 @@ void recursoDestroy(t_recurso * recurso)
 
 void DEADLOCK_destroy(t_deadlockeados * ESI){
 
-	free(ESI->clave);
 	list_destroy_and_destroy_elements(ESI->ESIasociados, (void *) free);
+	free(ESI);
 
 }
+
+bool validarPedido (char * recurso, ESI * ESIValidar){
+
+	int i = 0;
+	bool encontrado = false;
+	bool retorno = false;
+
+	while(list_size(listaRecursos) >= i){
+
+			t_recurso * nuevo = list_get(listaRecursos, i);
+
+
+			if(string_equals_ignore_case(recurso,nuevo->clave)){
+
+				encontrado = true;
+
+				if(nuevo->estado == 1 && ESIValidar->proximaOperacion == 0){ // caso recurso tomado para get
+					recursoDestroy(nuevo);
+					retorno = false;
+
+				} else if (nuevo-> estado == 1 && ESIValidar-> proximaOperacion > 0){ //caso recurso tomado para set y store
+
+					bool RecursoEncontrado = false;
+					int t = 0;
+					while(list_size(ESIValidar->recursosAsignado) < t){
+
+						t_recurso * recursoAuxiliar = list_get (ESIValidar->recursosAsignado, t);
+
+						if( string_equals_ignore_case(recursoAuxiliar->clave,nuevo->clave)){ // caso ESI tiene asignado recurso
+
+							RecursoEncontrado = true;
+							recursoDestroy(recursoAuxiliar);
+							recursoDestroy(nuevo);
+							retorno = true;
+						}
+
+						recursoDestroy(recursoAuxiliar);
+
+						t++;
+
+					} if(RecursoEncontrado == false){ // Caso ESI no tiene asignado recurso
+
+						free(nuevo);
+						retorno = false;
+
+					}
+
+
+				} else retorno = true; // caso el recurso no esta tomado
+
+			}
+
+			i++;
+
+		}
+
+		if ( encontrado == false){ // caso recurso nuevo
+
+			t_recurso * nuevoRecurso = crearRecurso(recurso);
+			list_add(listaRecursos,nuevoRecurso);
+			recursoDestroy(nuevoRecurso);
+			retorno = true;
+
+		}
+
+		return retorno;
+}
+
 
 /**
  *
@@ -278,32 +357,32 @@ void bloquearRecurso (char* claveRecurso) {
 				encontrado = true;
 
 			} else {
-
-				while(1){
-					nuevoRecurso = list_get(listaRecursos,i);
-					if(nuevoRecurso->estado == 1){}
-					else
-					{
-					nuevoRecurso->estado = 1;
-					list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
-					log_info(logPlanificador, "Recurso de clave %s bloqueado", nuevoRecurso->clave);
-					recursoDestroy(nuevoRecurso);
-					encontrado = true;
-					break;
-					}
-
-				}
-
+				log_info(logPlanificador, " se intento bloquear un recurso ya bloqueado. Se ignora");
 			}
+
 		}
 		i++;
 	}
 
-	if(encontrado == false){
-		recurso->estado = 1;
-		list_add(listaRecursos,recurso);
-	}
-
 	recursoDestroy(recurso);
+
+}
+
+void bloquearESI(char * claveRecurso, ESI * esi){
+
+	int i = 0;
+	bool encontrado = false;
+	while(i<= list_size(listaRecursos) || encontrado){
+
+		t_recurso * recursoAuxiliar = list_get(listaRecursos, i);
+		if(recursoAuxiliar->clave == claveRecurso){
+
+			queue_push(recursoAuxiliar->ESIEncolados,esi);
+			list_replace_and_destroy_element(listaRecursos,i,recursoAuxiliar, (void *) recursoDestroy);
+
+		}
+		recursoDestroy(recursoAuxiliar);
+
+	}
 
 }

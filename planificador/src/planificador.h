@@ -19,6 +19,8 @@
 
 extern char * SJF;
 extern char * HRRN;
+extern char * SJFConDesalojo;
+extern char * HRRNConDesalojo;
 extern char * RUTA_CONFIGURACION ;
 
 
@@ -69,25 +71,26 @@ int puertoEscucha;
 int alfa;
 int estimacionInicial;
 char * ipCoordinador;
-int puertoCoordinador;
-char * ip;
-char * puerto;
+char * ipCoordinador;
+char * puertoCoordinador;
 char ** clavesBloqueadas;
-//extern char * rutaLog;
+extern char * rutaLog;
 bool recursoGenericoEnUso;
 pthread_t  hiloEscuchaConsola;
 pthread_t hiloEscuchaESI;
 pthread_t * hiloPlanifica;
-char * claveActual;
+int claveActual;
 t_list * deadlockeados;
-char * claveParaBloquearESI;
+int claveParaBloquearESI;
 char * claveParaBloquearRecurso;
+int socketCoordinador;
+
 
 // ESTRUCTURAS DE PROCESOS
 
 typedef struct{
 
-	char * id;
+	uint32_t id;
 	int rafagasRealizadas;
 	int rafagaAnterior;
 	int estimacionAnterior;
@@ -130,7 +133,7 @@ typedef struct{
 void configurar ();
 void liberarGlobales ();
 void estimarRafagaSiguiente(int tiempoAnterior);
-ESI * crearESI(char* clave);
+ESI * crearESI(uint32_t clave);
 void ESI_destroy(ESI * estructura);
 void escucharPedidos();
 void liberarRecursos(int recursoID);
@@ -142,10 +145,10 @@ t_recurso * crearRecurso (char * id);
 void crearSubrecurso (char* claveRecurso, char * claveSubrecurso);
 extern void recursoDestroy(t_recurso * recurso);
 extern void lanzarConsola();
-extern void bloquearESI();
+extern void bloquearESI(char * claveRecurso, ESI * esi);
 extern void escucharNuevosESIS();
 extern void bloquearRecurso(char * claveRecurso);
-extern void bloquearESI (char * recurso, char * claveEsi);
+extern bool validarPedido (char * recurso, ESI * esi);
 
 
 

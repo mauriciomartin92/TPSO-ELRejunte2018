@@ -5,8 +5,7 @@
 
 #include "planificador.h"
 
-void planificacionSJF();
-void planificacionSJFConDesalojo();
+void planificacionSJF(bool desalojo);
 void estimarTiempos();
 void armarColaListos();
 void liberarBloqueados();
