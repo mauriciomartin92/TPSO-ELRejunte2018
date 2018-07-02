@@ -11,33 +11,47 @@
 
 char* empaquetarInstruccion(t_esi_operacion instruccion, t_log* logger) {
 	log_info(logger, "Empaqueto la instruccion");
+	//char* buffer = string_new();
 	char* buffer = string_new();
 
 	switch (instruccion.keyword) {
 	case GET:
 		string_append(&buffer, "1-");
 		string_append(&buffer, instruccion.argumentos.GET.clave);
-		/*buffer = (char*) malloc(strlen("1-") + strlen(instruccion.argumentos.GET.clave) + 1);
+		/*
+		buffer = (char*) malloc(strlen("1-") + strlen(instruccion.argumentos.GET.clave) + 1);
 		strcpy(buffer, "1-");
-		strcpy(buffer + strlen("1-"), instruccion.argumentos.GET.clave);*/
+		strcpy(buffer + strlen("1-"), instruccion.argumentos.GET.clave);
+		*/
 
 		break;
 	case SET:
+		string_append(&buffer, "2-");
+		string_append(&buffer, instruccion.argumentos.SET.clave);
+		string_append(&buffer, "-");
+		string_append(&buffer, instruccion.argumentos.SET.valor);
+		/*
 		buffer = (char*) malloc(strlen("2-") + strlen(instruccion.argumentos.SET.clave) + strlen("-") + strlen(instruccion.argumentos.SET.valor) + 1);
 		strcpy(buffer, "2-");
 		strcpy(buffer + strlen("2-"), instruccion.argumentos.SET.clave);
 		strcpy(buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave), "-");
 		strcpy(buffer + strlen("2-") + strlen(instruccion.argumentos.SET.clave) + strlen("-"), instruccion.argumentos.SET.valor);
+		*/
 
 		break;
 	case STORE:
+		string_append(&buffer, "3-");
+		string_append(&buffer, instruccion.argumentos.STORE.clave);
+		/*
 		buffer = (char*) malloc(strlen("3-") + strlen(instruccion.argumentos.STORE.clave) + 1);
 		strcpy(buffer, "3-");
 		strcpy(buffer + strlen("3-"), instruccion.argumentos.STORE.clave);
+		*/
 
 		break;
 	default:
 		log_error(logger, "No se pudo empaquetar la instruccion");
+		destruirPaquete(buffer);
 		return NULL;
 	}
 
@@ -55,6 +69,8 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 	printf("El paquete recibido es: %s\n", buffer);
 
 	char** vector_componentes_buffer = string_split(buffer, "-");
+
+	destruirPaquete(buffer);
 
 	/*
 	int i = 0;
@@ -77,19 +93,17 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 		instruccionMutada->valor = vector_componentes_buffer[2];
 	}
 
-	//destruirVectorComponentesBuffer(vector_componentes_buffer, instruccionMutada->operacion);
+	destruirVectorComponentesBuffer(vector_componentes_buffer);
 
 	return instruccionMutada;
 }
 
-void destruirVectorComponentesBuffer(char** vector_componentes_buffer, int operacion) {
+void destruirVectorComponentesBuffer(char** vector_componentes_buffer) {
 	free(vector_componentes_buffer[0]);
-	free(vector_componentes_buffer[1]);
-	if (operacion == opSET) free(vector_componentes_buffer[2]);
 	free(vector_componentes_buffer);
 }
 
-void destruirPaquete(void* paquete) {
+void destruirPaquete(char* paquete) {
 	free(paquete);
 }
 
