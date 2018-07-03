@@ -39,7 +39,7 @@ t_control_configuracion cargarConfiguracion();
 void crearAlmacenamiento();
 void generarTablaDeEntradas();
 void agregarAlDiccionario(char* key, char* val);
-void almacenarValorYGenerarTabla(char* val);
+void almacenarValorYGenerarTabla(char* val, char* clave);
 void abrirArchivoInstancia(int* fileDescriptor);
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);

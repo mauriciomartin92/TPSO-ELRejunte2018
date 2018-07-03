@@ -89,31 +89,32 @@ void operacionStore(char* clave) {
 }
 
 void setClaveValor(t_entrada* entrada, char* valor) {
-	// Guardar valor en el mapa de memoria
-	int mapa_pos, mapa_pos_valor;
-	//mapa_archivo = string_new();
+	double entradas_ocupadas;
 
-	/*abrirArchivoInstancia(&fd);
-	if (fstat(fd, &sb) < 0) {
-		log_error(logger, "No se pudo obtener el tamaño de archivo");
-		finalizar();
-	}*/
-	mapa_pos = entrada->entrada_asociada;
-	//mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	for(int i = mapa_pos; i < string_length(mapa_archivo); i++){
-		if(mapa_archivo[i] == '-'){
-			mapa_pos_valor = i + 1;
-			break;
+	//Verificamos el tamaño de la nueva clave.
+	if(strlen(valor) <= 100){
+		//Puede usar una sola entrada.
+		if(strlen((char*) dictionary_get(entrada->clave)) <= 100) {
+			//El valor anterior ocupaba una sola entrada.
+			strncpy(bloque_instancia+entrada->entrada_asociada, valor, 100);
+		} else {
+			//El valor anterior ocupaba más de una entrada.
+			//Calcula cuantas entradas ocupaba, y el resultado es redondeado hacia arriba si no es entero.
+			entradas_ocupadas = ceilf((float) entrada->size_valor_almacenado / 100.0F);
+			//Copio el nuevo valor, hasta donde corresponda, reemplazando lo restante por caracteres nulos.
+			strncpy(bloque_instancia+entrada->entrada_asociada, valor, entradas_valor_anterior*tam_entradas);
 		}
-	}
-	int contador = 0;
-	for(int j = mapa_pos_valor; j <= entrada->size_valor_almacenado; j++){
-		mapa_archivo[j] = valor[contador];
-		contador++;
+	} else {
+		//Ocupa más de una entrada.
+		//¿Cuantas va a ocupar?
+		entradas_ocupadas = ceilf((float) strlen(valor) / 100.0F);
+
 	}
 
-	//munmap(mapa_archivo, sizeof(mapa_archivo));
-	//close(fd);
+	//Actualizamos el diccionario con el nuevo valor para la clave.
+	dictionary_remove(dic_entradas, entrada->clave);
+	dictionary_put(dic_entradas, entrada->clave, (char*) valor);
+
 }
 
 void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
@@ -154,15 +155,14 @@ void agregarAlDiccionario(char* key, char* val){
 	dictionary_put(dic_entradas, key, val);
 }
 
-void almacenarValorYGenerarTabla(char* val){
+void almacenarValorYGenerarTabla(char* val, char* clave){
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
 	if(strlen(val) <= 100){
 		for(int i = 0; i < cant_entradas * tam_entradas; i = i + tam_entradas){
 			if(bloque_instancia[i] == '0'){
-				strncpy(bloque_instancia+i, val, 101);
-
-				entrada->clave = val;
+				strncpy(bloque_instancia+i, val, 100);
+				entrada->clave = clave;
 				entrada->entrada_asociada = i;
 				entrada->size_valor_almacenado = strlen(val);
 				list_add(tabla_entradas, entrada);
@@ -218,8 +218,12 @@ void generarTablaDeEntradas() {
 		 */
 		mapa_archivo = string_new();
 		mapa_archivo = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+		bloque_instancia = (char*) malloc(cant_entradas * tam_entradas);
+		memset(bloque_instancia, '0', cant_entradas * tam_entradas);
 		//El contador se inicia en la posición inicial del archivo en memoria (byte 0)
 		contador = 0;
+
 		for (int i = 0; i < string_length(mapa_archivo); i++) {
 			/*
 			 * Cuando llego al caracter de fin de entrada, creo un string vacío donde guardarla,
@@ -230,12 +234,13 @@ void generarTablaDeEntradas() {
 			 * Por último, se agrega a la lista un nuevo elemento con la estructura completa.
 			 * El contador se actualiza a la posición siguiente al fin de entrada.
 			 */
+			printf("--> i = %i \n mapa_archivo(i): %c \n", i, mapa_archivo[i]);
 			if (mapa_archivo[i] == ';') {
 				una_entrada = string_new();
 				una_entrada = string_substring(mapa_archivo, contador, i - contador);
 				vec_clave_valor = string_split(una_entrada, "-");
 				agregarAlDiccionario(vec_clave_valor[0], vec_clave_valor[1]);
-				almacenarValorYGenerarTabla(vec_clave_valor[1]);
+				almacenarValorYGenerarTabla(vec_clave_valor[1], vec_clave_valor[0]);
 				/*t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 				entrada->clave = vec_clave_valor[0];
 				entrada->entrada_asociada = contador;
@@ -253,7 +258,7 @@ void generarTablaDeEntradas() {
 }
 
 uint32_t obtenerCantidadEntradasLibres(){
-	int cont;
+	int cont = 0;
 
 	for (int i = 0; i < tam_entradas * cant_entradas; i = i + tam_entradas){
 		if(bloque_instancia[i] == '0'){
@@ -277,6 +282,7 @@ int procesar(t_instruccion* instruccion) {
 
 	// Busco la clave en la tabla usando la funcion magica
 	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
+
 
 	// Evaluo como procesar segun las condiciones
 	if (!entrada) { // la entrada no estaba
@@ -361,6 +367,10 @@ void finalizar() {
 	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	list_destroy(tabla_entradas);
 	log_destroy(logger);
+	munmap(mapa_archivo, sizeof(mapa_archivo));
+	close(fd);
+	free(bloque_instancia);
+	free(tabla_entradas);
 }
 
 int main() {
@@ -393,6 +403,7 @@ int main() {
 
 	generarTablaDeEntradas(); // Traigo los clave-valor que hay en disco
 	imprimirTablaDeEntradas();
+	printf("Entradas libres: %i\n", obtenerCantidadEntradasLibres());
 
 	while (1) {
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
@@ -405,10 +416,6 @@ int main() {
 			break;
 		}
 	}
-	munmap(mapa_archivo, sizeof(mapa_archivo));
-	close(fd);
-	free(bloque_instancia);
-	free(tabla_entradas);
 	finalizar();
 	return EXIT_SUCCESS;
 }
