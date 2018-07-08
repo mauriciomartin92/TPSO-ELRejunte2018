@@ -13,7 +13,6 @@
  *
  * 	No se contemplan el manejo de errores en el sistema por una cuestion didactica. Tener en cuenta esto al desarrollar.
  */
-
 #include "instancia.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
@@ -45,47 +44,35 @@ void imprimirTablaDeEntradas() {
 
 void operacionStore(char* clave) {
 	char* _nombreArchivo;
-	char* _entrada;
 	char* _valor;
-	char** _vecClaveValor;
-	int _contador = 0;
-	int _estaClave = 0;
-	int _file;
+	int _archivoClave;
 
-	//Recorre las entradas hasta encontrar la clave pedida.
-	for(int i = 0; i < string_length(mapa_archivo); i++) {
-			if (mapa_archivo[i] == ';'){
-				_entrada = string_new();
-				_entrada = string_substring(mapa_archivo, _contador, i - _contador);
-				_vecClaveValor = string_split(_entrada, "-");
-				//Si el string del vector es igual al string de la clave pasada, guardame el valor.
-				if (strcmp(_vecClaveValor[0], clave)) {
-					_estaClave = 1;
-					_valor = string_new();
-					strncpy(_valor, _vecClaveValor[1], string_length(_vecClaveValor[1]));
-					break;
-				}
-				_contador = i + 1;
-			}
-		}
-	//Si fué encontrada la clave y el valor, creame un archivo con el nombre de la clave
-	//y después guardame el valor dentro.
-	if (_estaClave > 0) {
-		_nombreArchivo = string_new();
-		strcpy(_nombreArchivo, _vecClaveValor[0]);
-		_file = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-		if (_file < 0) {
-			perror("Error al crear archivo para la clave");
-			close(_file);
-			exit(1);
-		}
-		if ((int)write(_file, _valor, string_length(_valor)) < 0) {
-			perror("Error al escribir el valor en la entrada");
-			close(_file);
-			exit(1);
-		}
-		close(_file);
+	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
+	bool comparadorDeClaves(void* estructura) {
+		t_entrada* entrada = (t_entrada*) estructura;
+		return (strcmp(clave, entrada->clave) == 0);
 	}
+
+	// Busco la clave en la tabla usando la funcion magica
+	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
+
+	_valor = string_new();
+
+	strncpy(_valor, bloque_instancia+entrada->entrada_asociada, entrada->size_valor_almacenado);
+
+	_nombreArchivo = clave;
+
+	//MANEJO DE ERRORES!
+	if((_archivoClave = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) > 0){
+		if ((int)write(_archivoClave, _valor, string_length(_valor)) > 0) {
+			//SE ESCRIBIÓ PERSISTIÓ LA CLAVE
+			close(_archivoClave);
+		} else{
+			//MANEJO DE ERRORES!
+			close(_archivoClave);
+		}
+	}
+
 }
 
 void setClaveValor(t_entrada* entrada, char* valor) {
@@ -94,7 +81,7 @@ void setClaveValor(t_entrada* entrada, char* valor) {
 	//Verificamos el tamaño de la nueva clave.
 	if(strlen(valor) <= 100){
 		//Puede usar una sola entrada.
-		if(strlen((char*) dictionary_get(entrada->clave)) <= 100) {
+		if(strlen((char*) dictionary_get(dic_entradas, entrada->clave)) <= 100) {
 			//El valor anterior ocupaba una sola entrada.
 			strncpy(bloque_instancia+entrada->entrada_asociada, valor, 100);
 		} else {
@@ -102,12 +89,12 @@ void setClaveValor(t_entrada* entrada, char* valor) {
 			//Calcula cuantas entradas ocupaba, y el resultado es redondeado hacia arriba si no es entero.
 			entradas_ocupadas = ceilf((float) entrada->size_valor_almacenado / 100.0F);
 			//Copio el nuevo valor, hasta donde corresponda, reemplazando lo restante por caracteres nulos.
-			strncpy(bloque_instancia+entrada->entrada_asociada, valor, entradas_valor_anterior*tam_entradas);
+			strncpy(bloque_instancia+entrada->entrada_asociada, valor, entradas_ocupadas*tam_entradas);
 		}
 	} else {
 		//Ocupa más de una entrada.
 		//¿Cuantas va a ocupar?
-		entradas_ocupadas = ceilf((float) strlen(valor) / 100.0F);
+		entradas_ocupadas = ceil((float) strlen(valor) / 100.0F);
 
 	}
 
@@ -284,7 +271,7 @@ int procesar(t_instruccion* instruccion) {
 	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
 
 
-	// Evaluo como procesar segun las condiciones
+	/// Evaluo como procesar segun las condiciones
 	if (!entrada) { // la entrada no estaba
 		log_warning(logger, "LA CLAVE NO EXISTE EN LA TABLA");
 		if (instruccion->operacion == 1) {
@@ -404,6 +391,8 @@ int main() {
 	generarTablaDeEntradas(); // Traigo los clave-valor que hay en disco
 	imprimirTablaDeEntradas();
 	printf("Entradas libres: %i\n", obtenerCantidadEntradasLibres());
+
+	operacionStore("futbol:messi");
 
 	while (1) {
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
