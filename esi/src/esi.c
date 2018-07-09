@@ -97,6 +97,9 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	recv(socketPlanificador, &miID, sizeof(uint32_t), 0);
 	log_info(logger, "El Planificador me asigno mi ID: %d", miID);
 
+	log_info(logger, "Le aviso al Coordinador que soy el ESI %d", miID);
+	send(socketCoordinador, &miID, sizeof(uint32_t), 0);
+
 	uint32_t orden;
 
 	while(!feof(fp)) {
@@ -111,9 +114,6 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			log_info(logger, "La instruccion fue parseada");
 			// Se empaqueta la instruccion
 			char* paquete = empaquetarInstruccion(instruccion, logger);
-
-			log_info(logger, "Le aviso al Coordinador que soy el ESI %d", miID);
-			send(socketCoordinador, &miID, sizeof(uint32_t), 0);
 
 			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
 			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que me detecto correctamente");
