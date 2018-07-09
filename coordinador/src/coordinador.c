@@ -331,6 +331,8 @@ t_control_configuracion cargarConfiguracion() {
 
 	establecerProtocoloDistribucion();
 
+	finalizarConexionArchivo(config);
+
 	// Valido si hubo errores
 	if (error_config) {
 		log_error(logger, "No se pudieron obtener todos los datos correspondientes");

@@ -38,3 +38,7 @@ int obtenerCampoInt(t_log* logger, t_config* config, char* campo, bool* error_co
 		return -1;
 	}
 }
+
+void finalizarConexionArchivo(t_config* config) {
+	config_destroy(config);
+}

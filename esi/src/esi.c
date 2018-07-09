@@ -54,6 +54,8 @@ t_control_configuracion cargarConfiguracion() {
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
 	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",	&error_config);
 
+	finalizarConexionArchivo(config);
+
 	// Valido posibles errores
 	if (error_config) {
 		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
