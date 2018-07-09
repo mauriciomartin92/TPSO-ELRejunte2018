@@ -67,7 +67,7 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto) {
 	/*
 	 * 	Ya tengo un medio de comunicacion (el socket) y le dije por que "telefono" tiene que esperar las llamadas.
 	 */
-	log_info(logger, "Servidor conectado.");
+	log_info(logger, "Servidor conectado");
 	return listenningSocket;
 }
 
