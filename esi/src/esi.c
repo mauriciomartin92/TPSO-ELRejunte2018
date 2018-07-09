@@ -28,6 +28,8 @@ int socketCoordinador, socketPlanificador;
 FILE *fp;
 uint32_t respuesta;
 
+const int ABORTA_ESI = -1;
+const int TERMINA_ESI = 0;
 const int PAQUETE_OK = 1;
 
 t_esi_operacion parsearLineaScript(FILE* fp) {
@@ -129,6 +131,14 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que el paquete llego correctamente");
 
 			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
+
+			if (feof(fp)) {
+				log_info(logger, "El Coordinador informa el resultado de la instruccion");
+				log_warning(logger, "Le aviso al Planificador que no tengo mas instrucciones para ejecutar");
+				send(socketPlanificador, &TERMINA_ESI, sizeof(uint32_t), 0);
+				break;
+			}
+
 			if (respuesta == PAQUETE_OK) {
 				log_info(logger, "El Coordinador informa que la instruccion se proceso satisfactoriamente");
 				log_info(logger, "Le aviso al Planificador que la instruccion pudo ser procesada");
@@ -136,7 +146,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			} else {
 				log_error(logger, "El Coordinador informa que la instruccion no se pudo procesar");
 				log_error(logger, "SE ABORTA EL ESI");
-				//send(socketPlanificador, &ABORTAR_ESI, sizeof(uint32_t), 0);
+				send(socketPlanificador, &ABORTA_ESI, sizeof(uint32_t), 0);
 				finalizar();
 				return EXIT_FAILURE;
 			}
