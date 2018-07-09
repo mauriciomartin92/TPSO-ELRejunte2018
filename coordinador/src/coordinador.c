@@ -23,6 +23,7 @@ typedef enum {
 
 t_log* logger;
 t_log* logger_operaciones;
+t_config* config;
 bool error_config;
 char* ip;
 char* port;
@@ -331,8 +332,6 @@ t_control_configuracion cargarConfiguracion() {
 
 	establecerProtocoloDistribucion();
 
-	finalizarConexionArchivo(config);
-
 	// Valido si hubo errores
 	if (error_config) {
 		log_error(logger, "No se pudieron obtener todos los datos correspondientes");
@@ -345,6 +344,7 @@ void finalizar() {
 	finalizarSocket(socketDeEscucha);
 	log_destroy(logger_operaciones);
 	log_destroy(logger);
+	finalizarConexionArchivo(config);
 }
 
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo

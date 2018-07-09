@@ -17,6 +17,7 @@
 #include "esi.h"
 
 t_log* logger;
+t_config* config;
 uint32_t miID;
 bool error_config = false;
 char* ip_coordinador;
@@ -46,15 +47,13 @@ t_control_configuracion cargarConfiguracion() {
 	error_config = false;
 
 	// Se crea una estructura de datos que contendra todos lo datos de mi CFG que lea la funcion config_create
-	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/config_esi.cfg", &error_config);
+	config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/config_esi.cfg", &error_config);
 
 	// Obtiene los datos para conectarse al coordinador y al planificador
 	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR", &error_config);
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
 	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",	&error_config);
-
-	finalizarConexionArchivo(config);
 
 	// Valido posibles errores
 	if (error_config) {
@@ -69,6 +68,7 @@ void finalizar() {
 	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	if (socketPlanificador > 0) finalizarSocket(socketPlanificador);
 	log_destroy(logger);
+	finalizarConexionArchivo(config);
 }
 
 int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
