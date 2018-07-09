@@ -211,6 +211,7 @@ ESI * crearESI(uint32_t clave){
 	nuevoESI->recursosAsignado= list_create();
 	nuevoESI->recursoPedido = NULL;
 	nuevoESI->proximaOperacion = -1;
+	nuevoESI->recienLlegado = true;
 
 	return nuevoESI;
 
@@ -439,4 +440,24 @@ void liberarRecursos(ESI * esi){
 	}
 
 
+}
+
+void limpiarRecienLlegados(){
+
+	t_queue * colaAuxiliar = queue_create();
+
+	while(queue_is_empty(colaListos)){
+
+		ESI*nuevo = queue_pop(colaListos);
+
+		nuevo -> recienLlegado = false;
+
+		queue_push(colaAuxiliar, nuevo);
+
+		ESI_destroy(nuevo);
+
+	}
+
+	colaListos = colaAuxiliar;
+	queue_destroy(colaAuxiliar);
 }
