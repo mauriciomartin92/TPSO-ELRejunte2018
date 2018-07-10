@@ -39,8 +39,7 @@ char* LISTAR_POR_RECURSO = "listar_por_recurso";
 char* KILL_ESI = "kill_esi";
 char* STATUS_ESI = "status_esi";
 char* COMPROBAR_DEADLOCK = "comprobar_deadlock";
-
-
+pthread_mutex_t mutexColaListos = PTHREAD_MUTEX_INITIALIZER;
 
 
 void estimarProximaRafaga(ESI * proceso ){
@@ -224,6 +223,14 @@ void escucharNuevosESIS(){
 		send(socketESINuevo,&socketESINuevo,sizeof(uint32_t),0);
 		ESI * nuevoESI = crearESI(socketESINuevo);
 		list_add(listaListos,nuevoESI);
+
+		pthread_mutex_lock(&mutexColaListos); //pongo mutex para que no se actualice la cola mientras agrego un ESI.
+		if(string_equals_ignore_case(algoritmoDePlanificacion,SJF) || string_equals_ignore_case(algoritmoDePlanificacion,SJFConDesalojo)){
+			armarColaListos();
+		} else if(string_equals_ignore_case(algoritmoDePlanificacion, HRRN) || string_equals_ignore_case(algoritmoDePlanificacion,HRRNConDesalojo)){
+			armarCola();
+		}
+		pthread_mutex_unlock(&mutexColaListos);
 
 		ESI_destroy(nuevoESI);
 	}
@@ -444,6 +451,7 @@ void liberarRecursos(ESI * esi){
 
 void limpiarRecienLlegados(){
 
+	log_info(logPlanificador, "actualizando cola listos");
 	t_queue * colaAuxiliar = queue_create();
 
 	while(queue_is_empty(colaListos)){

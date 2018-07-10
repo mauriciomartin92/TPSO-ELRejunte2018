@@ -86,9 +86,7 @@ t_list * deadlockeados;
 int claveParaBloquearESI;
 char * claveParaBloquearRecurso;
 int socketCoordinador;
-
-
-
+extern pthread_mutex_t mutexColaListos;
 
 // ESTRUCTURAS DE PROCESOS
 
@@ -139,7 +137,6 @@ void liberarGlobales ();
 void estimarRafagaSiguiente(int tiempoAnterior);
 ESI * crearESI(uint32_t clave);
 void ESI_destroy(ESI * estructura);
-void escucharPedidos();
 void liberarRecursos(ESI * esi);
 void estimarProximaRafaga(ESI* proceso );
 bool compararClaves (ESI * esi);

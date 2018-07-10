@@ -7,7 +7,7 @@ planificacionHRRN (bool desalojo)
 {
 
 
-  pthread_create (&hiloEscuchaConsola, NULL, (void *) escucharPedidos, NULL);
+  pthread_create (&hiloEscuchaConsola, NULL, (void *) lanzarConsola, NULL);
 
   pthread_create(&hiloEscuchaESI, NULL, (void *) escucharNuevosESIS, NULL);
 
@@ -25,7 +25,9 @@ planificacionHRRN (bool desalojo)
 
   log_info (logPlanificador, "Todos los tiempos listos");
 
+  pthread_mutex_lock(&mutexColaListos);
   armarCola ();
+  pthread_mutex_unlock(&mutexColaListos);
 
   log_info (logPlanificador, "Cola armada");
 
@@ -106,6 +108,7 @@ planificacionHRRN (bool desalojo)
 
 		  } else if(desalojo) // si hay desalojo activo
 		  {
+			  pthread_mutex_lock(&mutexColaListos);
 			  ESI* auxiliar = queue_peek(colaListos);
 
 			  if(auxiliar->recienLlegado) //chequeo si el proximo en cola es un recien llegado
@@ -119,6 +122,7 @@ planificacionHRRN (bool desalojo)
 				  }
 			  }
 			  ESI_destroy(auxiliar);
+			  pthread_mutex_unlock(&mutexColaListos);
 
 		  }
 

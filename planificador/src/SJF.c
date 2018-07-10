@@ -20,7 +20,9 @@ void planificacionSJF(bool desalojo){
 
 	log_info(logPlanificador, "Comienza planificacion SJF");
 
+	pthread_mutex_lock(&mutexColaListos);
 	armarColaListos();
+	pthread_mutex_unlock(&mutexColaListos);
 
 	log_info(logPlanificador, "Cola de ESI armada");
 
@@ -97,6 +99,8 @@ void planificacionSJF(bool desalojo){
 
 					} else if(desalojo) // si hay desalojo activo
 					{
+						pthread_mutex_lock(&mutexColaListos); // por las dudas que entre otro ESI justo en este momento (no lo tengo en cuenta)
+
 						ESI* auxiliar = queue_peek(colaListos);
 
 						if(auxiliar->recienLlegado) //chequeo si el proximo en cola es un recien llegado
@@ -110,6 +114,7 @@ void planificacionSJF(bool desalojo){
 							}
 						}
 						ESI_destroy(auxiliar);
+						pthread_mutex_unlock(&mutexColaListos);
 
 					}
 
@@ -145,7 +150,7 @@ void planificacionSJF(bool desalojo){
 
 		} else if (desalojar){
 
-			list_add(listaListos,nuevo);
+			list_add(listaListos,nuevo); //aca no meto mutex porque si llega otro ESI que esté primero que el que genero el desalojo, lo desalojaria igual.
 			log_info(logPlanificador," ESI de clave %d desalojado", nuevo->id);
 			armarColaListos();
 
@@ -219,16 +224,3 @@ void armarColaListos(){
 
 
 }
-
-
-void escucharPedidos(int conexion){
-
-
-	uint32_t a = 1234;
-	send(conexion, &a, sizeof(uint32_t),  0); // Envio al ESI lo que se eligio en consola
-	uint32_t respuesta;
-	recv(conexion, &respuesta , sizeof (uint32_t), 0);
-	printf("Me respondio: %d\n", respuesta);
-
-}
-
