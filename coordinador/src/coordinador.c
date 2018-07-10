@@ -60,18 +60,42 @@ t_instancia* algoritmoLSU() {
 	return instancia;
 }
 
-/*
-t_instancia* algoritmoKE(cola_instancias, instancia, char clave) {
-	inicial = getChar("clave"); // tomar primer caracter clave EN MINUSCULA, ésto
-	inicialEnMinuscula = tolower(inicial) // convierte un tipo de dato caracter a minuscula (A-Z a a-z).
-	verificar donde guardar(inicialEnMinuscula == inicialInstancia) // inicial debera ser un numero, ejemplo "a" es 97
-	if (está la instancia con la misma inicial) {
-		guardar en esa instancia
-	} else {
-		ACA NO SE SABE QUE HACE
-	}
+bool buscadorDeRango(void* nodo) {
+	t_instancia* instancia = (t_instancia*) nodo;
+
+	char caracter_inicial = tolower(clave_actual[0]);
+	int valor_caracter_inicial = 0; // ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿como???????????????
+
+	if ((instancia->estado == ACTIVA) && (instancia->rango_inicio <= valor_caracter_inicial) && (instancia->rango_inicio >= valor_caracter_inicial)) return true;
+	return false;
 }
-*/
+
+t_instancia* algoritmoKE() {
+	// Distribucion de rangos en las Instancias
+	int letra_inicio = 97; // a
+	int letra_fin = 122; // z
+
+	int rango_letras = letra_fin - letra_inicio; // a-z
+	int cant_instancias = list_size(tabla_instancias);
+	int asignacion = rango_letras / cant_instancias;
+
+	int i;
+	t_instancia* instancia;
+	int letra_actual = letra_inicio;
+	for (i = 0; i < cant_instancias - 1; i++) {
+		instancia = list_get(tabla_instancias, i);
+		instancia->rango_inicio = letra_actual;
+		instancia->rango_fin = letra_actual + asignacion;
+		letra_actual = instancia->rango_fin + 1;
+	}
+	instancia = list_get(tabla_instancias, i);
+	instancia->rango_inicio = letra_actual;
+	instancia->rango_fin = letra_fin;
+
+	// Busco la instancia correspondiente
+	return list_find(tabla_instancias, buscadorDeRango);
+}
+
 
 t_instancia* algoritmoEL() {
 	t_instancia* instancia;
