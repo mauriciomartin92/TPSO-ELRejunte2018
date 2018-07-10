@@ -55,7 +55,7 @@ t_instancia* algoritmoLSU() {
 	t_instancia* instancia;
 	do {
 		instancia = list_remove(tabla_instancias, 0);
-		list_add(tabla_instancias, list_size(tabla_instancias), instancia);
+		list_add(tabla_instancias, instancia);
 	} while (instancia->estado == INACTIVA);
 	return instancia;
 }
@@ -74,7 +74,7 @@ t_instancia* algoritmoKE(cola_instancias, instancia, char clave) {
 */
 
 t_instancia* algoritmoEL() {
-	t_instancia* instancia
+	t_instancia* instancia;
 	do {
 		instancia = list_remove(tabla_instancias, 0);
 		list_add_in_index(tabla_instancias, list_size(tabla_instancias), instancia);
