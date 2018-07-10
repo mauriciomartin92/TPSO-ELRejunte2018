@@ -11,8 +11,8 @@
 #include "coordinador.h"
 
 enum estado_instancia {
-	ACTIVA,
-	INACTIVA
+	ACTIVA = 1,
+	INACTIVA = 0
 };
 
 typedef enum {
@@ -39,21 +39,28 @@ char* clave_actual;
 const uint32_t PAQUETE_OK = 1;
 const int TAM_MAXIMO_CLAVE = 40;
 
-/*
-t_instancia* algoritmoLSU(cola_istancias, instancia, clave) {
-	analizar tamaño de entradas();
-	analizar tamanño de instancias(); //tamaño = cantidad de entradas libres
-	if(hay entradas libres){
-		if (tamEntLibre == tamLoQQuieroGuardar) // si lo quiero guardar es atómico
-			asignar clave en ésta entrada();
-		else if (tamEntLibre < tamLoQQuieroGuardar) // si lo que quiero guardar ocupa más de una entrada
-			buscar espacio continuo() //dos entradas libres contiguas
-			si hay
-				asignar clave en estas entradas()
-		   	si no hay
-				compactar o posiblemente seguir buscando
-	}
+bool comparadorEntradasLibres(void* nodo1, void* nodo2) {
+	t_instancia* instancia1 = (t_instancia*) nodo1;
+	t_instancia* instancia2 = (t_instancia*) nodo2;
+	return (instancia1->entradas_libres > instancia2->entradas_libres);
 }
+
+t_instancia* algoritmoLSU() {
+	list_sort(tabla_instancias, comparadorEntradasLibres);
+	/*
+	 * Lo que hace ahora es similar a la implementacion de EL pero el list_add lo hace en cualquier lado
+	 * Esto es mejor asi, porque en promedio al disminuir la entradas_libres posteriormente si esta en
+	 * la mitad de la lista entonces el ordenamiento es mas optimo
+	 */
+	t_instancia* instancia;
+	do {
+		instancia = list_remove(tabla_instancias, 0);
+		list_add(tabla_instancias, list_size(tabla_instancias), instancia);
+	} while (instancia->estado == INACTIVA);
+	return instancia;
+}
+
+/*
 t_instancia* algoritmoKE(cola_instancias, instancia, char clave) {
 	inicial = getChar("clave"); // tomar primer caracter clave EN MINUSCULA, ésto
 	inicialEnMinuscula = tolower(inicial) // convierte un tipo de dato caracter a minuscula (A-Z a a-z).
@@ -67,8 +74,11 @@ t_instancia* algoritmoKE(cola_instancias, instancia, char clave) {
 */
 
 t_instancia* algoritmoEL() {
-	t_instancia* instancia = list_remove(tabla_instancias, 0);
-	list_add_in_index(tabla_instancias, list_size(tabla_instancias), instancia);
+	t_instancia* instancia
+	do {
+		instancia = list_remove(tabla_instancias, 0);
+		list_add_in_index(tabla_instancias, list_size(tabla_instancias), instancia);
+	} while (instancia->estado == INACTIVA);
 	return instancia;
 }
 

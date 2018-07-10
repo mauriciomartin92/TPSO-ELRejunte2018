@@ -58,6 +58,8 @@ bool claveEsLaActual(void* nodo);
 void loguearOperacion(uint32_t esi_ID, char* paquete);
 t_instancia* algoritmoDeDistribucion();
 t_instancia* algoritmoEL();
+t_instancia* algoritmoLSU();
+bool comparadorEntradasLibres(void* nodo1, void* nodo2);
 void finalizar();
 
 #endif /* COORDINADOR_H_ */
