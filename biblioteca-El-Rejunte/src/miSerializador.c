@@ -70,7 +70,7 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 
 	char** vector_componentes_buffer = string_split(buffer, "-");
 
-	destruirPaquete(buffer);
+	//destruirPaquete(buffer);
 
 	/*
 	int i = 0;

@@ -1,18 +1,47 @@
 /*
-============================================================================
- Name        : coordinador.c
- Author      : 
+ ============================================================================
+ Name        : mock_coordinador.c
+ Author      :
  Version     :
  Copyright   : Your copyright notice
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
 
-#include "coordinador.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <stdbool.h>
+#include <commons/log.h>
+#include <commons/config.h>
+#include <commons/collections/list.h>
+#include "../../biblioteca-El-Rejunte/src/miAccesoConfiguracion.h"
+#include "../../biblioteca-El-Rejunte/src/misSockets.h"
+#include "../../biblioteca-El-Rejunte/src/miSerializador.h"
+
+typedef enum {
+	CONFIGURACION_OK,
+	CONFIGURACION_ERROR
+} t_control_configuracion;
+
+enum handshake {
+	ESI = 1,
+	INSTANCIA = 2,
+	PLANIFICADOR = 3
+};
+
+enum chequeo_planificador {
+	SE_EJECUTA_ESI = 1,
+	SE_BLOQUEA_ESI = 0
+};
 
 enum estado_instancia {
-	ACTIVA = 1,
-	INACTIVA = 0
+	ACTIVA,
+	INACTIVA
 };
 
 typedef enum {
@@ -36,7 +65,16 @@ int socketDeEscucha;
 int socketPlanificador;
 char* clave_actual;
 
-const uint32_t ABORTA_ESI = -1;
+typedef struct {
+	int id;
+	int socket;
+	int entradas_libres; // se actualizan a medida que la Instancia procesa
+	int rango_inicio;
+	int rango_fin;
+	int estado; // 1 = activa, 0 = inactiva
+	t_list* claves_asignadas;
+} __attribute__((packed)) t_instancia;
+
 const uint32_t PAQUETE_OK = 1;
 const int TAM_MAXIMO_CLAVE = 40;
 
@@ -162,6 +200,8 @@ void loguearOperacion(uint32_t esi_ID, t_instruccion* instruccion) {
 
 bool claveEsLaActual(void* nodo) {
 	char* clave = (char*) nodo;
+	printf("clave nodo: %s\n", clave);
+	printf("clave actual: %s\n", clave_actual);
 	return strcmp(clave, clave_actual) == 0;
 }
 
@@ -201,7 +241,6 @@ int procesarPaquete(char* paquete, uint32_t esi_ID) {
 		if (!instancia) {
 			log_info(logger, "Escojo una Instancia segun el algoritmo %s", algoritmo_distribucion);
 			instancia = algoritmoDeDistribucion();
-			log_info(logger, "La Instancia sera la %d", instancia->id);
 			list_add(instancia->claves_asignadas, instruccion->clave);
 			log_info(logger, "La clave %s fue asignada a la Instancia %d", instruccion->clave, instancia->id);
 		} else {
@@ -235,48 +274,63 @@ int procesarPaquete(char* paquete, uint32_t esi_ID) {
 
 void atenderESI(int socketESI) {
 	// ---------- COORDINADOR - ESI ----------
-	// ANALIZAR CONCURRENCIA CON SEMAFOROS MUTEX
 
-	uint32_t esi_ID;
-	recv(socketESI, &esi_ID, sizeof(uint32_t), 0);
-	log_info(logger, "Se ha conectado un ESI con ID: %d", esi_ID);
-	send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
+	uint32_t esi_ID = 10; // le asigno ID
+	send(socketESI, &esi_ID, sizeof(uint32_t), 0);
+	log_info(logger, "COORDINADOR: se ha conectado un ESI con ID: %d", esi_ID);
+	//send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
 
+	uint32_t avanzar = 1;
+	int iteracion = 1;
 	while(1) {
+		log_warning(logger, "ITERACION: %i", iteracion);
+		iteracion++;
+
+		log_info(logger, "PLANIFICADOR: le pido al ESI que avance");
+		send(socketESI, &avanzar, sizeof(uint32_t), 0);
 		uint32_t tam_paquete;
+
 		recv(socketESI, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 		char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
 		recv(socketESI, paquete, tam_paquete, 0);
-		log_info(logger, "El ESI %d me envia un paquete", esi_ID);
+		log_info(logger, "COORDINADOR: el ESI %d me envia un paquete", esi_ID);
 
 		sleep(retardo * 0.001); // Retardo ficticio
 
-		log_info(logger, "Le informo al ESI %d que el paquete llego correctamente", esi_ID);
+		log_info(logger, "COORDINADOR: le informo al ESI %d que el paquete llego correctamente", esi_ID);
 		send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0); // Envio respuesta al ESI
 
 		// ---------- COORDINADOR - PLANIFICADOR ----------
 		// Aca el Coordinador le va a mandar el paquete al Planificador
 		// Esto es para consultar si puede utilizar los recursos que pide
 
-		log_info(logger, "Le consulto al Planificador si ESI %d puede hacer uso del recurso", esi_ID);
-		send(socketPlanificador, &tam_paquete, sizeof(uint32_t), 0);
-		send(socketPlanificador, &paquete, tam_paquete, 0);
+		log_info(logger, "COORDINADOR: le consulto al Planificador si ESI %d puede hacer uso del recurso", esi_ID);
+		// Hago de cuenta que el Planificador ejecuta la consulta:
+		desempaquetarInstruccion(paquete, logger);
+
+		log_info(logger, "COORDINADOR: el Planificador me informa que el ESI %d puede utilizar el recurso", esi_ID);
+		procesarPaquete(paquete, esi_ID);
+
+
+		log_info(logger, "COORDINADOR: le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
+		send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
+
+		log_info(logger, "PLANIFICADOR: recibo respuesta del ESI");
 
 		uint32_t respuesta;
-		recv(socketPlanificador, &respuesta, sizeof(uint32_t), 0);
+		recv(socketESI, &respuesta, sizeof(uint32_t), 0);
 
-		if (respuesta == SE_EJECUTA_ESI) {
-			log_info(logger, "El Planificador me informa que el ESI %d puede utilizar el recurso", esi_ID);
-			if (procesarPaquete(paquete, esi_ID) == -1) { // Hay que abortar el ESI
-				log_error(logger, "Se aborta el ESI %d", esi_ID);
-				send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
-				break;
-			}
-
-			log_info(logger, "Le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
-			send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
+		if (respuesta == -1) {
+			log_error(logger, "PLANIFICADOR: se ABORTA el ESI");
+			destruirPaquete(paquete);
+			break;
+		} else if (respuesta == 0) {
+			log_warning(logger, "PLANIFICADOR: el ESI ha FINALIZADO");
+			destruirPaquete(paquete);
+			break;
+		} else {
+			log_info(logger, "PLANIFICADOR: el ESI informa que se ejecuto correctamente");
 		}
-		destruirPaquete(paquete);
 	}
 }
 
@@ -334,9 +388,6 @@ void* establecerConexion(void* socketCliente) {
 	} else if (handshake == INSTANCIA) {
 		log_info(logger, "El cliente es una Instancia");
 		atenderInstancia(*(int*) socketCliente);
-	} else if (handshake == PLANIFICADOR) {
-		log_info(logger, "El cliente es el Planificador");
-		send(*(int*) socketCliente, &PAQUETE_OK, sizeof(uint32_t), 0);
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente");
 	}
@@ -364,7 +415,7 @@ t_control_configuracion cargarConfiguracion() {
 	 */
 
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/config_coordinador.cfg", &error_config);
+	config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/config_coordinador.cfg", &error_config);
 
 	ip = obtenerCampoString(logger, config, "IP", &error_config);
 	port = obtenerCampoString(logger, config, "PORT", &error_config);
@@ -390,14 +441,10 @@ void finalizar() {
 	finalizarConexionArchivo(config);
 }
 
-int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
-	error_config = false;
+int main(void) {
+	puts("!!!Hello World!!!"); /* prints !!!Hello World!!! */
 
-	/*
-	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
-	 * comunicar distintos tipos de mensajes que emite el S.O. como ser: WARNINGS, ERRORS, INFO.
-	 */
-	logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_INFO);
+	logger = log_create("mock_coord-plani.log", "mock_coord-plani", true, LOG_LEVEL_INFO);
 	logger_operaciones = log_create("log_operaciones.log", "Log de Operaciones", true, LOG_LEVEL_INFO);
 
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
@@ -406,7 +453,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 		return EXIT_FAILURE;
 	}
 
-	log_info(logger, "Se crea la Tabla de Instancias");
+	log_info(logger, "COORDINADOR: Se crea la Tabla de Instancias");
 	tabla_instancias = list_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port);
@@ -419,4 +466,3 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 
 	return EXIT_SUCCESS;
 }
-
