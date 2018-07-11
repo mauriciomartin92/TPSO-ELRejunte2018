@@ -163,6 +163,7 @@ int procesarPaquete(char* paquete) {
 	}
 
 	log_info(logger, "El Coordinador esta chequeando si la clave ya existe...");
+	clave_actual = instruccion->clave;
 	t_instancia* instancia = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave);
 
 	if (!instancia) {
@@ -182,7 +183,6 @@ int procesarPaquete(char* paquete) {
 		// no existe => la creo
 
 		if (!instancia) {
-			log_info(logger, "La clave %s no existe en ninguna Instancia", instruccion->clave);
 			log_info(logger, "Escojo una Instancia segun el algoritmo %s", algoritmo_distribucion);
 			instancia = algoritmoDeDistribucion();
 			log_info(logger, "La Instancia sera la %d", instancia->id);
