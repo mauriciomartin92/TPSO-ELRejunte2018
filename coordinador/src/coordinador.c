@@ -107,11 +107,6 @@ t_instancia* algoritmoEL() {
 }
 
 t_instancia* algoritmoDeDistribucion() {
-	// implementar
-	// paso 1: hay que hacer un switch de la variable ya cargada: algoritmo_distribucion
-	// paso 2: implementar si es EL (Equitative Load) que TCB devuelve de la tabla_instancias
-	// obs: hacer el case de los demas casos pero sin implementacion
-
 	log_info(logger, "Aguarde mientras se busca una Instancia");
 	while (list_is_empty(tabla_instancias)) {
 		sleep(4); // Lo pongo para que la espera activa no sea tan densa
@@ -120,10 +115,10 @@ t_instancia* algoritmoDeDistribucion() {
 
 	switch (protocolo_distribucion) {
 	case LSU: // LSU
-		//return algoritmoLSU();
+		return algoritmoLSU();
 
 	case KE: // KE
-		//return algoritmoKE();
+		return algoritmoKE();
 
 	default: // Equitative Load
 		return algoritmoEL();
@@ -218,7 +213,6 @@ int procesarPaquete(char* paquete) {
 			return -1;
 		}
 	}
-
 	return 1;
 }
 
@@ -330,7 +324,6 @@ void* establecerConexion(void* socketCliente) {
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente");
 	}
-
 	return NULL;
 }
 
