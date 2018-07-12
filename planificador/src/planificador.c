@@ -45,7 +45,7 @@ int main(void) {
 		exit(-1);
 	}
 
-	socketDeEscucha = conectarComoServidor(logPlanificador, "127.0.0.1", "7070");
+	socketDeEscucha = conectarComoServidor(logPlanificador, "127.0.0.2", "8001");
 
 	if(string_equals_ignore_case(algoritmoDePlanificacion, SJF) == true)
 		{
