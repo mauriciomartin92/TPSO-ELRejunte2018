@@ -24,10 +24,6 @@ planificacionHRRN (bool desalojo)
 
   log_info (logPlanificador, "Todos los tiempos listos");
 
-  pthread_mutex_lock(&mutexColaListos);
-  armarCola ();
-  pthread_mutex_unlock(&mutexColaListos);
-
   log_info (logPlanificador, "Cola armada");
 
 
@@ -73,17 +69,18 @@ planificacionHRRN (bool desalojo)
 
 		  char * recursoAUsar = nuevoESI->recursoPedido;
 
-		  if(!recursoEnLista(nuevoESI->recursoPedido, nuevoESI->recursosAsignado)){
+		  if(!recursoEnLista(nuevoESI)){
 
-			  list_add(listaRecursos, nuevoESI->recursosAsignado);
+			  list_add(nuevoESI->recursosAsignado, nuevoESI->recursoPedido);
 
 		  }
 
 		  bloquearRecurso(recursoAUsar);
 
 		  nuevoESI->recienLlegado = false;
+		  nuevoESI->recienDesbloqueadoPorRecurso = false;
 
-		  log_info(logPlanificador, " ESI de clave %s entra al planificador", nuevoESI->id );
+		  log_info(logPlanificador, " ESI de clave %d entra al planificador", nuevoESI->id );
 
 		  send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
 
@@ -98,7 +95,7 @@ planificacionHRRN (bool desalojo)
 
 		  pthread_mutex_unlock(&mutexColaListos);
 
-		  log_info(logPlanificador, "rafagas realizadas del esi %s son %d", nuevoESI-> id, nuevoESI->rafagasRealizadas);
+		  log_info(logPlanificador, "rafagas realizadas del esi %d son %d", nuevoESI-> id, nuevoESI->rafagasRealizadas);
 
 		  int respuesta ;
 		  int conexion = recv(nuevoESI->id, &respuesta, sizeof(int),0);

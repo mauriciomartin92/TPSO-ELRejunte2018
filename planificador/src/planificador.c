@@ -103,7 +103,7 @@ void configurar(){
 
 	log_info(logPlanificador, "puerto coordinador leido = %d", puertoCoordinador);
 
-	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP));
+	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP_COORDINADOR));
 
 	log_info(logPlanificador, "puerto leido = %s", ipCoordinador);
 
@@ -121,7 +121,8 @@ void configurar(){
 
 	while (clavesBloqueadas[i] != NULL)
 	{
-		list_add(listaRecursos, clavesBloqueadas[i]);
+		t_recurso * recurso = crearRecurso(clavesBloqueadas[i]);
+		list_add(listaRecursos, recurso);
 		i++;
 
 	}

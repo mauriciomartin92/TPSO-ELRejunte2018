@@ -271,7 +271,6 @@ void escucharNuevosESIS(){
 		}
 		pthread_mutex_unlock(&mutexColaListos);
 
-		ESI_destroy(nuevoESI);
 	}
 }
 
@@ -279,6 +278,7 @@ void escucharNuevosESIS(){
 t_recurso * crearRecurso (char * id){
 
 	t_recurso * nuevo = malloc(sizeof(t_recurso));
+	nuevo->estado = 0;
 	nuevo->clave = id;
 	nuevo->ESIEncolados = queue_create();
 	return nuevo;
@@ -388,7 +388,7 @@ void bloquearRecurso (char* claveRecurso) {
 
 	int i = 0;
 	bool encontrado = false;
-	while(list_size(listaRecursos) >= i || encontrado)
+	while(list_size(listaRecursos) > i && !encontrado)
 	{
 		t_recurso * nuevoRecurso = list_get(listaRecursos,i);
 		if(string_equals_ignore_case(nuevoRecurso->clave,claveRecurso))
@@ -396,7 +396,6 @@ void bloquearRecurso (char* claveRecurso) {
 			if(nuevoRecurso->estado == 0){
 
 				nuevoRecurso->estado = 1;
-				list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
 				log_info(logPlanificador, "Recurso de clave %s bloqueado", nuevoRecurso->clave);
 				encontrado = true;
 
@@ -455,12 +454,14 @@ void bloquearESI(char * claveRecurso, ESI * esi){
 
 }
 
-bool recursoEnLista(char * r, t_list * lista){
+bool recursoEnLista(ESI * esi){
 
 	bool retorno = false;
 	int i = 0;
-	while( i<= list_size(lista)){
-		if(string_equals_ignore_case(list_get(lista,i), r)){
+	while( i< list_size(esi->recursosAsignado) && !retorno){
+		t_recurso * r = list_get(esi->recursosAsignado, i);
+
+		if(string_equals_ignore_case(r->clave, esi->recursoPedido)){
 			retorno = true;
 		}
 		i++;
