@@ -69,8 +69,7 @@ t_instancia* algoritmoLSU() {
 bool buscadorDeRango(void* nodo) {
 	t_instancia* instancia = (t_instancia*) nodo;
 
-	char primer_letra = clave_actual[0];
-	int caracter_inicial = tolower(primer_letra);
+	int caracter_inicial = tolower(clave_actual[0]);
 
 	return ((instancia->estado == ACTIVA) && (instancia->rango_inicio <= caracter_inicial) && (instancia->rango_inicio >= caracter_inicial));
 }

@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
