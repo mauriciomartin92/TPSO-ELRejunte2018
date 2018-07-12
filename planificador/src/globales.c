@@ -28,6 +28,8 @@ int socketDeEscucha = 1; //conectarComoServidor(logPlanificador, ip, puerto,1);
 uint32_t idESI = 0;
 uint32_t GET = 0;
 bool pausearPlanificacion = false;
+bool matarESI=false;
+int claveMatar = -1;
 
 // CONSOLA
 
@@ -41,6 +43,7 @@ char* KILL_ESI = "kill_esi";
 char* STATUS_ESI = "status_esi";
 char* COMPROBAR_DEADLOCK = "comprobar_deadlock";
 pthread_mutex_t mutexColaListos = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexAsesino = PTHREAD_MUTEX_INITIALIZER;
 
 
 ESI* estimarProximaRafaga(ESI * proceso ){
@@ -106,7 +109,7 @@ void comprobarDeadlock(){ //todo modificar DL para cola de bloqueados
 		contador++;
 
 
-	} //todo estoy metiendo repetidos los deadlock porque no compruebo si la clave ya está dentro de otra estructura deadlock. ARREGLAR
+	} //estoy metiendo repetidos los deadlock porque no compruebo si la clave ya está dentro de otra estructura deadlock. ARREGLAR
 
 */
 
@@ -190,22 +193,58 @@ void lanzarConsola(){
 		}
 		else if (string_equals_ignore_case(linea,DESBLOQUEAR_ESI))
 		{
-			//todo funcion que desbloquee al primer bloqueado de la cola del recurso
-			linea = readline("CLAVE:");
+			linea = readline("CLAVE RECURSO:");
+			desbloquearRecurso(linea);
+
 			break;
+
 		}
 		else if (string_equals_ignore_case(linea, LISTAR_POR_RECURSO)){
 
-			//todo funcion que liste
 			linea = readline("RECURSO:");
-			//Aca agarra la clave del recurso a usar y muestra por pantalla los recursos que estan esperando usarlo
+			listarBloqueados(linea);
 			break;
 		}
 		else if (string_equals_ignore_case(linea, KILL_ESI))
 		{
-			//Mata al ESI y libera sus recursos
-			//todo funcion asesina
-			linea = readline("CLAVE:");
+
+			linea = readline("CLAVE ESI:");
+			int n = strlen(linea);
+
+			int i = 0;
+			int aux = 1;
+
+			int clave =0;
+
+			while (n < i){
+				aux= aux *10;
+				i++;
+			}
+
+			i= 0;
+
+			while (i < n){
+
+				aux =aux/10;
+				clave = clave + ((linea[i] - '0') * (aux));
+				i++;
+
+			}
+
+			if(clave == claveActual){
+
+				pthread_mutex_lock(&mutexAsesino);
+
+				matarESI = true;
+
+				pthread_mutex_unlock(&mutexAsesino);
+
+
+			} else {
+				claveMatar = clave;
+				seekAndDestroyESI(clave);
+			}
+
 			break;
 		}
 		else if (string_equals_ignore_case(linea, STATUS_ESI))
@@ -246,7 +285,7 @@ ESI * crearESI(uint32_t clave){
 	nuevoESI->rafagasRealizadas =0;
 	nuevoESI-> tiempoEspera = 0;
 	nuevoESI->recursosAsignado= list_create();
-	nuevoESI->recursoPedido = NULL;
+	nuevoESI->recursoPedido = string_new();
 	nuevoESI->proximaOperacion = -1;
 	nuevoESI->recienLlegado = true;
 	nuevoESI->recienDesbloqueadoPorRecurso = false;
@@ -315,7 +354,7 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
 	bool encontrado = false;
 	bool retorno = false;
 
-	while(list_size(listaRecursos) >= i){
+	while(list_size(listaRecursos) > i){
 
 			t_recurso * nuevo = list_get(listaRecursos, i);
 
@@ -413,7 +452,7 @@ void desbloquearRecurso (char* claveRecurso) {
 
 	int i = 0;
 	bool encontrado = false;
-	while(list_size(listaRecursos) >= i || encontrado)
+	while(list_size(listaRecursos) > i && !encontrado)
 	{
 		t_recurso * nuevoRecurso = list_get(listaRecursos,i);
 		if(string_equals_ignore_case(nuevoRecurso->clave,claveRecurso))
@@ -424,9 +463,8 @@ void desbloquearRecurso (char* claveRecurso) {
 				encontrado = true;
 				ESI * nuevo = queue_pop(nuevoRecurso->ESIEncolados);
 				nuevo->recienDesbloqueadoPorRecurso = true;
-			//	list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
 				log_info(logPlanificador, "Recurso de clave %s desbloqueado", nuevoRecurso->clave);
-				list_add(listaListos,nuevo); //todo si mi lógica no falla, cuando hago list_get para el recurso, me devuelve la pos de memoria del elemento, que si la modifico, se refleja en la lista (por eso comente el remove).
+				list_add(listaListos,nuevo);
 
 			} else {
 				log_info(logPlanificador, " se intento desbloquear un recurso no bloqueado. Se ignora");
@@ -524,4 +562,87 @@ ESI * buscarESI(int clave){
 	}
 
 	return encontrado;
+}
+
+
+void listarBloqueados(char * clave){
+
+	int i = 0;
+	t_recurso * encontrado;
+	bool e = false;
+
+	while (list_size(listaRecursos) > i && !e){
+
+		encontrado = list_get (listaRecursos, i);
+		if(string_equals_ignore_case(encontrado->clave,clave)){
+			e = true;
+		}
+		i++;
+
+	}
+
+	if (e == false){
+
+		printf("no se encontro el recurso de clave %s  \n", clave);
+
+	} else {
+
+		int x = queue_size(encontrado->ESIEncolados);
+
+		if(x == 0){
+
+			printf("la clave no tiene ESI en cola  \n");
+
+		}else{
+
+			int i=0;
+			t_queue * colaAuxiliar = queue_create();
+			colaAuxiliar = encontrado->ESIEncolados;
+			printf("esis en cola:");
+			while(x > i){
+
+				ESI * esi = queue_pop(colaAuxiliar);
+				printf("ESI: %d  \n", esi->id);
+				i++;
+
+			}
+			queue_destroy(colaAuxiliar);
+		}
+	}
+
+
+}
+
+void seekAndDestroyESI(int clave){
+
+	ESI * aDestruir = buscarESI(clave);
+
+	if(aDestruir == NULL){
+		printf("esi no encontrado");
+	} else{
+		liberarRecursos(aDestruir);
+		list_remove_and_destroy_by_condition(listaListos, (void *)encontrarVictima, (void *) ESI_destroy);
+		claveMatar = -1;
+
+	}
+
+
+
+}
+
+
+bool encontrarVictima (ESI * esi){
+
+		log_info(logPlanificador, "entra a la comparacion de claves");
+
+		if(esi->id ==claveMatar){
+
+			return true;
+
+		} else{
+
+			return false;
+
+		}
+
 }

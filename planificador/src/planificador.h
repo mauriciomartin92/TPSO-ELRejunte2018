@@ -86,7 +86,10 @@ int claveParaBloquearESI;
 char * claveParaBloquearRecurso;
 int socketCoordinador;
 extern pthread_mutex_t mutexColaListos;
+extern pthread_mutex_t mutexAsesino;
 extern bool pausearPlanificacion;
+extern bool matarESI;
+extern int claveMatar;
 
 // ESTRUCTURAS DE PROCESOS
 
@@ -100,9 +103,9 @@ typedef struct{
 	int tiempoEspera;
 	bool bloqueadoPorUsuario;
 	bool recienDesbloqueadoPorRecurso;
-	t_list * recursosAsignado; // clave
-	char * recursoPedido; // clave
-	int proximaOperacion; //todo inicializar char **
+	t_list * recursosAsignado;
+	char * recursoPedido;
+	int proximaOperacion;
 	bool recienLlegado;
 	float tiempoRespuesta;
 }ESI;
@@ -168,5 +171,9 @@ extern float calcularTiempoEspera (float espera, int estimacionSiguiente);
 extern void armarCola ();
 extern void sumarTiemposEspera ();
 extern void aumentarEspera();
+
+extern void listarBloqueados(char * clave);
+extern bool encontrarVictima (ESI * esi);
+extern void seekAndDestroyESI(int clave);
 
 #endif /* PLANIFICADOR_H_ */

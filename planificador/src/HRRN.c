@@ -19,15 +19,7 @@ planificacionHRRN (bool desalojo)
 
   log_info (logPlanificador, "Arraca HRRN");
 
-
-  estimarYCalcularTiempos ();
-
-  log_info (logPlanificador, "Todos los tiempos listos");
-
-  log_info (logPlanificador, "Cola armada");
-
-
-  while (!queue_is_empty (colaListos)) //todo implementar los hilos
+  while (!queue_is_empty (colaListos))
     {
 
 		bool finalizar = false;
@@ -44,7 +36,7 @@ planificacionHRRN (bool desalojo)
 
 		ESI* nuevoESI = queue_pop (colaListos);
 
-      while (!finalizar && !bloquear && permiso && !desalojar)
+      while (!finalizar && !bloquear && permiso && !desalojar && !matarESI)
 	{
 
       while(pausearPlanificacion){}
@@ -97,8 +89,8 @@ planificacionHRRN (bool desalojo)
 
 		  log_info(logPlanificador, "rafagas realizadas del esi %d son %d", nuevoESI-> id, nuevoESI->rafagasRealizadas);
 
-		  int respuesta ;
-		  int conexion = recv(nuevoESI->id, &respuesta, sizeof(int),0);
+		  uint32_t respuesta ;
+		  int conexion = recv(nuevoESI->id, &respuesta, sizeof(uint32_t),0);
 
 		  if(conexion < 0){
 			  log_info(logPlanificador, "se rompio la conexion");
@@ -144,7 +136,19 @@ planificacionHRRN (bool desalojo)
 
       log_info (logPlanificador, "finalizada su rafaga");
 
-      if (finalizar)
+      if(matarESI){
+
+    	  log_info(logPlanificador, "ESI de clave %d fue matado por consola", nuevoESI->id);
+    	  send(socketCoordinador,&FINALIZAR,sizeof(uint32_t),0);
+    	  liberarRecursos(nuevoESI);
+    	  ESI_destroy(nuevoESI);
+
+    	  pthread_mutex_lock(&mutexAsesino);
+
+    	  matarESI = false;
+
+    	  pthread_mutex_unlock(&mutexAsesino);
+      } else if (finalizar)
 	{			//aca con el mensaje del ESI, determino si se bloquea o se finaliza
 
 		  list_add (listaFinalizados, nuevoESI);
@@ -196,7 +200,7 @@ estimarYCalcularTiempos ()
 
       log_info (logPlanificador, "Entra ESI clave %d", nuevo->id);
 
-      nuevo = list_get (listaListos, i); //todo ojo con este get, probar si cambia bien las cosas
+      nuevo = list_get (listaListos, i);
 
       estimarProximaRafaga (nuevo);
 
