@@ -262,8 +262,16 @@ void atenderESI(int socketESI) {
 		// Esto es para consultar si puede utilizar los recursos que pide
 
 		log_info(logger, "Le consulto al Planificador si ESI %d puede hacer uso del recurso", esi_ID);
-		send(socketPlanificador, &tam_paquete, sizeof(uint32_t), 0);
-		send(socketPlanificador, &paquete, tam_paquete, 0);
+		t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
+		uint32_t operacion = instruccion->operacion;
+		send(socketPlanificador, &operacion, sizeof(uint32_t), 0);
+		perror("ERROR1");
+		char* clave = instruccion->clave;
+		uint32_t tam_clave = strlen(clave);
+		send(socketPlanificador, &tam_clave, sizeof(uint32_t), 0);
+		perror("ERROR2");
+		send(socketPlanificador, clave, tam_clave, 0);
+		perror("ERROR3");
 
 		uint32_t respuesta;
 		recv(socketPlanificador, &respuesta, sizeof(uint32_t), 0);
@@ -339,6 +347,7 @@ void* establecerConexion(void* socketCliente) {
 		atenderInstancia(*(int*) socketCliente);
 	} else if (handshake == PLANIFICADOR) {
 		log_info(logger, "El cliente es el Planificador");
+		socketPlanificador = *(int*) socketCliente;
 		send(*(int*) socketCliente, &PAQUETE_OK, sizeof(uint32_t), 0);
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente");

@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	while(!feof(fp)) {
 		log_info(logger, "Espero a que el Planificador me ordene parsear una instruccion");
 		recv(socketPlanificador, &orden, sizeof(uint32_t), 0);
+		perror("ERROR");
 
 		//if (orden == SIGUIENTE_INSTRUCCION) {
 		if (orden == 1) {
@@ -123,7 +124,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			char* paquete = empaquetarInstruccion(instruccion, logger);
 
 			log_info(logger, "Envio la instruccion al Cooordinador");
-			uint32_t tam_paquete = strlen(paquete);
+			uint32_t tam_paquete = strlen(paquete) + 1;
 			send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
 			send(socketCoordinador, paquete, tam_paquete, 0); // Envio el paquete
 			destruirPaquete(paquete);
