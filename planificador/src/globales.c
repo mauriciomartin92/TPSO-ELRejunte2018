@@ -27,6 +27,7 @@ int FINALIZAR = 2;
 int socketDeEscucha = 1; //conectarComoServidor(logPlanificador, ip, puerto,1);
 uint32_t idESI = 0;
 uint32_t GET = 0;
+bool pausearPlanificacion = false;
 
 // CONSOLA
 
@@ -42,10 +43,10 @@ char* COMPROBAR_DEADLOCK = "comprobar_deadlock";
 pthread_mutex_t mutexColaListos = PTHREAD_MUTEX_INITIALIZER;
 
 
-void estimarProximaRafaga(ESI * proceso ){
+ESI* estimarProximaRafaga(ESI * proceso ){
 
 
-	log_info (logPlanificador, "EL ESI DE CLAVE %s TIENE RAFAGA ANTERIOR DE %d", proceso->id, proceso->rafagaAnterior);
+	log_info (logPlanificador, "EL ESI DE CLAVE %d TIENE RAFAGA ANTERIOR DE %d", proceso->id, proceso->rafagaAnterior);
 	if(proceso -> rafagaAnterior == 0){
 
 		proceso -> estimacionSiguiente = 0;
@@ -56,6 +57,7 @@ void estimarProximaRafaga(ESI * proceso ){
 
 	}
 	log_info(logPlanificador,"un tiempo estimado \n");
+	return proceso;
 
 }
 
@@ -126,28 +128,64 @@ void lanzarConsola(){
 		printf("Kill_ESI \n");
 		printf("Status_ESI \n");
 		printf("Comprobar_Deadlock \n");
-		printf("Salir");
-		printf("Ingrese el nombre de la opcion, incluyendo el guion bajo");
+		printf("Salir \n");
+		printf("Ingrese el nombre de la opcion, incluyendo el guion bajo \n");
 		linea = readline(">");
 
 		if (string_equals_ignore_case(linea, PAUSEAR_PLANIFICACION))  //Hermosa cadena de if que se viene
 		{
-			//todo funcion que pausee
-			// Conectar con planificador e indicarle que el ESI se pausea pero NO se bloquea, solo para temporalmente la planificacion
+			pausearPlanificacion = true;
 			break;
 		}
 		else if (string_equals_ignore_case(linea,REANUDAR_PLANIFICACION))
 		{
-			//todo funcion que reanude
-			//reanuda lo pauseado -> podrian ser la misma opcion con pausear porque la comprobacion se hace igual
+			pausearPlanificacion= false;
 			break;
 		}
 		else if (string_equals_ignore_case(linea, BLOQUEAR_ESI))
 		{
-			//todo funcion que bloquee
-			linea = readline("CLAVE:");
-			//mandar clave al planificador
-			// Manda al ESI a la cola de bloqueados del recurso CLAVE si el mismo esta en ejecucion o listo para ejecurar
+			linea = readline("CLAVE ESI:");
+			int n = strlen(linea);
+
+			int i = 0;
+			int aux = 1;
+
+			int clave =0;
+
+			while (n < i){
+				aux= aux *10;
+				i++;
+			}
+
+			i= 0;
+
+			while (i < n){
+
+				aux =aux/10;
+				clave = clave + ((linea[i] - '0') * (aux));
+				i++;
+
+			}
+			linea = readline("CLAVE RECURSO:");
+
+			if( claveActual==clave){
+
+				claveParaBloquearESI = clave;
+				string_append(&claveParaBloquearRecurso, linea);
+
+			} else {
+
+				ESI * nuevoESI = buscarESI(clave);
+
+				if(nuevoESI == NULL){
+					printf("se introdujo una clave erronea : %d, error, autodestruir ", clave);
+					exit(-1);
+				} else {
+
+					bloquearESI(linea, nuevoESI);
+				}
+			}
+
 			break;
 		}
 		else if (string_equals_ignore_case(linea,DESBLOQUEAR_ESI))
@@ -211,6 +249,7 @@ ESI * crearESI(uint32_t clave){
 	nuevoESI->recursoPedido = NULL;
 	nuevoESI->proximaOperacion = -1;
 	nuevoESI->recienLlegado = true;
+	nuevoESI->recienDesbloqueadoPorRecurso = false;
 
 	return nuevoESI;
 
@@ -286,7 +325,7 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
 				encontrado = true;
 
 				if(nuevo->estado == 1 && ESIValidar->proximaOperacion == 0){ // caso recurso tomado para get
-					recursoDestroy(nuevo);
+					nuevo = NULL;
 					retorno = false;
 
 				} else if (nuevo-> estado == 1 && ESIValidar-> proximaOperacion > 0){ //caso recurso tomado para set y store
@@ -300,18 +339,18 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
 						if( string_equals_ignore_case(recursoAuxiliar->clave,nuevo->clave)){ // caso ESI tiene asignado recurso
 
 							RecursoEncontrado = true;
-							recursoDestroy(recursoAuxiliar);
-							recursoDestroy(nuevo);
+							recursoAuxiliar = NULL;
+							nuevo = NULL;
 							retorno = true;
 						}
 
-						recursoDestroy(recursoAuxiliar);
+						recursoAuxiliar= NULL;
 
 						t++;
 
 					} if(RecursoEncontrado == false){ // Caso ESI no tiene asignado recurso
 
-						free(nuevo);
+						nuevo = NULL;
 						retorno = false;
 
 					}
@@ -329,7 +368,7 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
 
 			t_recurso * nuevoRecurso = crearRecurso(recurso);
 			list_add(listaRecursos,nuevoRecurso);
-			recursoDestroy(nuevoRecurso);
+			nuevoRecurso = NULL;
 			retorno = true;
 
 		}
@@ -359,7 +398,6 @@ void bloquearRecurso (char* claveRecurso) {
 				nuevoRecurso->estado = 1;
 				list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
 				log_info(logPlanificador, "Recurso de clave %s bloqueado", nuevoRecurso->clave);
-				recursoDestroy(nuevoRecurso);
 				encontrado = true;
 
 			} else {
@@ -386,10 +424,10 @@ void desbloquearRecurso (char* claveRecurso) {
 				nuevoRecurso->estado = 0;
 				encontrado = true;
 				ESI * nuevo = queue_pop(nuevoRecurso->ESIEncolados);
-				list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
+				nuevo->recienDesbloqueadoPorRecurso = true;
+			//	list_replace_and_destroy_element(listaRecursos, i, nuevoRecurso, (void *) recursoDestroy);
 				log_info(logPlanificador, "Recurso de clave %s desbloqueado", nuevoRecurso->clave);
-				list_add(listaListos,nuevo);
-				recursoDestroy(nuevoRecurso);
+				list_add(listaListos,nuevo); //todo si mi lógica no falla, cuando hago list_get para el recurso, me devuelve la pos de memoria del elemento, que si la modifico, se refleja en la lista (por eso comente el remove).
 
 			} else {
 				log_info(logPlanificador, " se intento desbloquear un recurso no bloqueado. Se ignora");
@@ -408,13 +446,10 @@ void bloquearESI(char * claveRecurso, ESI * esi){
 	while(i<= list_size(listaRecursos) || encontrado){
 
 		t_recurso * recursoAuxiliar = list_get(listaRecursos, i);
-		if(recursoAuxiliar->clave == claveRecurso){
-
+		if(string_equals_ignore_case(recursoAuxiliar->clave,claveRecurso)){
 			queue_push(recursoAuxiliar->ESIEncolados,esi);
-			list_replace_and_destroy_element(listaRecursos,i,recursoAuxiliar, (void *) recursoDestroy);
-
+			encontrado = true;
 		}
-		recursoDestroy(recursoAuxiliar);
 
 	}
 
@@ -442,7 +477,6 @@ void liberarRecursos(ESI * esi){
 
 		char * recurso = list_get(esi->recursosAsignado, i);
 		desbloquearRecurso( recurso );
-		free (recurso);
 		i++;
 	}
 
@@ -462,10 +496,31 @@ void limpiarRecienLlegados(){
 
 		queue_push(colaAuxiliar, nuevo);
 
-		ESI_destroy(nuevo);
-
 	}
 
 	colaListos = colaAuxiliar;
 	queue_destroy(colaAuxiliar);
+}
+
+ESI * buscarESI(int clave){
+
+	int i=0;
+	bool e = false;
+	ESI * encontrado;
+	while(i <= list_size(listaListos) && !e){
+
+		ESI * aux = list_get(listaListos,i);
+		if(aux-> id == clave){
+
+			encontrado = list_remove(listaListos, i);
+			e=true;
+
+		}
+	}
+
+	if (e == false){
+		encontrado = NULL;
+	}
+
+	return encontrado;
 }

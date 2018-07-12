@@ -73,7 +73,6 @@ int puertoEscucha;
 int alfa;
 int estimacionInicial;
 char * ipCoordinador;
-char * ipCoordinador;
 char * puertoCoordinador;
 char ** clavesBloqueadas;
 extern char * rutaLog;
@@ -87,6 +86,7 @@ int claveParaBloquearESI;
 char * claveParaBloquearRecurso;
 int socketCoordinador;
 extern pthread_mutex_t mutexColaListos;
+extern bool pausearPlanificacion;
 
 // ESTRUCTURAS DE PROCESOS
 
@@ -97,12 +97,14 @@ typedef struct{
 	int rafagaAnterior;
 	int estimacionAnterior;
 	int estimacionSiguiente;
-	float tiempoEspera;
+	int tiempoEspera;
 	bool bloqueadoPorUsuario;
+	bool recienDesbloqueadoPorRecurso;
 	t_list * recursosAsignado; // clave
 	char * recursoPedido; // clave
 	int proximaOperacion; //todo inicializar char **
 	bool recienLlegado;
+	float tiempoRespuesta;
 }ESI;
 
 typedef struct{ // en la lista de subrecursos: futbol, basquet..
@@ -138,7 +140,7 @@ void estimarRafagaSiguiente(int tiempoAnterior);
 ESI * crearESI(uint32_t clave);
 void ESI_destroy(ESI * estructura);
 void liberarRecursos(ESI * esi);
-void estimarProximaRafaga(ESI* proceso );
+ESI* estimarProximaRafaga(ESI* proceso );
 bool compararClaves (ESI * esi);
 void comprobarDeadlock();
 void DEADLOCK_destroy(t_deadlockeados * ESI);
@@ -153,7 +155,7 @@ extern void desbloquearRecurso(char * claveRecurso);
 extern bool validarPedido (char * recurso, ESI * esi);
 extern bool recursoEnLista(char * r, t_list * lista);
 extern void limpiarRecienLlegados();
-
+extern ESI * buscarESI(int clave);
 
 extern void planificacionSJF(bool desalojo);
 extern void estimarTiempos();
@@ -165,5 +167,6 @@ extern void estimarYCalcularTiempos();
 extern float calcularTiempoEspera (float espera, int estimacionSiguiente);
 extern void armarCola ();
 extern void sumarTiemposEspera ();
+extern void aumentarEspera();
 
 #endif /* PLANIFICADOR_H_ */

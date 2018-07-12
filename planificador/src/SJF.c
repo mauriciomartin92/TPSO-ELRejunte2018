@@ -43,9 +43,9 @@ void planificacionSJF(bool desalojo){
 		uint32_t tamanioRecurso;
 		char * recursoPedido;
 
-
 		while(!finalizar && !bloquear && permiso && !desalojar){
 
+				while(pausearPlanificacion){} // ciclo hermoso que pausea la planificacion
 
 				send(nuevo->id,&CONTINUAR,sizeof(uint32_t),0);
 				int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
@@ -53,13 +53,13 @@ void planificacionSJF(bool desalojo){
 				recursoPedido = malloc(sizeof(tamanioRecurso));
 				int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
 
-
 				if(respuesta1 < 0 || respuesta2 < 0 || respuesta3 < 0){
 					log_info(logPlanificador, "conexion con el coordinador rota");
 					exit(-1);
 				} else {
-					nuevo->recursoPedido = recursoPedido;
+					string_append(&nuevo->recursoPedido, recursoPedido);
 					nuevo->proximaOperacion = operacion;
+					//todo probar que onda con el append si libero el char * que le mete.
 
 				}
 
@@ -113,7 +113,6 @@ void planificacionSJF(bool desalojo){
 								limpiarRecienLlegados(); // Si no es menor la estimacion, los recien llegados ya no tendrian validez, los actualizo
 							}
 						}
-						ESI_destroy(auxiliar);
 						pthread_mutex_unlock(&mutexColaListos);
 
 					}
@@ -156,8 +155,6 @@ void planificacionSJF(bool desalojo){
 
 		}
 
-		ESI_destroy(nuevo);
-
 	}
 
 	planificacionSJFTerminada = true;
@@ -183,7 +180,7 @@ void armarColaListos(){
 
 	log_info(logPlanificador, "Tiempos de los ESI listos estimados");
 
-	log_info(logPlanificador,"armando cola de listos \n");
+	log_info(logPlanificador,"armando cola de listos");
 
 	ESI * ESIMasRapido;
 
@@ -202,11 +199,19 @@ void armarColaListos(){
 			} else if (ESIMasRapido->estimacionSiguiente == ESIAuxiliar->estimacionSiguiente) //Ante empate de estimaciones
 
 			{
-				if(list_size(ESIAuxiliar->recursosAsignado)> 0 && list_size(ESIMasRapido->recursosAsignado) == 0){ //si tiene recursos asignados el nuevo, quiere decir que estaba ejecutando y tiene prioridad
+				if( !ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
 
 					ESIMasRapido = ESIAuxiliar;
 
-				} // en cualquier otro caso que no pase eso, seguiria el ESIMasRapido como el seleccionado
+				} else if( !ESIAuxiliar->recienLlegado && !ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
+
+					ESIMasRapido = ESIAuxiliar;
+
+				} else if ( ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
+
+					ESIMasRapido = ESIAuxiliar;
+
+				}
 
 			}
 			i++;
@@ -217,7 +222,7 @@ void armarColaListos(){
 		claveActual = ESIMasRapido->id;
 		ESIMasRapido->bloqueadoPorUsuario = false;
 		queue_push(colaListos,ESIMasRapido);
-		list_remove_and_destroy_by_condition(listaListos, (void *) compararClaves,(void *)ESI_destroy);
+		list_remove_by_condition(listaListos, (void *) compararClaves);
 	}
 
 	log_info(logPlanificador,"cola armada \n");

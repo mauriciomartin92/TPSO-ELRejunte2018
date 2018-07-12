@@ -85,14 +85,9 @@ void configurar(){
 
 	algoritmoDePlanificacion = string_new();
 	ipCoordinador = string_new();
-	ipCoordinador = string_new();
 	puertoCoordinador = string_new();
 
 	log_info(logPlanificador, "leyendo archivo configuracion ");
-
-	puertoEscucha = config_get_int_value(archivoConfiguracion, KEY_PUERTO_CLIENTE);
-
-	log_info(logPlanificador, "puerto del cliente leido = %d", puertoEscucha);
 
 	string_append( &algoritmoDePlanificacion, config_get_string_value(archivoConfiguracion, KEY_ALGORITMO_PLANIFICACION));
 
@@ -106,19 +101,13 @@ void configurar(){
 
 	log_info(logPlanificador, "estimacion inicial leida = %d", estimacionInicial);
 
-	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP_COORDINADOR));
-
-	log_info(logPlanificador, "ip del coordinador leida = %s", ipCoordinador);
-
-	puertoCoordinador = config_get_string_value(archivoConfiguracion, KEY_PUERTO_COORDINADOR);
-
 	log_info(logPlanificador, "puerto coordinador leido = %d", puertoCoordinador);
 
 	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP));
 
-	log_info(logPlanificador, "puerto leida = %s", ipCoordinador);
+	log_info(logPlanificador, "puerto leido = %s", ipCoordinador);
 
-	string_append(&puertoCoordinador,config_get_string_value(archivoConfiguracion, KEY_PUERTO));
+	string_append(&puertoCoordinador,config_get_string_value(archivoConfiguracion, KEY_PUERTO_COORDINADOR));
 
 	log_info(logPlanificador, " puerto coordinador leido = %s", puertoCoordinador);
 
@@ -133,6 +122,7 @@ void configurar(){
 	while (clavesBloqueadas[i] != NULL)
 	{
 		list_add(listaRecursos, clavesBloqueadas[i]);
+		i++;
 
 	}
 	log_info(logPlanificador, "se llenó la cola de bloqueados");

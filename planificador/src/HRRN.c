@@ -6,7 +6,6 @@ void
 planificacionHRRN (bool desalojo)
 {
 
-
   pthread_create (&hiloEscuchaConsola, NULL, (void *) lanzarConsola, NULL);
 
   pthread_create(&hiloEscuchaESI, NULL, (void *) escucharNuevosESIS, NULL);
@@ -52,6 +51,7 @@ planificacionHRRN (bool desalojo)
       while (!finalizar && !bloquear && permiso && !desalojar)
 	{
 
+      while(pausearPlanificacion){}
 
 	  send(nuevoESI->id,&CONTINUAR,sizeof(uint32_t),0);
 	  int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
@@ -63,9 +63,8 @@ planificacionHRRN (bool desalojo)
 		  log_info(logPlanificador, "conexion con el coordinador rota");
 		  exit(-1);
 	  } else {
-		  nuevoESI->recursoPedido = recursoPedido;
+		  string_append(&nuevoESI->recursoPedido, recursoPedido);
 		  nuevoESI->proximaOperacion = operacion;
-
 	  }
 
 	  permiso = validarPedido(nuevoESI->recursoPedido,nuevoESI);
@@ -92,6 +91,12 @@ planificacionHRRN (bool desalojo)
 
 		  nuevoESI -> rafagaAnterior = nuevoESI-> rafagaAnterior +1;
 		  nuevoESI -> rafagasRealizadas = nuevoESI -> rafagasRealizadas +1;
+
+		  pthread_mutex_lock(&mutexColaListos);
+
+		  aumentarEspera();
+
+		  pthread_mutex_unlock(&mutexColaListos);
 
 		  log_info(logPlanificador, "rafagas realizadas del esi %s son %d", nuevoESI-> id, nuevoESI->rafagasRealizadas);
 
@@ -121,7 +126,6 @@ planificacionHRRN (bool desalojo)
 					  limpiarRecienLlegados(); // Si no es menor la estimacion, los recien llegados ya no tendrian validez, los actualizo
 				  }
 			  }
-			  ESI_destroy(auxiliar);
 			  pthread_mutex_unlock(&mutexColaListos);
 
 		  }
@@ -171,13 +175,9 @@ planificacionHRRN (bool desalojo)
 
       }
 
-      ESI_destroy(nuevoESI);
-
 
     }
   planificacionHRRNTerminada = true;
-
-
 
 }
 
@@ -194,17 +194,16 @@ estimarYCalcularTiempos ()
 
   ESI *nuevo;
 
-
   while (i <= list_size (listaListos))
     {
 
       log_info (logPlanificador, "Entra ESI clave %d", nuevo->id);
 
-      nuevo = list_remove (listaListos, i);
+      nuevo = list_get (listaListos, i); //todo ojo con este get, probar si cambia bien las cosas
 
       estimarProximaRafaga (nuevo);
 
-      nuevo->tiempoEspera =
+      nuevo->tiempoRespuesta =
 	calcularTiempoEspera (nuevo->tiempoEspera,
 			      nuevo->estimacionSiguiente);
 
@@ -219,7 +218,6 @@ estimarYCalcularTiempos ()
 void
 armarCola ()
 {
-
 
 	  estimarYCalcularTiempos();
 
@@ -239,16 +237,25 @@ armarCola ()
 		{
 
 		  ESI *ESIAuxiliar = list_get (listaListos, i);
-		  if (ESIPrioridad->tiempoEspera < ESIAuxiliar->tiempoEspera)
+		  if (ESIPrioridad->tiempoRespuesta < ESIAuxiliar->tiempoRespuesta)
 			{
 
 			  ESIPrioridad = ESIAuxiliar;
 
-			} else if ( ESIPrioridad-> tiempoEspera == ESIAuxiliar -> tiempoEspera){
+			} else if ( ESIPrioridad-> tiempoRespuesta == ESIAuxiliar -> tiempoRespuesta){
 
-				if(list_size(ESIAuxiliar->recursosAsignado)> 0 && list_size(ESIPrioridad->recursosAsignado) == 0){
+				if( !ESIAuxiliar->recienLlegado && ESIPrioridad->recienLlegado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
 
 					ESIPrioridad = ESIAuxiliar;
+
+				} else if( !ESIAuxiliar->recienLlegado && !ESIPrioridad->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIPrioridad->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
+
+					ESIPrioridad = ESIAuxiliar;
+
+				} else if ( ESIAuxiliar->recienLlegado && ESIPrioridad->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIPrioridad->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
+
+					ESIPrioridad = ESIAuxiliar;
+
 				}
 			}
 
@@ -257,13 +264,13 @@ armarCola ()
 
 		  log_info (logPlanificador,
 			"ESI numero %d, de clave %s, es de tiempo de respuesta: %.6f, y su proxima rafaga se estima en %d ",
-			i - 1, ESIPrioridad->id, ESIPrioridad->tiempoEspera,
+			i - 1, ESIPrioridad->id, ESIPrioridad->tiempoRespuesta,
 			ESIPrioridad->estimacionSiguiente);
 
 		  claveActual = ESIPrioridad->id;
 		  ESIPrioridad->bloqueadoPorUsuario = false;
 		  queue_push (colaListos, ESIPrioridad);
-		  list_remove_and_destroy_by_condition (listaListos, (void *) compararClaves,(void *) ESI_destroy);
+		  list_remove_by_condition (listaListos, (void *) compararClaves);
 
 		}
 
@@ -279,5 +286,21 @@ calcularTiempoEspera (float espera, int estimacionSiguiente)
 
   log_info (logPlanificador, "calculando..");
   return (espera + estimacionSiguiente) / estimacionSiguiente;
+
+}
+
+void aumentarEspera(){
+
+	t_queue * aux = queue_create();
+
+	while(queue_is_empty(colaListos)){
+
+		ESI * nuevo= queue_pop(colaListos);
+		nuevo->tiempoEspera = nuevo->tiempoEspera +1;
+		queue_push(aux, nuevo);
+	}
+
+	colaListos = aux;
+	queue_destroy(aux);
 
 }
