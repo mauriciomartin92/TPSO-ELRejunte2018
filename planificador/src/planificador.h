@@ -153,7 +153,7 @@ extern void escucharNuevosESIS();
 extern void bloquearRecurso(char * claveRecurso);
 extern void desbloquearRecurso(char * claveRecurso);
 extern bool validarPedido (char * recurso, ESI * esi);
-extern bool recursoEnLista(char * r, t_list * lista);
+extern bool recursoEnLista(ESI * esi);
 extern void limpiarRecienLlegados();
 extern ESI * buscarESI(int clave);
 

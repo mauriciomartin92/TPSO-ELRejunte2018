@@ -20,10 +20,6 @@ void planificacionSJF(bool desalojo){
 
 	log_info(logPlanificador, "Comienza planificacion SJF");
 
-	pthread_mutex_lock(&mutexColaListos);
-	armarColaListos();
-	pthread_mutex_unlock(&mutexColaListos);
-
 	log_info(logPlanificador, "Cola de ESI armada");
 
 
@@ -69,17 +65,18 @@ void planificacionSJF(bool desalojo){
 
 					char * recursoAUsar = nuevo->recursoPedido;
 
-					if(!recursoEnLista(nuevo->recursoPedido, nuevo->recursosAsignado)){
+					if(!recursoEnLista(nuevo)){
 
-						list_add(listaRecursos, nuevo->recursosAsignado);
+						list_add(nuevo->recursosAsignado, crearRecurso(nuevo->recursoPedido) );
 
 					}
 
 					bloquearRecurso(recursoAUsar);
 
 					nuevo->recienLlegado = false;
+					nuevo->recienDesbloqueadoPorRecurso = false;
 
-					log_info(logPlanificador, " ESI de clave %s entra al planificador", nuevo->id );
+					log_info(logPlanificador, " ESI de clave %d entra al planificador", nuevo->id );
 
 					send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
 
@@ -88,7 +85,7 @@ void planificacionSJF(bool desalojo){
 					nuevo -> rafagaAnterior = nuevo-> rafagaAnterior +1;
 					nuevo -> rafagasRealizadas = nuevo -> rafagasRealizadas +1;
 
-					log_info(logPlanificador, "rafagas realizadas del esi %s son %d", nuevo-> id, nuevo->rafagasRealizadas);
+					log_info(logPlanificador, "rafagas realizadas del esi %d son %d", nuevo-> id, nuevo->rafagasRealizadas);
 
 					int respuesta ;
 					recv(nuevo->id, &respuesta, sizeof(int),0);
