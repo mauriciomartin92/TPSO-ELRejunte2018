@@ -29,11 +29,6 @@ enum handshake {
 	PLANIFICADOR = 3
 };
 
-enum chequeo_planificador {
-	SE_EJECUTA_ESI = 1,
-	SE_BLOQUEA_ESI = 0
-};
-
 typedef struct {
 	int id;
 	int socket;
