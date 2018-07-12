@@ -23,11 +23,6 @@
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 #include "../../biblioteca-El-Rejunte/src/miSerializador.h"
 
-typedef enum {
-	CONFIGURACION_OK,
-	CONFIGURACION_ERROR
-} t_control_configuracion;
-
 enum handshake {
 	ESI = 1,
 	INSTANCIA = 2,

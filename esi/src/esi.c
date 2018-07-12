@@ -28,9 +28,9 @@ int socketCoordinador, socketPlanificador;
 FILE *fp;
 uint32_t respuesta;
 
-const int ABORTA_ESI = -1;
-const int TERMINA_ESI = 0;
-const int PAQUETE_OK = 1;
+const uint32_t ABORTA_ESI = -1;
+const uint32_t TERMINA_ESI = 0;
+const uint32_t PAQUETE_OK = 1;
 
 t_esi_operacion parsearLineaScript(FILE* fp) {
 	char * line = NULL;

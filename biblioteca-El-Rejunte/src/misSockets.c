@@ -44,7 +44,7 @@ int conectarComoServidor(t_log* logger, const char* ip, const char* puerto) {
 	 * 	Descubiertos los misterios de la vida (por lo menos, para la conexion de red actual), necesito enterarme de alguna forma
 	 * 	cuales son las conexiones que quieren establecer conmigo.
 	 *
-	 * 	Para ello, y basandome en el postulado de que en Linux todo es un archivo, voy a utilizar... Si, un archivo!
+	 * 	Para ello, y basandome en el postulado de lo que se usa siempre en Linux, voy a utilizar... Si, un archivo!
 	 *
 	 * 	Mediante socket(), obtengo el File Descriptor que me proporciona el sistema (un integer identificador).
 	 *
@@ -138,7 +138,7 @@ int conectarComoCliente(t_log* logger, const char* ip, const char* puerto) {
 	 * 	Ya se quien y a donde me tengo que conectar... ¿Y ahora?
 	 *	Tengo que encontrar una forma por la que conectarme al server... Ya se! Un socket!
 	 *
-	 * 	Obtiene un socket (un file descriptor -todo en linux es un archivo-), utilizando la estructura serverInfo que generamos antes.
+	 * 	Obtiene un socket (un file descriptor), utilizando la estructura serverInfo que generamos antes.
 	 *
 	 */
 	int serverSocket = socket(serverInfo->ai_family, serverInfo->ai_socktype, serverInfo->ai_protocol);

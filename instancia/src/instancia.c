@@ -192,7 +192,7 @@ void dumpMemoria(){
 		}
 	}
 	// Busco la clave en la tabla usando la funcion magica
-	dictionary_iterator(dic_entradas, obtenerClaves);
+	dictionary_iterator(dic_entradas, obtenerClaves); // TODO: el parametro val deberia ser un void*
 }
 
 void generarTablaDeEntradas() {

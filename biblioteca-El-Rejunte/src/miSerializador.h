@@ -6,6 +6,7 @@
  */
 
 #include <string.h>
+#include <stdint.h>
 #include <commons/log.h>
 #include <parsi/parser.h>
 
@@ -19,7 +20,7 @@ enum operacion {
 };
 
 typedef struct {
-	int32_t  operacion;
+	uint32_t  operacion;
 	char* clave;
 	char* valor;
 } t_instruccion;

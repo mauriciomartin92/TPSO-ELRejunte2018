@@ -21,6 +21,11 @@ typedef enum {
 	KE = 3
 } t_distribucion;
 
+enum chequeo_planificador {
+	SE_EJECUTA_ESI = 1,
+	SE_BLOQUEA_ESI = 0
+};
+
 t_log* logger;
 t_log* logger_operaciones;
 t_config* config;
@@ -65,6 +70,7 @@ bool buscadorDeRango(void* nodo) {
 	t_instancia* instancia = (t_instancia*) nodo;
 
 	char caracter_inicial = tolower(clave_actual[0]);
+
 	int valor_caracter_inicial = 0; // ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿como???????????????
 
 	if ((instancia->estado == ACTIVA) && (instancia->rango_inicio <= valor_caracter_inicial) && (instancia->rango_inicio >= valor_caracter_inicial)) return true;
