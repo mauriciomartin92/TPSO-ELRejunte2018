@@ -69,18 +69,16 @@ t_instancia* algoritmoLSU() {
 bool buscadorDeRango(void* nodo) {
 	t_instancia* instancia = (t_instancia*) nodo;
 
-	char caracter_inicial = tolower(clave_actual[0]);
+	char primer_letra = clave_actual[0];
+	int caracter_inicial = tolower(primer_letra);
 
-	int valor_caracter_inicial = 0; // ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿como???????????????
-
-	if ((instancia->estado == ACTIVA) && (instancia->rango_inicio <= valor_caracter_inicial) && (instancia->rango_inicio >= valor_caracter_inicial)) return true;
-	return false;
+	return ((instancia->estado == ACTIVA) && (instancia->rango_inicio <= caracter_inicial) && (instancia->rango_inicio >= caracter_inicial));
 }
 
 t_instancia* algoritmoKE() {
 	// Distribucion de rangos en las Instancias
-	int letra_inicio = 97; // a
-	int letra_fin = 122; // z
+	int letra_inicio = 'a'; // a
+	int letra_fin = 'z'; // z
 
 	int rango_letras = letra_fin - letra_inicio; // a-z
 	int cant_instancias = list_size(tabla_instancias);
