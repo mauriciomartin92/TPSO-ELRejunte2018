@@ -87,6 +87,7 @@ char * claveParaBloquearRecurso;
 int socketCoordinador;
 extern pthread_mutex_t mutexColaListos;
 extern pthread_mutex_t mutexAsesino;
+extern pthread_mutex_t mutexComunicacion;
 extern bool pausearPlanificacion;
 extern bool matarESI;
 extern int claveMatar;
@@ -114,7 +115,9 @@ typedef struct{ // en la lista de subrecursos: futbol, basquet..
 
 	int estado;
 	char * clave;
+	int operacion;
 	t_queue * ESIEncolados;
+	char * valor;
 
 } t_recurso;
 
@@ -175,5 +178,7 @@ extern void aumentarEspera();
 extern void listarBloqueados(char * clave);
 extern bool encontrarVictima (ESI * esi);
 extern void seekAndDestroyESI(int clave);
+extern void statusClave(char * clave);
+extern void cargarValor(char * clave, char * valor);
 
 #endif /* PLANIFICADOR_H_ */

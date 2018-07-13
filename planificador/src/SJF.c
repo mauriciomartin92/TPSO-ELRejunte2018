@@ -41,6 +41,8 @@ void planificacionSJF(bool desalojo){
 
 				while(pausearPlanificacion){} // ciclo hermoso que pausea la planificacion
 
+
+				pthread_mutex_lock(&mutexComunicacion);
 				send(nuevo->id,&CONTINUAR,sizeof(uint32_t),0);
 				int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
 				int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
@@ -56,10 +58,30 @@ void planificacionSJF(bool desalojo){
 
 				}
 
+
 				permiso = validarPedido(nuevo->recursoPedido,nuevo);
 
 				if(permiso){
 
+					char * valorRecurso;
+					uint32_t tamValor;
+
+					if(operacion == 1){
+
+						int resp = recv (socketCoordinador, &tamValor,sizeof(uint32_t),0);
+						valorRecurso=malloc(sizeof(char)*tamValor);
+						int resp2 =recv (socketCoordinador,valorRecurso,sizeof(char)*tamValor,0);
+
+						if(resp < 0 || resp2 <0){
+
+							log_info(logPlanificador, "conexion con el coordinador rota");
+							exit(-1);
+
+						} else cargarValor(recursoPedido,valorRecurso);
+
+
+					}
+					pthread_mutex_unlock(&mutexComunicacion);
 					char * recursoAUsar = nuevo->recursoPedido;
 
 					if(!recursoEnLista(nuevo)){
@@ -75,6 +97,8 @@ void planificacionSJF(bool desalojo){
 
 					log_info(logPlanificador, " ESI de clave %d entra al planificador", nuevo->id );
 
+					pthread_mutex_lock(&mutexComunicacion);
+
 					send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
 
 					log_info(logPlanificador, " ejecuta una sentencia ");
@@ -86,6 +110,8 @@ void planificacionSJF(bool desalojo){
 
 					uint32_t respuesta ;
 					recv(nuevo->id, &respuesta, sizeof(uint32_t),0);
+
+					pthread_mutex_unlock(&mutexComunicacion);
 
 					if (respuesta != CONTINUAR)
 					{
@@ -119,7 +145,7 @@ void planificacionSJF(bool desalojo){
 
 
 				} else {
-
+					pthread_mutex_unlock(&mutexComunicacion);
 					bloquearESI(nuevo->recursoPedido, nuevo);
 
 				}
@@ -131,7 +157,10 @@ void planificacionSJF(bool desalojo){
 		if(matarESI){
 
 			log_info(logPlanificador, "ESI de clave %d fue matado por consola", nuevo->id);
+			pthread_mutex_lock(&mutexComunicacion);
 			send(socketCoordinador,&FINALIZAR,sizeof(uint32_t),0);
+			send(socketCoordinador,&claveActual,sizeof(claveActual),0);
+			pthread_mutex_unlock(&mutexComunicacion);
 			liberarRecursos(nuevo);
 			ESI_destroy(nuevo);
 

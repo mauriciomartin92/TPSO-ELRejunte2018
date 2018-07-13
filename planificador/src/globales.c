@@ -44,7 +44,7 @@ char* STATUS_ESI = "status_esi";
 char* COMPROBAR_DEADLOCK = "comprobar_deadlock";
 pthread_mutex_t mutexColaListos = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexAsesino = PTHREAD_MUTEX_INITIALIZER;
-
+pthread_mutex_t mutexComunicacion = PTHREAD_MUTEX_INITIALIZER;
 
 ESI* estimarProximaRafaga(ESI * proceso ){
 
@@ -249,9 +249,10 @@ void lanzarConsola(){
 		}
 		else if (string_equals_ignore_case(linea, STATUS_ESI))
 		{
-			//todo funcion explicacion pendiente
+
 			linea = readline("CLAVE:");
-			//Explicacion pendiente
+			statusClave(linea);
+
 			break;
 		}
 		else if (string_equals_ignore_case(linea, COMPROBAR_DEADLOCK))
@@ -297,6 +298,8 @@ ESI * crearESI(uint32_t clave){
 void escucharNuevosESIS(){
 
 	while(1){
+
+		pthread_mutex_lock(&mutexComunicacion);
 		uint32_t socketESINuevo = escucharCliente(logPlanificador,socketDeEscucha);
 		send(socketESINuevo,&socketESINuevo,sizeof(uint32_t),0);
 		ESI * nuevoESI = crearESI(socketESINuevo);
@@ -309,6 +312,7 @@ void escucharNuevosESIS(){
 			armarCola();
 		}
 		pthread_mutex_unlock(&mutexColaListos);
+		pthread_mutex_unlock(&mutexComunicacion);
 
 	}
 }
@@ -319,6 +323,8 @@ t_recurso * crearRecurso (char * id){
 	t_recurso * nuevo = malloc(sizeof(t_recurso));
 	nuevo->estado = 0;
 	nuevo->clave = id;
+	nuevo->operacion = 0;
+	nuevo->valor = string_new();
 	nuevo->ESIEncolados = queue_create();
 	return nuevo;
 }
@@ -334,6 +340,7 @@ void ESI_destroy(ESI * estructura)
 void recursoDestroy(t_recurso * recurso)
 {
 	free(recurso->clave);
+	free(recurso->valor);
 	queue_destroy_and_destroy_elements(recurso->ESIEncolados, (void *) ESI_destroy);
 	free(recurso);
 
@@ -378,8 +385,7 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
 						if( string_equals_ignore_case(recursoAuxiliar->clave,nuevo->clave)){ // caso ESI tiene asignado recurso
 
 							RecursoEncontrado = true;
-							recursoAuxiliar = NULL;
-							nuevo = NULL;
+							nuevo->operacion = ESIValidar->proximaOperacion; //mete si hace set o get
 							retorno = true;
 						}
 
@@ -406,8 +412,8 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
 		if ( encontrado == false){ // caso recurso nuevo
 
 			t_recurso * nuevoRecurso = crearRecurso(recurso);
+			nuevoRecurso -> operacion =  0;
 			list_add(listaRecursos,nuevoRecurso);
-			nuevoRecurso = NULL;
 			retorno = true;
 
 		}
@@ -618,7 +624,7 @@ void seekAndDestroyESI(int clave){
 	ESI * aDestruir = buscarESI(clave);
 
 	if(aDestruir == NULL){
-		printf("esi no encontrado");
+		printf("esi no encontrado \n");
 	} else{
 		liberarRecursos(aDestruir);
 		list_remove_and_destroy_by_condition(listaListos, (void *)encontrarVictima, (void *) ESI_destroy);
@@ -645,4 +651,81 @@ bool encontrarVictima (ESI * esi){
 
 		}
 
+}
+
+void statusClave(char * clave){
+
+	int i = 0;
+	bool encontrado = false;
+
+	while (i < list_size(listaRecursos) && !encontrado){
+
+		t_recurso * recurso= list_get (listaRecursos, i);
+
+		if (string_equals_ignore_case(recurso->clave, clave)){
+
+			if(string_is_empty(recurso->valor)){
+			printf("valor : NO TIENE \n");
+
+		} else printf ("valor : %s \n", recurso->valor);
+
+		pthread_mutex_lock(&mutexComunicacion);
+
+		uint32_t traemeLaClaveCoordi = 4;
+		send(claveActual, &traemeLaClaveCoordi, sizeof(uint32_t),0);
+		send(claveActual, clave, sizeof(clave),0);
+
+		uint32_t tam;
+		char * instancia;
+
+		int resp = recv(socketCoordinador,&tam, sizeof(uint32_t), 0);
+		instancia = malloc(sizeof(char)*tam);
+		int resp2= recv(socketCoordinador, instancia, sizeof(char)*tam,0);
+
+		pthread_mutex_unlock(&mutexComunicacion);
+
+		if (resp < 0 || resp2 <0){
+
+			log_info(logPlanificador, " fallo conexion");
+			exit (-1);
+
+		} else printf(" instancia : %s", instancia);
+
+		free(instancia);
+		listarBloqueados(clave);
+		encontrado = true;
+
+		} else i++;
+
+	}
+	if(!encontrado){
+		printf("la clave no fue encontrada");
+	}
+
+}
+
+
+extern void cargarValor(char* clave, char* valor){
+
+	int i = 0;
+	bool encontrado = false;
+	while(i< list_size(listaRecursos) && !encontrado){
+
+		t_recurso * auxiliar = list_get(listaRecursos, i);
+
+		if(string_equals_ignore_case(auxiliar->clave, clave)){
+
+			string_append(&(auxiliar->valor),valor);
+			encontrado = true;
+		}
+
+		i++;
+
+
+	}
+
+	if(!encontrado){
+
+		log_info(logPlanificador,"no encontro la clave");
+	} else log_info(logPlanificador," encontro la clave y cambio valor");
 }
