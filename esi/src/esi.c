@@ -28,9 +28,14 @@ int socketCoordinador, socketPlanificador;
 FILE *fp;
 uint32_t respuesta;
 
+/* DIALOGO CON COORDINADOR */
 const uint32_t ABORTA_ESI = -1;
 const uint32_t TERMINA_ESI = 0;
 const uint32_t PAQUETE_OK = 1;
+
+/* DIALOGO CON PLANIFICADOR */
+const uint32_t SIGUIENTE_INSTRUCCION = 1;
+const uint32_t PETICION_ESPECIAL = 4;
 
 t_esi_operacion parsearLineaScript(FILE* fp) {
 	char * line = NULL;
@@ -112,10 +117,8 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	while(!feof(fp)) {
 		log_info(logger, "Espero a que el Planificador me ordene parsear una instruccion");
 		recv(socketPlanificador, &orden, sizeof(uint32_t), 0);
-		perror("ERROR");
 
-		//if (orden == SIGUIENTE_INSTRUCCION) {
-		if (orden == 1) {
+		if (orden == SIGUIENTE_INSTRUCCION) {
 			log_info(logger, "El planificador me pide que parsee la siguiente instruccion");
 			// Se parsea la instruccion que se le enviara al coordinador
 			t_esi_operacion instruccion = parsearLineaScript(fp);
@@ -152,6 +155,12 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 				finalizar();
 				return EXIT_FAILURE;
 			}
+		} else if (orden == PETICION_ESPECIAL) {
+			/*
+			 * El planificador me avisa que el Planificador necesita hablar directamente
+			 * con el oordinador, entonces le aviso al Coordinador que lo escuche =)
+			 */
+			send(socketCoordinador, &PETICION_ESPECIAL, sizeof(uint32_t), 0);
 		}
 	}
 
