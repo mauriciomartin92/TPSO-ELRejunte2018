@@ -93,7 +93,7 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 		instruccionMutada->valor = vector_componentes_buffer[2];
 	}
 
-	destruirVectorComponentesBuffer(vector_componentes_buffer);
+	//destruirVectorComponentesBuffer(vector_componentes_buffer);
 
 	return instruccionMutada;
 }
