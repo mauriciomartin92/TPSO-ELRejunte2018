@@ -363,7 +363,7 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
 	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
-	recv(socketCoordinador, paquete, tam_paquete, 0); // MSG_WAITALL
+	recv(socketCoordinador, paquete, tam_paquete, 0);
 	log_info(logger, "Recibi un paquete que me envia el Coordinador");
 
 	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);

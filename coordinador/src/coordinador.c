@@ -60,9 +60,9 @@ t_instancia* algoritmoLSU() {
 	 * la mitad de la lista entonces el ordenamiento es mas optimo
 	 */
 	t_instancia* instancia;
+	int i = 0;
 	do {
-		instancia = list_remove(tabla_instancias, 0);
-		list_add(tabla_instancias, instancia);
+		instancia = list_get(tabla_instancias, i);
 	} while (instancia->estado == INACTIVA);
 	return instancia;
 }
@@ -76,7 +76,10 @@ bool buscadorDeRango(void* nodo) {
 }
 
 t_instancia* algoritmoKE() {
-	// Distribucion de rangos en las Instancias
+	/*
+	 * Distribucion de rangos en las Instancias: esta distribucion la aplico siempre
+	 * ya que puede haber ingresado una nueva Instancia
+	 */
 	int letra_inicio = 'a'; // a
 	int letra_fin = 'z'; // z
 
