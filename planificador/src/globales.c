@@ -299,12 +299,12 @@ void escucharNuevosESIS(){
 
 	while(1){
 
-		pthread_mutex_lock(&mutexComunicacion);
 		uint32_t socketESINuevo = escucharCliente(logPlanificador,socketDeEscucha);
 		send(socketESINuevo,&socketESINuevo,sizeof(uint32_t),0);
 		ESI * nuevoESI = crearESI(socketESINuevo);
 		list_add(listaListos,nuevoESI);
 
+		pthread_mutex_lock(&mutexComunicacion);
 		pthread_mutex_lock(&mutexColaListos); //pongo mutex para que no se actualice la cola mientras agrego un ESI.
 		if(string_equals_ignore_case(algoritmoDePlanificacion,SJF) || string_equals_ignore_case(algoritmoDePlanificacion,SJFConDesalojo)){
 			armarColaListos();
