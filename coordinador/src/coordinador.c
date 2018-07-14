@@ -122,10 +122,10 @@ t_instancia* algoritmoDeDistribucion() {
 	}
 
 	switch (protocolo_distribucion) {
-	case LSU: // LSU
+	case LSU:
 		return algoritmoLSU();
 
-	case KE: // KE
+	case KE:
 		return algoritmoKE();
 
 	default: // Equitative Load
@@ -345,7 +345,7 @@ void atenderInstancia(int socketInstancia) {
 	printf("La cantidad de instancias actual es %d\n", list_size(tabla_instancias));
 }
 
-void* establecerConexion(void* socketCliente) {
+void establecerConexion(void* socketCliente) {
 	log_info(logger, "Cliente conectado");
 
 	/* Aca se utiliza el concepto de handshake.
@@ -371,7 +371,6 @@ void* establecerConexion(void* socketCliente) {
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente");
 	}
-	return NULL;
 }
 
 // Protocolo numerico de ALGORITMO_DISTRIBUCION
@@ -381,7 +380,7 @@ void establecerProtocoloDistribucion() {
 	} else if (strcmp(algoritmo_distribucion, "KE")) {
 		protocolo_distribucion = KE;
 	} else {
-		protocolo_distribucion = EL; // Equitative Load
+		protocolo_distribucion = EL;
 	}
 }
 
@@ -428,7 +427,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
 	 * comunicar distintos tipos de mensajes que emite el S.O. como ser: WARNINGS, ERRORS, INFO.
 	 */
-	logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_INFO);
+	logger = log_create("coordinador.log", "Coordinador", true, LOG_LEVEL_DEBUG);
 	logger_operaciones = log_create("log_operaciones.log", "Log de Operaciones", true, LOG_LEVEL_INFO);
 
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
@@ -445,7 +444,7 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	while (1) { // Infinitamente escucha a la espera de que se conecte alguien
 		int socketCliente = escucharCliente(logger, socketDeEscucha);
 		pthread_t unHilo; // Cada conexion la delega en un hilo
-		pthread_create(&unHilo, NULL, establecerConexion, (void*) &socketCliente);
+		pthread_create(&unHilo, NULL, (void*) establecerConexion, (void*) &socketCliente);
 	}
 
 	return EXIT_SUCCESS;
