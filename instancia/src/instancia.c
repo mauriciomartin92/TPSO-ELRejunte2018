@@ -16,10 +16,18 @@
 #include "instancia.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
+typedef enum {
+	CIRCULAR = 0,
+	LRU = 1,
+	BSU = 3
+} t_reemplazo;
+
 t_log* logger;
 bool error_config;
 char* ip_coordinador;
 char* port_coordinador;
+char* algoritmo_reemplazo;
+t_reemplazo protocolo_reemplazo;
 uint32_t id_instancia;
 int socketCoordinador, intervalo_dump, fd;
 uint32_t cant_entradas, tam_entradas, entradas_libres;
@@ -28,10 +36,12 @@ t_dictionary* dic_entradas;
 char* mapa_archivo;
 char* bloque_instancia;
 
+t_instruccion* instruccion; // es la instruccion actual
+
 struct stat sb;
 
 const uint32_t PAQUETE_OK = 1;
-const int32_t PAQUETE_ERR = -1;
+const int32_t PAQUETE_ERROR = -1;
 
 void imprimirTablaDeEntradas() {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
@@ -42,7 +52,7 @@ void imprimirTablaDeEntradas() {
 	printf("\n");
 }
 
-void operacionStore(char* clave) {
+void operacion_STORE(char* clave) {
 	char* _nombreArchivo;
 	char* _valor;
 	int _archivoClave;
@@ -75,7 +85,7 @@ void operacionStore(char* clave) {
 
 }
 
-void setClaveValor(t_entrada* entrada, char* valor) {
+void operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	double entradas_ocupadas;
 
 	//Verificamos el tamaño de la nueva clave.
@@ -101,28 +111,72 @@ void setClaveValor(t_entrada* entrada, char* valor) {
 	//Actualizamos el diccionario con el nuevo valor para la clave.
 	dictionary_remove(dic_entradas, entrada->clave);
 	dictionary_put(dic_entradas, entrada->clave, (char*) valor);
-
 }
 
-void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
+t_entrada* algoritmoLRU() {
+
+	bool buscadorPuntero(void* nodo) {
+		t_entrada* entrada = (t_entrada*) nodo;
+		return entrada->puntero;
+	}
+
+	return list_find(tabla_entradas, buscadorPuntero);
+}
+
+t_entrada* algoritmoBSU() {
+	return NULL;
+}
+
+t_entrada* algoritmoCircular() {
+	return NULL;
+}
+
+t_entrada* algoritmoDeReemplazo() {
+	switch (protocolo_reemplazo) {
+	case LRU:
+		return algoritmoLRU();
+
+	case BSU:
+		return algoritmoBSU();
+
+	default: // Equitative Load
+		return algoritmoCircular();
+	}
+}
+
+void operacion_SET(t_instruccion* instruccion) {
+	almacenarValorYGenerarTabla(instruccion->clave, instruccion->valor);
+	imprimirTablaDeEntradas();
+}
+
+int validarArgumentosInstruccion(t_instruccion* instruccion) {
+	log_info(logger, "Validando que la instruccion sea ejecutable...");
 	printf("La instruccion recibida es: ");
 	switch (instruccion->operacion) {
-	case 1:
+	case opGET:
 		printf("GET %s\n", instruccion->clave);
+		log_error(logger, "Una Instancia no puede ejecutar GET");
+		//send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+		return -1;
 		break;
 
-	case 2:
+	case opSET:
 		printf("SET %s %s\n", instruccion->clave, instruccion->valor);
 		break;
 
-	case 3:
+	case opSTORE:
 		printf("STORE %s\n", instruccion->clave);
 		break;
 
 	default:
-		log_error(logger, "No comprendo la instruccion.\n");
-		break;
+		log_error(logger, "No comprendo la instruccion, le informo al Coordinador que no se puede ejecutar");
+		//send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+		return -1;
 	}
+
+	log_info(logger, "Le informo al Coordinador que el paquete llego correctamente");
+	//send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0);
+	return 1;
 }
 
 void abrirArchivoInstancia(int* fileDescriptor) {
@@ -130,7 +184,7 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 	 * La syscall open() nos permite abrir un archivo para escritura/lectura
 	 * con permisos de usuario para realizar dichas operaciones.
 	 */
-	*fileDescriptor = open("instancia.txt", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+	*fileDescriptor = open("/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/instancia.txt", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
 	if (*fileDescriptor < 0) {
 		log_error(logger, "Error al abrir el archivo de Instancia");
@@ -140,15 +194,13 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 
 void actualizarMapaMemoria(){
 	//Reescribe el mapa de memoria con los últimos valores y claves en memoria.
-
-
 }
 
 void agregarAlDiccionario(char* key, char* val){
 	dictionary_put(dic_entradas, key, val);
 }
 
-void almacenarValorYGenerarTabla(char* val, char* clave){
+void almacenarValorYGenerarTabla(char* clave, char* val){
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
 	if(strlen(val) <= 100){
@@ -281,9 +333,7 @@ uint32_t obtenerCantidadEntradasLibres(){
 	return cont;
 }
 
-int procesar(t_instruccion* instruccion) {
-	int bandera = 0;
-
+void procesar(t_instruccion* instruccion) {
 	log_info(logger, "Procesando instruccion...");
 
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
@@ -297,84 +347,58 @@ int procesar(t_instruccion* instruccion) {
 
 	// Evaluo como procesar segun las condiciones
 	if (!entrada) { // la entrada no estaba
-		log_warning(logger, "LA CLAVE NO EXISTE EN LA TABLA");
+		log_warning(logger, "La clave no esta registrada en la Tabla de Entradas");
 
-		switch (instruccion->operacion){
-		case 2: //SET de clave ausente
-			//Se agrega la tabla
+		switch (instruccion->operacion) {
+		case opSET: // SET de clave ausente
+			operacion_SET(instruccion);
+			imprimirTablaDeEntradas();
 			break;
-		case 3: //STORE de clave ausente
+		case opSTORE: // STORE de clave ausente
 			log_error(logger, "Intento de STORE para una clave inexistente");
-			bandera = 1;
-			break;
+			break; // no retorna error, solo no hace nada
 		}
-		/*
-		if (instruccion->operacion == 1) {
-			// es GET: crearla
-			log_info(logger, "Creo la clave en la tabla");
-			t_entrada* nueva_entrada = (t_entrada*) malloc(sizeof(t_entrada));
-			nueva_entrada->clave = instruccion->clave;
-			nueva_entrada->entrada_asociada = tabla_entradas->elements_count;
-			nueva_entrada->size_valor_almacenado = strlen(instruccion->clave);
-			list_add(tabla_entradas, nueva_entrada);
-		} else if (instruccion->operacion == 2) {
-			log_error(logger, "Intento de SET a una clave inexistente");
-			bandera = 1;
-		} else {
-			log_error(logger, "Intento de STORE para una clave inexistente");
-			bandera = 1;
-		}*/
 	} else { // la entrada si estaba
-		log_warning(logger, "LA CLAVE EXISTE EN LA TABLA");
+		log_warning(logger, "La clave esta registrada en la Tabla de Entradas");
+
 		switch (instruccion->operacion){
-		case 2: //SET de clave presente.
-			setClaveValor(entrada, instruccion->valor);
+		case opSET: // SET de clave presente.
+			operacion_SET_reemplazo(entrada, instruccion->valor);
+			imprimirTablaDeEntradas();
 			break;
-		case 3: //STORE de clave presente.
-			operacionStore(instruccion->clave);
+		case opSTORE: // STORE de clave presente.
+			operacion_STORE(instruccion->clave);
 			break;
 		}
-		/*if (instruccion->operacion == 1) {
-			// es GET: bloquearla
-			log_info(logger, "Bloqueo la clave");
-		} else if (instruccion->operacion == 2) {
-			// es SET: insertar valor
-			setClaveValor(entrada, instruccion->valor);
-		} else {
-			// es STORE: insertar valor
-			operacionStore(instruccion->clave);
-		}*/
 	}
-	imprimirTablaDeEntradas();
-
-	if(bandera == 0){
-		entradas_libres = obtenerCantidadEntradasLibres();
-		return entradas_libres;
-	}
-
-	return bandera;
-	//log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
-	//send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0); // DEBERIA AVISAR LA CANT_ENTRADAS_LIBRES
 }
 
 t_instruccion* recibirInstruccion(int socketCoordinador) {
 	// Recibo linea de script parseada
-	uint32_t tam_paquete;
+	/*uint32_t tam_paquete;
 	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
 	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
 	recv(socketCoordinador, paquete, tam_paquete, 0);
-	log_info(logger, "Recibi un paquete que me envia el Coordinador");
+	log_info(logger, "Recibi un paquete que me envia el Coordinador");*/
+
+	char* paquete = readline("Instruccion que llega del Coordinador: ");
 
 	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
-	destruirPaquete(paquete);
-
-	imprimirArgumentosInstruccion(instruccion);
-
-	log_info(logger, "Le informo al Coordinador que el paquete llego correctamente");
-	send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0); // Envio respuesta al Coordinador
+	//destruirPaquete(paquete);
 
 	return instruccion;
+}
+
+// Protocolo numerico de ALGORITMO_DISTRIBUCION
+void establecerProtocoloReemplazo() {
+	if (strcmp(algoritmo_reemplazo, "LRU")) {
+		protocolo_reemplazo = LRU;
+	} else if (strcmp(algoritmo_reemplazo, "BSU")) {
+		protocolo_reemplazo = BSU;
+	} else {
+		protocolo_reemplazo = CIRCULAR;
+	}
 }
 
 t_control_configuracion cargarConfiguracion() {
@@ -383,8 +407,11 @@ t_control_configuracion cargarConfiguracion() {
 
 	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
+	algoritmo_reemplazo = obtenerCampoString(logger, config, "ALGORITMO_REEMPLAZO", &error_config);
 	id_instancia = obtenerCampoInt(logger, config, "ID_INSTANCIA", &error_config);
 	intervalo_dump = obtenerCampoInt(logger, config, "INTERVALO_DUMP", &error_config);
+
+	establecerProtocoloReemplazo();
 
 	// Valido si hubo errores
 	if (error_config) {
@@ -408,7 +435,7 @@ int main() {
 	error_config = false;
 
 	// Creo el logger
-	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
+	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_DEBUG);
 
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		log_error(logger, "No se pudo cargar la configuracion");
@@ -436,17 +463,21 @@ int main() {
 	imprimirTablaDeEntradas();
 	printf("Entradas libres: %i\n", obtenerCantidadEntradasLibres());
 
-	//operacionStore("futbol:messi");
-
 	while (1) {
+		log_debug(logger, "CANTIDAD ENTRADAS LIBRES: %d", obtenerCantidadEntradasLibres());
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
-		if (procesar(instruccion) >= 0){
-			log_info(logger, "Le aviso al coordinador que pude procesar correctamente");
-			send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
-		} else {
-			log_error(logger, "Le aviso al coordinador que no pude procesar correctamente");
-			send(socketCoordinador, &PAQUETE_ERR, sizeof(uint32_t), 0);
-			break;
+		if (validarArgumentosInstruccion(instruccion) > 0) {
+			procesar(instruccion);
+			log_info(logger, "Le aviso al coordinador que se proceso la instruccion");
+			entradas_libres = obtenerCantidadEntradasLibres();
+
+			char** para_imprimir = string_split(mapa_archivo, ";");
+			int i = 0;
+			while (para_imprimir[i] != NULL) {
+				printf("%s\n", para_imprimir[i]);
+				i++;
+			}
+			//send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
 		}
 	}
 	finalizar();

@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <readline/readline.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
@@ -37,19 +38,25 @@ typedef struct {
 } __attribute__((packed)) t_entrada;
 
 t_control_configuracion cargarConfiguracion();
+void establecerProtocoloReemplazo();
 void crearAlmacenamiento();
 void generarTablaDeEntradas();
 void agregarAlDiccionario(char* key, char* val);
-void almacenarValorYGenerarTabla(char* val, char* clave);
+void almacenarValorYGenerarTabla(char* clave, char* val);
 void abrirArchivoInstancia(int* fileDescriptor);
 void actualizarMapaMemoria();
 void dumpMemoria();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
-void imprimirArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
-int procesar(t_instruccion* instruccion);
-void setClaveValor(t_entrada* entrada, char* valor);
-void operacionStore(char* clave);
+int validarArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
+void procesar(t_instruccion* instruccion);
+void operacion_SET(t_instruccion* instruccion);
+void operacion_SET_reemplazo(t_entrada* entrada, char* valor);
+void operacion_STORE(char* clave);
+t_entrada* algoritmoDeReemplazo();
+t_entrada* algoritmoCircular();
+t_entrada* algoritmoLRU();
+t_entrada* algoritmoBSU();
 uint32_t obtenerCantidadEntradasLibres();
 bool comparadorDeClaves(void* estructura);
 void finalizar();
