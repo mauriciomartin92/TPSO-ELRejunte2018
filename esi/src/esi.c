@@ -28,12 +28,12 @@ int socketCoordinador, socketPlanificador;
 FILE *fp;
 uint32_t respuesta;
 
-/* DIALOGO CON COORDINADOR */
+/* INFORMES AL PLANIFICADOR */
 const uint32_t ABORTA_ESI = -1;
 const uint32_t TERMINA_ESI = 0;
 const uint32_t PAQUETE_OK = 1;
 
-/* DIALOGO CON PLANIFICADOR */
+/* PEDIDOS DEL PLANIFICADOR */
 const uint32_t SIGUIENTE_INSTRUCCION = 1;
 const uint32_t PETICION_ESPECIAL = 4;
 
@@ -137,15 +137,15 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 
 			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
 
-			if (feof(fp)) {
-				log_info(logger, "El Coordinador informa el resultado de la instruccion");
-				log_warning(logger, "Le aviso al Planificador que no tengo mas instrucciones para ejecutar");
-				send(socketPlanificador, &TERMINA_ESI, sizeof(uint32_t), 0);
-				break;
-			}
-
 			if (respuesta == PAQUETE_OK) {
 				log_info(logger, "El Coordinador informa que la instruccion se proceso satisfactoriamente");
+
+				if (feof(fp)) {
+					log_warning(logger, "Le aviso al Planificador que no tengo mas instrucciones para ejecutar");
+					send(socketPlanificador, &TERMINA_ESI, sizeof(uint32_t), 0);
+					break;
+				}
+
 				log_info(logger, "Le aviso al Planificador que la instruccion pudo ser procesada");
 				send(socketPlanificador, &PAQUETE_OK, sizeof(uint32_t), 0);
 			} else {
