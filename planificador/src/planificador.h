@@ -180,5 +180,6 @@ extern bool encontrarVictima (ESI * esi);
 extern void seekAndDestroyESI(int clave);
 extern void statusClave(char * clave);
 extern void cargarValor(char * clave, char * valor);
+bool buscarEnBloqueados(int id);
 
 #endif /* PLANIFICADOR_H_ */

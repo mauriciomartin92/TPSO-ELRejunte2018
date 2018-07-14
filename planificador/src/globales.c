@@ -525,6 +525,7 @@ void liberarRecursos(ESI * esi){
 		i++;
 	}
 
+	list_clean(esi->recursosAsignado);
 
 }
 
@@ -624,7 +625,15 @@ void seekAndDestroyESI(int clave){
 	ESI * aDestruir = buscarESI(clave);
 
 	if(aDestruir == NULL){
-		printf("esi no encontrado \n");
+
+		bool estaEnBloqueados = buscarEnBloqueados(clave);
+
+		if(estaEnBloqueados == false){
+
+			printf("No existe tal ESI \n");
+
+		} else printf("ESI muerto \n");
+
 	} else{
 		liberarRecursos(aDestruir);
 		list_remove_and_destroy_by_condition(listaListos, (void *)encontrarVictima, (void *) ESI_destroy);
@@ -689,7 +698,7 @@ void statusClave(char * clave){
 			log_info(logPlanificador, " fallo conexion");
 			exit (-1);
 
-		} else printf(" instancia : %s", instancia);
+		} else printf(" instancia : %s \n", instancia);
 
 		free(instancia);
 		listarBloqueados(clave);
@@ -699,7 +708,7 @@ void statusClave(char * clave){
 
 	}
 	if(!encontrado){
-		printf("la clave no fue encontrada");
+		printf("la clave no fue encontrada \n");
 	}
 
 }
@@ -728,4 +737,61 @@ extern void cargarValor(char* clave, char* valor){
 
 		log_info(logPlanificador,"no encontro la clave");
 	} else log_info(logPlanificador," encontro la clave y cambio valor");
+}
+
+bool buscarEnBloqueados (int clave){
+
+	int i = 0;
+	bool encontrado = false;
+
+
+	while (list_size( listaRecursos) > i && !encontrado){
+
+		t_recurso * recu = list_get(listaRecursos, i);
+
+		int r = 0;
+
+		t_queue * cola = recu->ESIEncolados; // la cola esta apuntando a los bloqueados
+
+		while(queue_size(recu->ESIEncolados)> r && !encontrado){
+
+			ESI * aux = queue_pop(cola); // avanza entre bloqueados
+
+			if(aux->id == clave){ // si encuentra, libera recursos y destruye al ESI
+				encontrado = true;
+				liberarRecursos(aux);
+				ESI_destroy(aux);
+				claveMatar=-1;
+			}
+
+			r++;
+
+		} // pero al encontrarlo, la cola original queda con un hueco que generara fallas mas adelante
+
+		if(encontrado){ // entonces si fue encontrado
+
+			int t = 0;
+
+			t_queue * colaNueva = queue_create(); //creo una cola nueva
+
+			while(queue_size(recu->ESIEncolados)>t ){
+
+				ESI * esiComprobar = queue_pop(recu->ESIEncolados); // voy sacando de a uno de la original
+
+				if(esiComprobar != NULL){ //si es diferente de NULL
+
+					queue_push(colaNueva,esiComprobar); // lo meto en la cola nueva
+				} // si no, no hago nada
+
+			}
+
+			recu->ESIEncolados = colaNueva; // ahora la original apunta a la nueva, que no tiene el hueco.
+			queue_destroy(colaNueva); //destruyo la cola nueva pero no los elementos
+		} // cuanto mas facil hubiese sido con una lista..-
+		i++;
+
+	}
+
+
+	return encontrado;
 }
