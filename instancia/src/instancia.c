@@ -139,7 +139,7 @@ t_entrada* algoritmoDeReemplazo() {
 	case BSU:
 		return algoritmoBSU();
 
-	default: // Equitative Load
+	default: // Circular
 		return algoritmoCircular();
 	}
 }
