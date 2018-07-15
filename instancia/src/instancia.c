@@ -66,8 +66,9 @@ int operacion_STORE(char* clave) {
 	// Busco la clave en la tabla usando la funcion magica
 	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
 
-	_valor = string_new();
+	_valor = malloc(sizeof(char) * tam_entradas);
 	strncpy(_valor, bloque_instancia+entrada->entrada_asociada, entrada->size_valor_almacenado);
+	_valor[entrada->size_valor_almacenado] = '\0';
 	_nombreArchivo = clave;
 
 	//MANEJO DE ERRORES!
@@ -189,18 +190,18 @@ t_entrada* algoritmoDeReemplazo() {
 }
 
 int operacion_SET(t_instruccion* instruccion) {
-	double entradas_a_ocupar = ceilf((float) strlen(instruccion->valor) / (float)tam_entradas);
+	int entradas_a_ocupar = (int) ceilf((float) strlen(instruccion->valor) / (float)tam_entradas);
 	t_entrada* entrada_a_reemplazar = NULL;
-	log_info(logger, "El valor a almacenar requiere %d entradas", entradas_a_ocupar);
+	log_info(logger, "El valor a almacenar requiere %i entradas", entradas_a_ocupar);
 
 	if(entradas_a_ocupar <= entradas_libres){
 		//Entonces, pregunto si hay entradas libres y contigüas.
 		log_info(logger, "Hay %d entradas libres para almacenar el valor", entradas_a_ocupar);
-		if(hayEntradasContiguas(entradas_a_ocupar) >= 0){
+		if (hayEntradasContiguas(entradas_a_ocupar) >= 0){
 			log_info(logger, "Hay %d entradas contiguas", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
-			compactarAlmacenamiento();
+			//compactarAlmacenamiento();
 			log_info(logger, "Se ha compactado el almacenamiento");
 		}
 	} else {
@@ -233,6 +234,7 @@ int operacion_SET(t_instruccion* instruccion) {
 	escribirEntrada(entrada, instruccion->valor);
 	log_info(logger, "Se ha escrito la entrada");
 	//Actualizamos el diccionario con el nuevo valor para la clave.
+	log_debug(logger, "La clave es: %s", instruccion->valor);
 	dictionary_put(dic_entradas, instruccion->clave, instruccion->valor);
 	actualizarCantidadEntradasLibres();
 	puntero_circular = entrada->entrada_asociada;
@@ -242,6 +244,7 @@ int operacion_SET(t_instruccion* instruccion) {
 
 int validarArgumentosInstruccion(t_instruccion* instruccion) {
 	log_info(logger, "Validando que la instruccion sea ejecutable...");
+
 	printf("La instruccion recibida es: ");
 	switch (instruccion->operacion) {
 	case opGET:
@@ -285,23 +288,27 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 
 void actualizarMapaMemoria(){
 	//Reescribe el mapa de memoria con los últimos valores y claves en memoria.
-	char* valor;
-	void guardarValoresEnMap(void* entrada){
-		t_entrada* entrada_en_tabla = (t_entrada*) entrada;
+	void guardarValoresEnMap(void* nodo){
+
+		perror("Error");
+
+		t_entrada* entrada_en_tabla = (t_entrada*) nodo;
 		char* entrada_a_map = string_new();
-		char* clave;
+		char* valor = (char*) dictionary_get(dic_entradas, entrada_en_tabla->clave);
+		log_debug(logger, "%s", valor);
 
-		clave = entrada_en_tabla->clave;
-		valor = (char*) dictionary_get(dic_entradas, clave);
-
-		string_append(&entrada_a_map, clave);
+		string_append(&entrada_a_map, entrada_en_tabla->clave);
 		string_append(&entrada_a_map, "-");
 		string_append(&entrada_a_map, valor);
 		string_append(&entrada_a_map, ";");
+		string_append(&entrada_a_map, "\0");
 
-		for (int i = 0; i < string_length(entrada_a_map); ++i){
+		perror("Error");
+
+		for (int i = 0; i < string_length(entrada_a_map); i++){
 			mapa_archivo[i] = entrada_a_map[i];
 		}
+		perror("Error");
 	}
 
 	list_iterate(tabla_entradas, guardarValoresEnMap);
@@ -557,7 +564,7 @@ void establecerProtocoloReemplazo() {
 
 t_control_configuracion cargarConfiguracion() {
 	// Importo los datos del archivo de configuracion
-	t_config* config = conectarAlArchivo(logger, "/home/julian/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg", &error_config);
+	t_config* config = conectarAlArchivo(logger, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/config_instancia.cfg", &error_config);
 
 	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
@@ -619,6 +626,8 @@ int main() {
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
 	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
+
+	actualizarCantidadEntradasLibres();
 
 	while (1) {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);

@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <readline/readline.h>
+#include <errno.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
