@@ -378,8 +378,19 @@ void generarTablaDeEntradas() {
 	printf("Lista size: %i\n", list_size(tabla_entradas));
 }
 
-bool hayEntradasContiguas(){
-
+bool hayEntradasContiguas(int entradas_necesarias){
+	int contador = 0;
+	for (int i = 0; i < tam_entradas * cant_entradas; i = i + tam_entradas){
+		if(bloque_instancia[i] == '0'){
+			contador++;
+			if(contador == entradas_necesarias){
+				return true;
+			}
+		} else {
+			contador = 0;
+		}
+	}
+	return false;
 }
 
 uint32_t obtenerCantidadEntradasLibres(){
