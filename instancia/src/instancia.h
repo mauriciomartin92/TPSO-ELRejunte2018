@@ -35,6 +35,7 @@
 
 typedef struct {
 	char* clave;
+	char* valor;
 	int entrada_asociada;
 	int size_valor_almacenado;
 	int entradas_ocupadas;
@@ -45,8 +46,7 @@ t_control_configuracion cargarConfiguracion();
 void establecerProtocoloReemplazo();
 void crearAlmacenamiento();
 void generarTablaDeEntradas();
-void agregarAlDiccionario(char* key, char* val);
-void almacenarValorYGenerarTabla(char* clave, char* val);
+void almacenarValorYGenerarTabla(char* clave, char* valor);
 void abrirArchivoInstancia(int* fileDescriptor);
 void actualizarMapaMemoria();
 void compactarAlmacenamiento();
@@ -54,6 +54,7 @@ void dumpMemoria();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 int hayEntradasContiguas();
+void escribirEntrada(t_entrada* entrada);
 void liberarEntrada(t_entrada* entrada);
 int validarArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 int procesar(t_instruccion* instruccion);
