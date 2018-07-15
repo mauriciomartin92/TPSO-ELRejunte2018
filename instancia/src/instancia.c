@@ -290,11 +290,25 @@ void almacenarValorYGenerarTabla(char* clave, char* val){
 			break;
 		}
 	}
-
 }
 
-void compactarAlmacenamiento(){
-
+void compactarAlmacenamiento() {
+	log_debug(logger, "Se inicia la compactacion");
+	for(int x = 0; x < cant_entradas * tam_entradas; x = x + tam_entradas) {
+		if (bloque_instancia[x] == '0') {
+			for(int y = x + tam_entradas; x < cant_entradas * tam_entradas; y = y + tam_entradas) {
+				if (bloque_instancia[y] != '0') {
+					log_debug(logger, "Encontre %d entradas libres", y - x);
+					log_debug(logger, "Corro todos los valores posteriores hacia atras");
+					int pos_reemplazo = x;
+					for(int z = y; z < cant_entradas * tam_entradas; z++) {
+						strncpy(bloque_instancia[pos_reemplazo], bloque_instancia[z], sizeof(char));
+					}
+				}
+			}
+		}
+	}
+	log_debug(logger, "Se corrieron todas las entradas");
 }
 
 void dumpMemoria(){
@@ -315,12 +329,11 @@ void dumpMemoria(){
 	dictionary_iterator(dic_entradas, obtenerClaves); // TODO: el parametro val deberia ser un void*
 }
 
-void* dumpAutomatico(){
+void* dumpAutomatico() {
 	while(1){
 		sleep(intervalo_dump);
 		dumpMemoria();
 	}
-
 	return NULL;
 }
 
@@ -391,7 +404,6 @@ void generarTablaDeEntradas() {
 				contador = i + 1;
 			}
 		}
-
 	} else {
 		log_info(logger, "El archivo fue creado y está vacío");
 	}
@@ -573,7 +585,6 @@ int main() {
 				while (para_imprimir[i] != NULL) {
 					printf("%s\n", para_imprimir[i]);
 					i++;
-
 				}
 				//send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
 			} else {
