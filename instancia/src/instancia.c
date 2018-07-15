@@ -188,7 +188,7 @@ int operacion_SET(t_instruccion* instruccion) {
 	if(entradas_a_ocupar <= entradas_libres){
 		//Entonces, pregunto si hay entradas libres y contigüas.
 		log_info(logger, "Hay %d entradas libres para almacenar el valor", entradas_a_ocupar);
-		if(hayEntradasContiguas(entradas_a_ocupar)){
+		if(hayEntradasContiguas(entradas_a_ocupar) > 0){
 			log_info(logger, "Hay %d entradas contiguas", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
@@ -201,7 +201,7 @@ int operacion_SET(t_instruccion* instruccion) {
 		t_entrada* entrada = algoritmoDeReemplazo(entradas_a_ocupar);
 		//Libero la entrada a reemplazar
 		//Entonces, pregunto si hay entradas libres y contiguas.
-		if(hayEntradasContiguas(entradas_a_ocupar)){
+		if(hayEntradasContiguas(entradas_a_ocupar) > 0){
 			log_info(logger, "Hay %d entradas libres y contiguas para almacenar el valor", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
@@ -429,7 +429,7 @@ int hayEntradasContiguas(int entradas_necesarias){
 			primer_entrada = 0;
 		}
 	}
-	if(contador < entradas_necesarias) return 0;
+	return 0;
 }
 
 void actualizarCantidadEntradasLibres(){
