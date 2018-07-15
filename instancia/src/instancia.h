@@ -52,7 +52,7 @@ void compactarAlmacenamiento();
 void dumpMemoria();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
-bool hayEntradasContiguas();
+int hayEntradasContiguas();
 int validarArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 int procesar(t_instruccion* instruccion);
 int operacion_SET(t_instruccion* instruccion);
@@ -65,7 +65,7 @@ t_entrada* algoritmoLRU();
 bool masTiempoReferenciada(void* nodo1, void* nodo2);
 t_entrada* algoritmoBSU();
 bool mayorValorAlmacenado(void* nodo1, void* nodo2);
-uint32_t obtenerCantidadEntradasLibres();
+void actualizarCantidadEntradasLibres();
 bool comparadorDeClaves(void* estructura);
 void finalizar();
 
