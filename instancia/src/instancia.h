@@ -12,6 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -35,6 +36,7 @@ typedef struct {
 	char* clave;
 	int entrada_asociada;
 	int size_valor_almacenado;
+	int entradas_ocupadas;
 } __attribute__((packed)) t_entrada;
 
 t_control_configuracion cargarConfiguracion();
@@ -45,14 +47,16 @@ void agregarAlDiccionario(char* key, char* val);
 void almacenarValorYGenerarTabla(char* clave, char* val);
 void abrirArchivoInstancia(int* fileDescriptor);
 void actualizarMapaMemoria();
+void compactarAlmacenamiento();
 void dumpMemoria();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
+bool hayEntradasContiguas();
 int validarArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
-void procesar(t_instruccion* instruccion);
-void operacion_SET(t_instruccion* instruccion);
-void operacion_SET_reemplazo(t_entrada* entrada, char* valor);
-void operacion_STORE(char* clave);
+int procesar(t_instruccion* instruccion);
+int operacion_SET(t_instruccion* instruccion);
+int operacion_SET_reemplazo(t_entrada* entrada, char* valor);
+int operacion_STORE(char* clave);
 t_entrada* algoritmoDeReemplazo();
 t_entrada* algoritmoCircular();
 t_entrada* algoritmoLRU();
