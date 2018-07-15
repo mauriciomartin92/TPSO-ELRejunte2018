@@ -380,7 +380,6 @@ void generarTablaDeEntradas() {
 
 bool hayEntradasContiguas(){
 
-
 }
 
 uint32_t obtenerCantidadEntradasLibres(){
