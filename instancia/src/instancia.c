@@ -80,18 +80,20 @@ int operacion_STORE(char* clave) {
 		} else{
 			//MANEJO DE ERRORES!
 			log_error(logger, "No se persistió la clave-valor");
-			perror("error:");
+			perror("Error:");
 			close(_archivoClave);
 			return -1;
 		}
+	} else {
+		log_error(logger, "No se pudo abrir el archivo");
+		perror("Error:");
+		return -1;
 	}
-
 }
 
 int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	double entradas_a_ocupar = ceilf((float) entrada->size_valor_almacenado / (float)tam_entradas);
 	int entradas_ocupadas = dictionary_get(dic_entradas, entrada->entradas_ocupadas);
-	int entradas_extra;
 
 	//Verificamos el tamaño del nuevo valor.
 	if(entradas_a_ocupar <= entradas_ocupadas){
@@ -112,7 +114,7 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	}
 		 /*}
 		//Ocupa más que el valor anterior.
-		entradas_extra = entradas_a_ocupar - entradas_ocupadas;
+		int entradas_extra = entradas_a_ocupar - entradas_ocupadas;
 		//Libero el valor a reemplazar
 		if(entradas_extra <= entradas_libres){
 			//Entonces, pregunto si hay entradas libres y contigüas.
@@ -184,11 +186,13 @@ t_entrada* algoritmoDeReemplazo() {
 
 int operacion_SET(t_instruccion* instruccion) {
 	double entradas_a_ocupar = ceilf((float) strlen(instruccion->valor) / (float)tam_entradas);
+	t_entrada* entrada_a_reemplazar = NULL;
 	log_info(logger, "El valor a almacenar requiere %d entradas", entradas_a_ocupar);
+
 	if(entradas_a_ocupar <= entradas_libres){
 		//Entonces, pregunto si hay entradas libres y contigüas.
 		log_info(logger, "Hay %d entradas libres para almacenar el valor", entradas_a_ocupar);
-		if(hayEntradasContiguas(entradas_a_ocupar) > 0){
+		if(hayEntradasContiguas(entradas_a_ocupar) >= 0){
 			log_info(logger, "Hay %d entradas contiguas", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
@@ -198,10 +202,10 @@ int operacion_SET(t_instruccion* instruccion) {
 	} else {
 		//Devuelve la entrada a reemplazar
 		log_info(logger, "No hay %d entradas para almacenar el valor, aplico algoritmo %s", entradas_a_ocupar, algoritmo_reemplazo);
-		t_entrada* entrada = algoritmoDeReemplazo(entradas_a_ocupar);
+		entrada_a_reemplazar = algoritmoDeReemplazo(entradas_a_ocupar);
 		//Libero la entrada a reemplazar
 		//Entonces, pregunto si hay entradas libres y contiguas.
-		if(hayEntradasContiguas(entradas_a_ocupar) > 0){
+		if(hayEntradasContiguas(entradas_a_ocupar) >= 0){
 			log_info(logger, "Hay %d entradas libres y contiguas para almacenar el valor", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
@@ -209,17 +213,27 @@ int operacion_SET(t_instruccion* instruccion) {
 			log_info(logger, "Se ha compactado el almacenamiento");
 		}
 	}
+
+	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
+	entrada->clave = instruccion->clave;
+	entrada->size_valor_almacenado = strlen(instruccion->valor);
+	entrada->entradas_ocupadas = entradas_a_ocupar;
+	entrada->ultima_referencia = 0;
+
+	if (!entrada_a_reemplazar) {
+		entrada->entrada_asociada = hayEntradasContiguas(entradas_a_ocupar);
+	} else {
+		liberarEntrada(entrada_a_reemplazar);
+		entrada->entrada_asociada = entrada_a_reemplazar->entrada_asociada;
+	}
 	//Escribo
 	log_info(logger, "Se ha escrito la entrada");
 	//Actualizamos el diccionario con el nuevo valor para la clave.
 	dictionary_put(dic_entradas, instruccion->clave, instruccion->valor);
 	actualizarMapaMemoria();
 	actualizarCantidadEntradasLibres();
-	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
-	entrada->clave = instruccion->clave;
-	entrada->entradas_ocupadas = entradas_a_ocupar;
-	entrada->size_valor_almacenado = strlen(instruccion->valor);
-	entrada->ultima_referencia = 0;
+
+	list_add(tabla_entradas, entrada);
 	return 1;
 }
 
@@ -294,9 +308,9 @@ void almacenarValorYGenerarTabla(char* clave, char* val){
 
 void compactarAlmacenamiento() {
 	log_debug(logger, "Se inicia la compactacion");
-	for(int x = 0; x < cant_entradas * tam_entradas; x = x + tam_entradas) {
+	for(int x = 0; x < cant_entradas * tam_entradas; x += tam_entradas) {
 		if (bloque_instancia[x] == '0') {
-			for(int y = x + tam_entradas; x < cant_entradas * tam_entradas; y = y + tam_entradas) {
+			for(int y = x + tam_entradas; x < cant_entradas * tam_entradas; y += tam_entradas) {
 				if (bloque_instancia[y] != '0') {
 					log_debug(logger, "Encontre %d entradas libres", y - x);
 					log_debug(logger, "Corro todos los valores posteriores hacia atras");
@@ -341,7 +355,6 @@ void generarTablaDeEntradas() {
 	int contador;
 	char* una_entrada;
 	char** vec_clave_valor;
-
 
 	log_info(logger, "Cargo la Tabla de Entradas con lo que esta en el disco");
 
@@ -429,7 +442,7 @@ int hayEntradasContiguas(int entradas_necesarias){
 			primer_entrada = 0;
 		}
 	}
-	return 0;
+	return -1;
 }
 
 void actualizarCantidadEntradasLibres(){
@@ -464,7 +477,6 @@ int procesar(t_instruccion* instruccion) {
 		switch (instruccion->operacion) {
 		case opSET: // SET de clave ausente
 			return operacion_SET(instruccion);
-			break;
 		case opSTORE: // STORE de clave ausente
 			log_error(logger, "Intento de STORE para una clave inexistente");
 			return 1;
@@ -479,6 +491,7 @@ int procesar(t_instruccion* instruccion) {
 			return operacion_STORE(instruccion->clave);
 		}
 	}
+	return -1;
 }
 
 t_instruccion* recibirInstruccion(int socketCoordinador) {

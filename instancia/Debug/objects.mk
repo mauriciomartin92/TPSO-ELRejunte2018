@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lcommons -lreadline -lm -lbiblioteca-El-Rejunte
+LIBS := -lcommons -lpthread -lreadline -lm -lbiblioteca-El-Rejunte
 
