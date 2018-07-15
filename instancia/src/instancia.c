@@ -100,9 +100,12 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 		dictionary_remove(dic_entradas, entrada->clave);
 		dictionary_put(dic_entradas, entrada->clave, (char*) valor);
 		actualizarMapaMemoria();
-		entradas_libres = obtenerCantidadEntradasLibres();
+		actualizarCantidadEntradasLibres();
+		entrada->entradas_ocupadas = entradas_a_ocupar;
+		entrada->size_valor_almacenado = strlen(valor);
+		entrada->ultima_referencia++;
 		return 1;
-		log_info(logger, "Se reemplazó el valor de la clave");
+		log_info(logger, "Se reemplazo el valor de la clave %s", entrada->clave);
 	} else {
 		log_error(logger, "El valor a registrar supera la cantidad actual de entradas ocupadas por la clave");
 		return -1;
@@ -211,7 +214,12 @@ int operacion_SET(t_instruccion* instruccion) {
 	//Actualizamos el diccionario con el nuevo valor para la clave.
 	dictionary_put(dic_entradas, instruccion->clave, instruccion->valor);
 	actualizarMapaMemoria();
-	entradas_libres = obtenerCantidadEntradasLibres();
+	actualizarCantidadEntradasLibres();
+	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
+	entrada->clave = instruccion->clave;
+	entrada->entradas_ocupadas = entradas_a_ocupar;
+	entrada->size_valor_almacenado = strlen(instruccion->valor);
+	entrada->ultima_referencia = 0;
 	return 1;
 }
 
@@ -391,22 +399,28 @@ void generarTablaDeEntradas() {
 	printf("Lista size: %i\n", list_size(tabla_entradas));
 }
 
-bool hayEntradasContiguas(int entradas_necesarias){
+int hayEntradasContiguas(int entradas_necesarias){
 	int contador = 0;
+	int primer_entrada;
+
 	for (int i = 0; i < tam_entradas * cant_entradas; i = i + tam_entradas){
 		if(bloque_instancia[i] == '0'){
 			contador++;
+			if(contador == 1){
+				primer_entrada = i;
+			}
 			if(contador == entradas_necesarias){
-				return true;
+				return primer_entrada;
 			}
 		} else {
 			contador = 0;
+			primer_entrada = 0;
 		}
 	}
-	return false;
+	if(contador < entradas_necesarias) return 0;
 }
 
-uint32_t obtenerCantidadEntradasLibres(){
+void actualizarCantidadEntradasLibres(){
 	int cont = 0;
 
 	// Recorre el almacenamiento por cada entrada, preguntando si el primer valor en c/u es nulo.
@@ -416,7 +430,7 @@ uint32_t obtenerCantidadEntradasLibres(){
 		}
 	}
 
-	return cont;
+	entradas_libres = cont;
 }
 
 int procesar(t_instruccion* instruccion) {
