@@ -317,7 +317,7 @@ void atenderInstancia(int socketInstancia) {
 	log_info(logger, "Es la Instancia %d", instancia_ID);
 
 	log_info(logger, "Busco si ya fue creada en la Tabla de Instancias");
-	//t_instancia* instancia = list_find(tabla_instancias, existeID);
+	//t_instancia* instancia = list_find(tabla_instancias, existeID); // TODO
 	t_instancia* instancia = NULL; // no va
 	if (instancia) {
 		log_info(logger, "La Instancia %d ya existia, la pongo ACTIVA", instancia_ID);
