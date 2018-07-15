@@ -150,6 +150,11 @@ t_entrada* algoritmoBSU() {
 	return list_get(tabla_entradas, 0);
 }
 
+void incrementarUltimasReferencias(void* nodo) {
+	t_entrada* entrada = (t_entrada) * nodo;
+	entrada->ultima_referencia++;
+}
+
 t_entrada* algoritmoLRU() {
 	bool masTiempoReferenciada(void* nodo1, void* nodo2) {
 		t_entrada* entrada1 = (t_entrada*) nodo1;
@@ -314,9 +319,11 @@ void compactarAlmacenamiento() {
 					log_debug(logger, "Encontre %d entradas libres", y - x);
 					log_debug(logger, "Corro todos los valores posteriores hacia atras");
 					int pos_reemplazo = x;
+					char* porcion = string_new();
 					for(int z = y; z < cant_entradas * tam_entradas; z++) {
-						strncpy(bloque_instancia[pos_reemplazo], bloque_instancia[z], sizeof(char));
+						string_append_with_format(&porcion, "%c", bloque_instancia[z]);
 					}
+					strncpy(bloque_instancia[pos_reemplazo], porcion, strlen(porcion));
 				}
 			}
 		}
@@ -587,10 +594,12 @@ int main() {
 	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
 
 	while (1) {
-		log_debug(logger, "CANTIDAD ENTRADAS LIBRES: %d", entradas_libres);
+		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (validarArgumentosInstruccion(instruccion) > 0) {
 			if(procesar(instruccion) > 0){
+				list_iterate(tabla_entradas, incrementarUltimasReferencias());
+
 				log_info(logger, "Le aviso al Coordinador que se proceso la instruccion");
 				char** para_imprimir = string_split(mapa_archivo, ";");
 				int i = 0;
