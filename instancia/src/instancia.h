@@ -37,6 +37,7 @@ typedef struct {
 	int entrada_asociada;
 	int size_valor_almacenado;
 	int entradas_ocupadas;
+	int ultima_referencia;
 } __attribute__((packed)) t_entrada;
 
 t_control_configuracion cargarConfiguracion();
@@ -59,8 +60,11 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor);
 int operacion_STORE(char* clave);
 t_entrada* algoritmoDeReemplazo();
 t_entrada* algoritmoCircular();
+bool buscadorEntradaConPuntero();
 t_entrada* algoritmoLRU();
+bool masTiempoReferenciada(void* nodo1, void* nodo2);
 t_entrada* algoritmoBSU();
+bool mayorValorAlmacenado(void* nodo1, void* nodo2);
 uint32_t obtenerCantidadEntradasLibres();
 bool comparadorDeClaves(void* estructura);
 void finalizar();

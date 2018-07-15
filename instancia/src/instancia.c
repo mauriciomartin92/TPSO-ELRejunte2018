@@ -35,7 +35,7 @@ t_list* tabla_entradas;
 t_dictionary* dic_entradas;
 char* mapa_archivo;
 char* bloque_instancia;
-
+int puntero_circular;
 t_instruccion* instruccion; // es la instruccion actual
 
 struct stat sb;
@@ -135,22 +135,35 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	//Actualizamos el diccionario con el nuevo valor para la clave.
 }
 
-t_entrada* algoritmoLRU() {
-
-	bool buscadorPuntero(void* nodo) {
-		t_entrada* entrada = (t_entrada*) nodo;
-		return true;
+t_entrada* algoritmoBSU() {
+	bool mayorValorAlmacenado(void* nodo1, void* nodo2) {
+		t_entrada* entrada1 = (t_entrada*) nodo1;
+		t_entrada* entrada2 = (t_entrada*) nodo2;
+		return entrada1->size_valor_almacenado > entrada2->size_valor_almacenado;
 	}
 
-	return list_find(tabla_entradas, buscadorPuntero);
+	list_sort(tabla_entradas, mayorValorAlmacenado);
+	return list_get(tabla_entradas, 0);
 }
 
-t_entrada* algoritmoBSU() {
-	return NULL;
+t_entrada* algoritmoLRU() {
+	bool masTiempoReferenciada(void* nodo1, void* nodo2) {
+		t_entrada* entrada1 = (t_entrada*) nodo1;
+		t_entrada* entrada2 = (t_entrada*) nodo2;
+		return entrada1->ultima_referencia > entrada2->ultima_referencia;
+	}
+
+	list_sort(tabla_entradas, masTiempoReferenciada);
+	return list_get(tabla_entradas, 0);
 }
 
 t_entrada* algoritmoCircular() {
-	return NULL;
+	bool buscadorEntradaConPuntero(void* nodo) {
+		t_entrada* entrada = (t_entrada*) nodo;
+		return (puntero_circular == entrada->entrada_asociada);
+	}
+
+	return list_find(tabla_entradas, buscadorEntradaConPuntero);
 }
 
 t_entrada* algoritmoDeReemplazo() {
