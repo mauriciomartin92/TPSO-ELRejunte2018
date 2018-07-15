@@ -74,6 +74,7 @@ int operacion_STORE(char* clave) {
 	if((_archivoClave = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) > 0){
 		if ((int)write(_archivoClave, _valor, string_length(_valor)) > 0) {
 			//SE ESCRIBIÓ PERSISTIÓ LA CLAVE
+			actualizarMapaMemoria();
 			log_info(logger, "Se persistió la clave-valor");
 			close(_archivoClave);
 			return 1;
@@ -97,10 +98,9 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	//Verificamos el tamaño del nuevo valor.
 	if(entradas_a_ocupar <= entrada->entradas_ocupadas){
 		//Ocupa lo mismo que el valor anterior.
-		strncpy(bloque_instancia+entrada->entrada_asociada, valor, entrada->entradas_ocupadas*tam_entradas);
+		escribirEntrada(entrada, valor);
 		dictionary_remove(dic_entradas, entrada->clave);
 		dictionary_put(dic_entradas, entrada->clave, (char*) valor);
-		actualizarMapaMemoria();
 		actualizarCantidadEntradasLibres();
 		entrada->entradas_ocupadas = entradas_a_ocupar;
 		entrada->size_valor_almacenado = strlen(valor);
@@ -151,7 +151,7 @@ t_entrada* algoritmoBSU() {
 }
 
 void incrementarUltimasReferencias(void* nodo) {
-	t_entrada* entrada = (t_entrada) * nodo;
+	t_entrada* entrada = (t_entrada*) nodo;
 	entrada->ultima_referencia++;
 }
 
@@ -230,13 +230,12 @@ int operacion_SET(t_instruccion* instruccion) {
 		liberarEntrada(entrada_a_reemplazar);
 		entrada->entrada_asociada = entrada_a_reemplazar->entrada_asociada;
 	}
-	//Escribo
+	escribirEntrada(entrada, instruccion->valor);
 	log_info(logger, "Se ha escrito la entrada");
 	//Actualizamos el diccionario con el nuevo valor para la clave.
 	dictionary_put(dic_entradas, instruccion->clave, instruccion->valor);
-	actualizarMapaMemoria();
 	actualizarCantidadEntradasLibres();
-
+	puntero_circular = entrada->entrada_asociada;
 	list_add(tabla_entradas, entrada);
 	return 1;
 }
@@ -286,6 +285,26 @@ void abrirArchivoInstancia(int* fileDescriptor) {
 
 void actualizarMapaMemoria(){
 	//Reescribe el mapa de memoria con los últimos valores y claves en memoria.
+	char* valor;
+	void guardarValoresEnMap(void* entrada){
+		t_entrada* entrada_en_tabla = (t_entrada*) entrada;
+		char* entrada_a_map = string_new();
+		char* clave;
+
+		clave = entrada_en_tabla->clave;
+		valor = (char*) dictionary_get(dic_entradas, clave);
+
+		string_append(&entrada_a_map, clave);
+		string_append(&entrada_a_map, "-");
+		string_append(&entrada_a_map, valor);
+		string_append(&entrada_a_map, ";");
+
+		for (int i = 0; i < string_length(entrada_a_map); ++i){
+			mapa_archivo[i] = entrada_a_map[i];
+		}
+	}
+
+	list_iterate(tabla_entradas, guardarValoresEnMap);
 }
 
 void agregarAlDiccionario(char* key, char* val){
@@ -355,6 +374,10 @@ void* dumpAutomatico() {
 		dumpMemoria();
 	}
 	return NULL;
+}
+
+void escribirEntrada(t_entrada* entrada, char* valor){
+	strncpy(bloque_instancia+entrada->entrada_asociada, valor, entrada->entradas_ocupadas*tam_entradas);
 }
 
 void generarTablaDeEntradas() {
@@ -449,6 +472,10 @@ int hayEntradasContiguas(int entradas_necesarias){
 		}
 	}
 	return -1;
+}
+
+void liberarEntrada(t_entrada* entrada){
+	strncpy(bloque_instancia+entrada->entrada_asociada, '0', entrada->entradas_ocupadas*tam_entradas);
 }
 
 void actualizarCantidadEntradasLibres(){
@@ -598,7 +625,7 @@ int main() {
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (validarArgumentosInstruccion(instruccion) > 0) {
 			if(procesar(instruccion) > 0){
-				list_iterate(tabla_entradas, incrementarUltimasReferencias());
+				list_iterate(tabla_entradas, incrementarUltimasReferencias);
 
 				log_info(logger, "Le aviso al Coordinador que se proceso la instruccion");
 				char** para_imprimir = string_split(mapa_archivo, ";");

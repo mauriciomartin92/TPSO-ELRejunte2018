@@ -53,6 +53,7 @@ void dumpMemoria();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 int hayEntradasContiguas();
+void liberarEntrada(t_entrada* entrada);
 int validarArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 int procesar(t_instruccion* instruccion);
 int operacion_SET(t_instruccion* instruccion);
