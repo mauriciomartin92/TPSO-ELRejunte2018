@@ -92,13 +92,12 @@ int operacion_STORE(char* clave) {
 }
 
 int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
-	double entradas_a_ocupar = ceilf((float) entrada->size_valor_almacenado / (float)tam_entradas);
-	int entradas_ocupadas = dictionary_get(dic_entradas, entrada->entradas_ocupadas);
+	int entradas_a_ocupar = (int) ceilf((float) strlen(valor) / (float) tam_entradas);
 
 	//Verificamos el tamaño del nuevo valor.
-	if(entradas_a_ocupar <= entradas_ocupadas){
+	if(entradas_a_ocupar <= entrada->entradas_ocupadas){
 		//Ocupa lo mismo que el valor anterior.
-		strncpy(bloque_instancia+entrada->entrada_asociada, valor, entradas_ocupadas*tam_entradas);
+		strncpy(bloque_instancia+entrada->entrada_asociada, valor, entrada->entradas_ocupadas*tam_entradas);
 		dictionary_remove(dic_entradas, entrada->clave);
 		dictionary_put(dic_entradas, entrada->clave, (char*) valor);
 		actualizarMapaMemoria();
@@ -329,18 +328,18 @@ void dumpMemoria(){
 	int _fd;
 	char* _nombreArchivo;
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
-	void obtenerClaves(char* key, char* val) {
+	void obtenerClaves(char* key, void* val) {
 		_nombreArchivo = key;
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd < 0){
 			//ERROR AL ABRIR ARCHIVO
 		} else {
-			write(_fd, val, strlen(val));
+			write(_fd, val, strlen((char*)val));
 			close(_fd);
 		}
 	}
 	// Busco la clave en la tabla usando la funcion magica
-	dictionary_iterator(dic_entradas, obtenerClaves); // TODO: el parametro val deberia ser un void*
+	dictionary_iterator(dic_entradas, obtenerClaves);
 }
 
 void* dumpAutomatico() {
