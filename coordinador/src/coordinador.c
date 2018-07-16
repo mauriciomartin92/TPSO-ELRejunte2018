@@ -289,8 +289,9 @@ void atenderESI(int socketESI) {
 		// Aca el Coordinador le va a mandar el paquete al Planificador
 		// Esto es para consultar si puede utilizar los recursos que pide
 
-		log_info(logger, "Le consulto al Planificador si ESI %d puede hacer uso del recurso", esi_ID);
 		t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
+
+		log_info(logger, "Le consulto al Planificador si ESI %d puede hacer uso del recurso", esi_ID);
 		uint32_t operacion = instruccion->operacion;
 		send(socketPlanificador, &operacion, sizeof(uint32_t), 0);
 		string_append(&(instruccion->clave), "\0");
@@ -318,6 +319,8 @@ void atenderESI(int socketESI) {
 
 			log_info(logger, "Le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
 			send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
+		} else {
+			log_warning(logger, "El Planificador me informa que el ESI %d no tiene permisos", esi_ID);
 		}
 		destruirPaquete(paquete);
 	}
