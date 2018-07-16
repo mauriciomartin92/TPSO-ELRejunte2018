@@ -58,8 +58,10 @@ t_control_configuracion cargarConfiguracion() {
 
 	// Obtiene los datos para conectarse al coordinador y al planificador
 	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
+	log_debug(logger, "%s", ip_coordinador);
 	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR", &error_config);
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
+	log_debug(logger, "%s", ip_coordinador);
 	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",	&error_config);
 
 	// Valido posibles errores
@@ -79,7 +81,8 @@ void finalizar() {
 }
 
 int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
-	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_INFO);
+	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_DEBUG);
+	sleep(10);
 
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		log_error(logger, "No se pudo cargar la configuracion");
@@ -141,8 +144,9 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 				log_info(logger, "El Coordinador informa que la instruccion se proceso satisfactoriamente");
 
 				if (feof(fp)) {
-					log_warning(logger, "Le aviso al Planificador que no tengo mas instrucciones para ejecutar");
+					log_warning(logger, "Le aviso al Planificador y al Coordinador que no tengo mas instrucciones para ejecutar");
 					send(socketPlanificador, &TERMINA_ESI, sizeof(uint32_t), 0);
+					send(socketCoordinador, &TERMINA_ESI, sizeof(uint32_t), 0);
 					break;
 				}
 

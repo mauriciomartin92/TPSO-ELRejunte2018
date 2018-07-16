@@ -103,6 +103,7 @@ int escucharCliente(t_log* logger, int listenningSocket) {
 	socklen_t addrlen = sizeof(addr);
 
 	int socketCliente = accept(listenningSocket, (struct sockaddr *) &addr,	&addrlen);
+	perror("ERROR: ");
 
 	return socketCliente;
 }

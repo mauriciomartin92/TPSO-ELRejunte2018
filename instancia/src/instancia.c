@@ -107,7 +107,7 @@ void setClaveValor(t_entrada* entrada, char* valor) {
 void imprimirArgumentosInstruccion(t_instruccion* instruccion) {
 	printf("La instruccion recibida es: ");
 	switch (instruccion->operacion) {
-	case 1:
+	case opGET:
 		printf("GET %s\n", instruccion->clave);
 		break;
 
@@ -408,7 +408,7 @@ int main() {
 	error_config = false;
 
 	// Creo el logger
-	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_INFO);
+	logger = log_create("instancia.log", "Instancia", true, LOG_LEVEL_DEBUG);
 
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		log_error(logger, "No se pudo cargar la configuracion");

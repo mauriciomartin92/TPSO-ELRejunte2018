@@ -42,7 +42,7 @@ typedef struct {
 
 t_control_configuracion cargarConfiguracion();
 void establecerProtocoloDistribucion();
-void* establecerConexion(void* parametros);
+void establecerConexion(void* parametros);
 void atenderInstancia(int socketInstancia);
 void atenderESI(int socketESI);
 int procesarPaquete(char* paquete, uint32_t esi_ID);

@@ -45,6 +45,7 @@ const uint32_t ABORTA_ESI = -1;
 const uint32_t PAQUETE_OK = 1;
 const int TAM_MAXIMO_CLAVE = 40;
 const uint32_t PEDIDO_ESPECIAL = 4;
+const uint32_t TERMINA_ESI = 0;
 
 bool comparadorEntradasLibres(void* nodo1, void* nodo2) {
 	t_instancia* instancia1 = (t_instancia*) nodo1;
@@ -186,13 +187,16 @@ int procesarPaquete(char* paquete, uint32_t esi_ID) {
 	}
 
 	log_info(logger, "El Coordinador esta chequeando si la clave ya existe...");
-	clave_actual = instruccion->clave;
+
+	free(clave_actual);
+	clave_actual = string_new();
+	string_append(&clave_actual, instruccion->clave);
 	t_instancia* instancia = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave);
 
 	if (!instancia) {
 		log_info(logger, "La clave %s no esta en ninguna Instancia", instruccion->clave);
 	} else {
-		log_info(logger, "La clave %s esta asignada a Instancia %d", instancia->id);
+		log_info(logger, "La clave %s esta asignada a Instancia %d", instruccion->clave, instancia->id);
 
 		if (instancia->estado == INACTIVA) {
 			log_error(logger, "Error de Clave Inaccesible");
@@ -222,9 +226,9 @@ int procesarPaquete(char* paquete, uint32_t esi_ID) {
 
 		if (instancia) {
 			log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
-			uint32_t tam_paquete = strlen(paquete);
+			uint32_t tam_paquete = strlen(paquete) + 1;
 			send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
-			send(instancia->socket, &paquete, tam_paquete, 0);
+			send(instancia->socket, paquete, tam_paquete, 0);
 
 			// La Instancia me devuelve la cantidad de entradas libres que tiene
 			uint32_t respuesta;
@@ -268,11 +272,15 @@ void atenderESI(int socketESI) {
 		if (tam_paquete == PEDIDO_ESPECIAL) {
 			atenderPedidoEspecial();
 			break;
+		} else if (tam_paquete == TERMINA_ESI) {
+			log_warning(logger, "El ESI %d ha finalizado", esi_ID);
+			break;
 		}
 
 		char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
 		recv(socketESI, paquete, tam_paquete, 0);
 		log_info(logger, "El ESI %d me envia un paquete", esi_ID);
+		log_debug(logger, "%s", paquete);
 
 		sleep(retardo * 0.001); // Retardo ficticio
 
@@ -287,10 +295,17 @@ void atenderESI(int socketESI) {
 		t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
 		uint32_t operacion = instruccion->operacion;
 		send(socketPlanificador, &operacion, sizeof(uint32_t), 0);
-		char* clave = instruccion->clave;
-		uint32_t tam_clave = strlen(clave);
+		string_append(&(instruccion->clave), "\0");
+		uint32_t tam_clave = strlen(instruccion->clave) + 1;
 		send(socketPlanificador, &tam_clave, sizeof(uint32_t), 0);
-		send(socketPlanificador, clave, tam_clave, 0);
+		send(socketPlanificador, instruccion->clave, tam_clave, 0);
+
+		if (operacion == opSET) {
+			string_append(&(instruccion->valor), "\0");
+			uint32_t tam_valor = strlen(instruccion->valor) + 1;
+			send(socketPlanificador, &tam_valor, sizeof(uint32_t), 0);
+			send(socketPlanificador, instruccion->valor, tam_valor, 0);
+		}
 
 		uint32_t respuesta;
 		recv(socketPlanificador, &respuesta, sizeof(uint32_t), 0);
