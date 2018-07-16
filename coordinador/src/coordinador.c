@@ -358,7 +358,7 @@ void atenderInstancia(int socketInstancia) {
 	list_add(tabla_instancias, unaInstancia);
 	log_info(logger, "Instancia agregada a la Tabla de Instancias");
 
-	printf("La cantidad de instancias actual es %d\n", list_size(tabla_instancias));
+	log_debug(logger, "La cantidad de instancias actual es %d\n", list_size(tabla_instancias));
 }
 
 void establecerConexion(void* socketCliente) {
