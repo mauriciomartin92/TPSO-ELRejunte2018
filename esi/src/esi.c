@@ -42,7 +42,7 @@ t_esi_operacion parsearLineaScript(FILE* fp) {
 	size_t len = 0;
 
 	getline(&line, &len, fp);
-	printf("%s", line);
+	log_debug(logger, "%s", line);
 	t_esi_operacion parsed = parse(line);
 
 	if (line) free(line);
@@ -80,7 +80,6 @@ void finalizar() {
 
 int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda en arv[1]
 	logger = log_create("esi.log", "ESI", true, LOG_LEVEL_DEBUG);
-	sleep(10);
 
 	if (cargarConfiguracion() == CONFIGURACION_ERROR) {
 		log_error(logger, "No se pudo cargar la configuracion");
