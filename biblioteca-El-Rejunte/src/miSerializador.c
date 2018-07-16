@@ -70,10 +70,6 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 
 	char** vector_componentes_buffer = string_split(buffer, "-");
 
-	log_debug(logger, "%s", vector_componentes_buffer[0]);
-	log_debug(logger, "%s", vector_componentes_buffer[1]);
-
-
 	//destruirPaquete(buffer);
 
 	/*
@@ -95,7 +91,6 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 	 */
 
 	if (instruccionMutada->operacion == opSET) {
-		log_debug(logger, "%s", vector_componentes_buffer[2]);
 		instruccionMutada->valor = string_new();
 		string_append(&(instruccionMutada->valor), vector_componentes_buffer[2]);
 	}

@@ -58,10 +58,8 @@ t_control_configuracion cargarConfiguracion() {
 
 	// Obtiene los datos para conectarse al coordinador y al planificador
 	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
-	log_debug(logger, "%s", ip_coordinador);
 	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR", &error_config);
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
-	log_debug(logger, "%s", ip_coordinador);
 	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR",	&error_config);
 
 	// Valido posibles errores
