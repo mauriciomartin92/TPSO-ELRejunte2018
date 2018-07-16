@@ -44,7 +44,7 @@ char* clave_actual;
 const uint32_t ABORTA_ESI = -1;
 const uint32_t PAQUETE_OK = 1;
 const int TAM_MAXIMO_CLAVE = 40;
-const uint32_t PEDIDO_ESPECIAL = 4;
+const uint32_t PETICION_ESPECIAL = 4;
 const uint32_t TERMINA_ESI = 0;
 
 bool comparadorEntradasLibres(void* nodo1, void* nodo2) {
@@ -242,7 +242,7 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 	return 1;
 }
 
-void atenderPedidoEspecial() {
+void atenderPeticionEspecial() {
 	uint32_t operacion;
 	recv(socketPlanificador, &operacion, sizeof(uint32_t), 0);
 
@@ -267,8 +267,8 @@ void atenderESI(int socketESI) {
 		recv(socketESI, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
 		// Si me llama el Planificador por un pedido de Consola el ESI me avisa
-		if (tam_paquete == PEDIDO_ESPECIAL) {
-			atenderPedidoEspecial();
+		if (tam_paquete == PETICION_ESPECIAL) {
+			atenderPeticionEspecial();
 			break;
 		} else if (tam_paquete == TERMINA_ESI) {
 			log_warning(logger, "El ESI %d ha finalizado", esi_ID);

@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 		recv(socketPlanificador, &orden, sizeof(uint32_t), 0);
 
 		if (orden == SIGUIENTE_INSTRUCCION) {
-			log_info(logger, "El planificador me pide que parsee la siguiente instruccion");
+			log_info(logger, "El planificador me pide que parsee la siguiente instruccion:");
 			// Se parsea la instruccion que se le enviara al coordinador
 			t_esi_operacion instruccion = parsearLineaScript(fp);
 			log_info(logger, "La instruccion fue parseada");
