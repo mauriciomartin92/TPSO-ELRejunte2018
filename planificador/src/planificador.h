@@ -131,7 +131,7 @@ typedef struct{
 
 typedef struct{
 
-	char * clave;
+	int clave;
 	t_list * ESIasociados;
 
 } t_deadlockeados;
@@ -181,5 +181,7 @@ extern void seekAndDestroyESI(int clave);
 extern void statusClave(char * clave);
 extern void cargarValor(char * clave, char * valor);
 bool buscarEnBloqueados(int id);
+
+t_deadlockeados * deadlockCreate();
 
 #endif /* PLANIFICADOR_H_ */

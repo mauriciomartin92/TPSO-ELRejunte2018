@@ -10,6 +10,9 @@ void planificacionSJF(bool desalojo){
 
 	pthread_create(&hiloEscuchaESI, NULL, (void *) escucharNuevosESIS, NULL);
 
+
+	while ( 1 ){
+
 	while (queue_size(colaListos) == 0){
 
 		if (queue_size(colaListos) > 0){
@@ -21,136 +24,157 @@ void planificacionSJF(bool desalojo){
 	log_info(logPlanificador, "Comienza planificacion SJF");
 
 
-	while ( !queue_is_empty(colaListos)){
 
-		bool finalizar = false;
+	bool finalizar = false;
 
-		bool bloquear = false;
+	bool bloquear = false;
 
-		bool permiso = true;
+	bool permiso = true;
 
-		bool desalojar = false;
+	bool desalojar = false;
 
-		ESI * nuevo = queue_pop(colaListos);
+	ESI * nuevo = queue_pop(colaListos);
 
-		uint32_t operacion;
-		uint32_t tamanioRecurso;
-		char * recursoPedido;
+	uint32_t operacion;
+	uint32_t tamanioRecurso;
+	char * recursoPedido;
 
-		while(!finalizar && !bloquear && permiso && !desalojar && !matarESI){
+	while(!finalizar && !bloquear && permiso && !desalojar && !matarESI){
 
-				while(pausearPlanificacion){} // ciclo hermoso que pausea la planificacion
-
-
-				pthread_mutex_lock(&mutexComunicacion);
-				send(nuevo->id,&CONTINUAR,sizeof(uint32_t),0);
-				int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
-				int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
-				recursoPedido = malloc(sizeof(tamanioRecurso));
-				int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
-
-				if(respuesta1 < 0 || respuesta2 < 0 || respuesta3 < 0){
-					log_info(logPlanificador, "conexion con el coordinador rota");
-					exit(-1);
-				} else {
-					string_append(&(nuevo->recursoPedido), recursoPedido);
-					nuevo->proximaOperacion = operacion;
-
-				}
+			while(pausearPlanificacion){} // ciclo hermoso que pausea la planificacion
 
 
-				permiso = validarPedido(nuevo->recursoPedido,nuevo);
+			pthread_mutex_lock(&mutexComunicacion);
+			log_info(logPlanificador, "empieza comunicacion");
+			send(nuevo->id,&CONTINUAR,sizeof(uint32_t),0);
 
-				if(permiso){
+			int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
+			int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
+			recursoPedido = malloc(sizeof(char)*tamanioRecurso);
+			int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
 
-					char * valorRecurso;
-					uint32_t tamValor;
-
-					if(operacion == 1){
-
-						int resp = recv (socketCoordinador, &tamValor,sizeof(uint32_t),0);
-						valorRecurso=malloc(sizeof(char)*tamValor);
-						int resp2 =recv (socketCoordinador,valorRecurso,sizeof(char)*tamValor,0);
-
-						if(resp < 0 || resp2 <0){
-
-							log_info(logPlanificador, "conexion con el coordinador rota");
-							exit(-1);
-
-						} else cargarValor(recursoPedido,valorRecurso);
+			log_info(logPlanificador, "recibo los datos suficientes para corroborar ejecucion");
 
 
-					}
-					pthread_mutex_unlock(&mutexComunicacion);
-					char * recursoAUsar = nuevo->recursoPedido;
-
-					if(!recursoEnLista(nuevo)){
-
-						list_add(nuevo->recursosAsignado, crearRecurso(nuevo->recursoPedido) );
-
-					}
-
-					bloquearRecurso(recursoAUsar);
-
-					nuevo->recienLlegado = false;
-					nuevo->recienDesbloqueadoPorRecurso = false;
-
-					log_info(logPlanificador, " ESI de clave %d entra al planificador", nuevo->id );
-
-					pthread_mutex_lock(&mutexComunicacion);
-
-					send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
-
-					log_info(logPlanificador, " ejecuta una sentencia ");
-
-					nuevo -> rafagaAnterior = nuevo-> rafagaAnterior +1;
-					nuevo -> rafagasRealizadas = nuevo -> rafagasRealizadas +1;
-
-					log_info(logPlanificador, "rafagas realizadas del esi %d son %d", nuevo-> id, nuevo->rafagasRealizadas);
-
-					uint32_t respuesta ;
-					recv(nuevo->id, &respuesta, sizeof(uint32_t),0);
-
-					pthread_mutex_unlock(&mutexComunicacion);
-
-					if (respuesta != CONTINUAR)
-					{
-						finalizar = true;
-
-					} else if(desalojo) // si hay desalojo activo
-					{
-						pthread_mutex_lock(&mutexColaListos); // por las dudas que entre otro ESI justo en este momento (no lo tengo en cuenta)
-
-						ESI* auxiliar = queue_peek(colaListos);
-
-						if(auxiliar->recienLlegado) //chequeo si el proximo en cola es un recien llegado
-						{
-							if(auxiliar->estimacionSiguiente < (nuevo->estimacionSiguiente - nuevo->rafagasRealizadas)) // y si su estimacion siguiente es menor que la del que esta en ejecucion menos lo que ya hizo
-							{
-								desalojar = true; //se va a desalojar
-							} else
-							{
-								limpiarRecienLlegados(); // Si no es menor la estimacion, los recien llegados ya no tendrian validez, los actualizo
-							}
-						}
-						pthread_mutex_unlock(&mutexColaListos);
-
-					}
-
-					if (nuevo->id == claveParaBloquearESI)
-					{
-						bloquear = true;
-					}
-
-
-
-				} else {
-					pthread_mutex_unlock(&mutexComunicacion);
-					bloquearESI(nuevo->recursoPedido, nuevo);
-
-				}
+			if(respuesta1 < 0 || respuesta2 < 0 || respuesta3 < 0){
+				log_info(logPlanificador, "conexion con el coordinador rota");
+				exit(-1);
+			} else {
+				log_info(logPlanificador, "las respuestas llegaron satisfactoriamente");
+				free(nuevo->recursoPedido);
+				nuevo->recursoPedido= string_new();
+				string_append(&(nuevo->recursoPedido), recursoPedido);
+				nuevo->proximaOperacion = operacion;
 
 			}
+
+
+			permiso = validarPedido(nuevo->recursoPedido,nuevo);
+
+			if(permiso){
+
+				log_info(logPlanificador, "el esi tiene permiso de ejecucion");
+
+				char * valorRecurso;
+				uint32_t tamValor;
+
+				if(operacion == 2){
+
+					log_info(logPlanificador, "empieza comunicacion con coordinador para recibir valor (Op: SET)");
+
+					int resp = recv (socketCoordinador, &tamValor,sizeof(uint32_t),0);
+					valorRecurso=malloc(sizeof(char)*tamValor);
+					int resp2 =recv (socketCoordinador,valorRecurso,sizeof(char)*tamValor,0);
+
+					if(resp < 0 || resp2 <0){
+
+						log_info(logPlanificador, "conexion con el coordinador rota");
+						exit(-1);
+
+					} else {
+
+						log_info(logPlanificador, "llega el valor ");
+						cargarValor(recursoPedido,valorRecurso);
+						log_info(logPlanificador, "valor cargado");
+
+					}
+
+
+				}
+				pthread_mutex_unlock(&mutexComunicacion);
+				char * recursoAUsar = nuevo->recursoPedido;
+
+				if(!recursoEnLista(nuevo)){
+
+					list_add(nuevo->recursosAsignado, recursoAUsar );
+					log_info(logPlanificador, "El recurso se añadio a los recursos asignados del esi");
+
+				}
+
+				bloquearRecurso(recursoAUsar);
+
+				log_info(logPlanificador, "clave bloqueada");
+
+
+				nuevo->recienLlegado = false;
+				nuevo->recienDesbloqueadoPorRecurso = false;
+
+				log_info(logPlanificador, " ESI de clave %d entra al planificador", nuevo->id );
+
+				pthread_mutex_lock(&mutexComunicacion);
+
+				send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
+
+				log_info(logPlanificador, " ejecuta una sentencia ");
+
+				nuevo -> rafagaAnterior = nuevo-> rafagaAnterior +1;
+				nuevo -> rafagasRealizadas = nuevo -> rafagasRealizadas +1;
+
+				log_info(logPlanificador, "rafagas realizadas del esi %d son %d", nuevo-> id, nuevo->rafagasRealizadas);
+
+				uint32_t respuesta ;
+				recv(nuevo->id, &respuesta, sizeof(uint32_t),0);
+
+				pthread_mutex_unlock(&mutexComunicacion);
+
+				if (respuesta != CONTINUAR)
+				{
+					finalizar = true;
+
+				} else if(desalojo) // si hay desalojo activo
+				{
+					pthread_mutex_lock(&mutexColaListos); // por las dudas que entre otro ESI justo en este momento (no lo tengo en cuenta)
+
+					ESI* auxiliar = queue_peek(colaListos);
+
+					if(auxiliar->recienLlegado) //chequeo si el proximo en cola es un recien llegado
+					{
+						if(auxiliar->estimacionSiguiente < (nuevo->estimacionSiguiente - nuevo->rafagasRealizadas)) // y si su estimacion siguiente es menor que la del que esta en ejecucion menos lo que ya hizo
+						{
+							desalojar = true; //se va a desalojar
+						} else
+						{
+							limpiarRecienLlegados(); // Si no es menor la estimacion, los recien llegados ya no tendrian validez, los actualizo
+						}
+					}
+					pthread_mutex_unlock(&mutexColaListos);
+
+				}
+
+				if (nuevo->id == claveParaBloquearESI)
+				{
+					bloquear = true;
+				}
+
+
+
+			} else {
+				pthread_mutex_unlock(&mutexComunicacion);
+				bloquearESI(nuevo->recursoPedido, nuevo);
+
+			}
+
+		}
 
 		log_info(logPlanificador,"fin de ciclo");
 
@@ -164,11 +188,12 @@ void planificacionSJF(bool desalojo){
 			liberarRecursos(nuevo);
 			ESI_destroy(nuevo);
 
-	    	  pthread_mutex_lock(&mutexAsesino);
+	    	pthread_mutex_lock(&mutexAsesino);
 
-	    	  matarESI=false;
+	    	matarESI=false;
 
-	    	  pthread_mutex_unlock(&mutexAsesino);
+	    	pthread_mutex_unlock(&mutexAsesino);
+
 
 		}else if( finalizar ){ //aca con el mensaje del ESI, determino si se bloquea o se finaliza
 
@@ -192,9 +217,6 @@ void planificacionSJF(bool desalojo){
 		}
 
 	}
-
-	planificacionSJFTerminada = true;
-
 
 }
 
