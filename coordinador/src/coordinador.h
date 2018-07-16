@@ -45,7 +45,7 @@ void establecerProtocoloDistribucion();
 void establecerConexion(void* parametros);
 void atenderInstancia(int socketInstancia);
 void atenderESI(int socketESI);
-int procesarPaquete(char* paquete, uint32_t esi_ID);
+int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID);
 bool instanciaTieneLaClave(void* nodo);
 bool claveEsLaActual(void* nodo);
 void loguearOperacion(uint32_t esi_ID, t_instruccion* instruccion);

@@ -178,9 +178,7 @@ bool instanciaTieneLaClave(void* nodo) {
 	return list_any_satisfy(instancia->claves_asignadas, claveEsLaActual);
 }
 
-int procesarPaquete(char* paquete, uint32_t esi_ID) {
-	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
-
+int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) {
 	if (strlen(instruccion->clave) > TAM_MAXIMO_CLAVE) {
 		log_error(logger, "Error de Tamano de Clave");
 		return -1;
@@ -312,7 +310,7 @@ void atenderESI(int socketESI) {
 
 		if (respuesta == SE_EJECUTA_ESI) {
 			log_info(logger, "El Planificador me informa que el ESI %d puede utilizar el recurso", esi_ID);
-			if (procesarPaquete(paquete, esi_ID) == -1) { // Hay que abortar el ESI
+			if (procesarPaquete(paquete, instruccion, esi_ID) == -1) { // Hay que abortar el ESI
 				log_error(logger, "Se aborta el ESI %d", esi_ID);
 				send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
 				break;
