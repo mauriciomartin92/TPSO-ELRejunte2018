@@ -182,6 +182,8 @@ extern void statusClave(char * clave);
 extern void cargarValor(char * clave, char * valor);
 bool buscarEnBloqueados(int id);
 
-t_deadlockeados * deadlockCreate();
+void chequearDependenciaDeClave(char * recurso1, char* recurso2, int esi, t_list * dl);
+t_recurso * traerRecurso(char * clave);
+
 
 #endif /* PLANIFICADOR_H_ */
