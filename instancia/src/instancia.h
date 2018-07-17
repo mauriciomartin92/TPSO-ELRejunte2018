@@ -51,6 +51,7 @@ void abrirArchivoInstancia(int* fileDescriptor);
 void actualizarMapaMemoria();
 void compactarAlmacenamiento();
 void dumpMemoria();
+void imprimirBloqueEntradas();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 int hayEntradasContiguas();

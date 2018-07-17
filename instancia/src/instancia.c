@@ -42,6 +42,13 @@ struct stat sb;
 const uint32_t PAQUETE_OK = 1;
 const int32_t PAQUETE_ERROR = -1;
 
+void imprimirBloqueEntradas(){
+	for(int i = 0; i < strlen(bloque_instancia); i++) {
+			printf("%c", bloque_instancia[i]);
+		}
+		printf("\n");
+}
+
 void imprimirTablaDeEntradas() {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
 	for(int i = 0; i < list_size(tabla_entradas); i++) {
@@ -304,7 +311,7 @@ void actualizarMapaMemoria(){
 	list_iterate(tabla_entradas, guardarValoresEnMap);
 }
 
-void almacenarValorYGenerarTabla(char* clave, char* valor){
+void almacenarValorYGenerarTabla(char* valor, char* clave){
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
 	double entradas_a_ocupar = ceilf((float) entrada->size_valor_almacenado / (float)tam_entrada);
@@ -354,10 +361,13 @@ void dumpMemoria(){
 		t_entrada* entrada = (t_entrada*) nodo;
 		char* _nombreArchivo = string_new();
 		string_append(&_nombreArchivo, entrada->clave);
+		puts(_nombreArchivo);
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd < 0){
+			log_error(logger, "Error al abrir archivo para DUMP");
 			//ERROR AL ABRIR ARCHIVO
 		} else {
+			puts(entrada->valor);
 			write(_fd, entrada->valor, strlen(entrada->valor));
 			close(_fd);
 		}
@@ -432,7 +442,8 @@ void generarTablaDeEntradas() {
 				una_entrada = string_new();
 				una_entrada = string_substring(mapa_archivo, contador, i - contador);
 				vec_clave_valor = string_split(una_entrada, "-");
-				almacenarValorYGenerarTabla(vec_clave_valor[0], vec_clave_valor[1]);
+				almacenarValorYGenerarTabla(vec_clave_valor[1], vec_clave_valor[0]);
+				contador = i + 1;
 			}
 		}
 	} else {
@@ -603,6 +614,8 @@ int main() {
 
 	generarTablaDeEntradas(); // Traigo los clave-valor que hay en disco
 	imprimirTablaDeEntradas();
+
+	imprimirBloqueEntradas();
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
