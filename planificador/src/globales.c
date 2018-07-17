@@ -59,7 +59,7 @@ ESI* estimarProximaRafaga(ESI * proceso ){
 		proceso->estimacionSiguiente = ((alfa*proceso->estimacionAnterior)+(1-alfa)*proceso->rafagaAnterior);
 
 	}
-	log_info(logPlanificador,"un tiempo estimado \n");
+	log_info(logPlanificador,"un tiempo estimado");
 	return proceso;
 
 }
@@ -88,29 +88,52 @@ bool compararClaves (ESI * esi){
 
 }
 
-/*
+
 void comprobarDeadlock(){
 
 	int contador = 0;
-	t_deadlockeados * dl = deadlockCreate();
-	while ( contador < list_size(listaRecursos) ){
+	t_list * dl = list_create();
 
-		t_recurso * recursoAnalizar = list_get(listaRecursos);
+	log_info (logPlanificador, "chequeando existencia de deadlock");
 
-		int contador2 = 1;
+	while ( contador < list_size(listaRecursos) ){ // por cada recurso
 
-		while (contador2 < list_size()){
+		t_recurso * recursoAnalizar = list_get(listaRecursos, contador);
 
-			ESI * Aux = list_get(listaListos, contador2);
+		log_info(logPlanificador,"analizando desde clave %s", recursoAnalizar->clave);
+
+		int contador2 = 0;
+
+		t_queue * colaRecurso = recursoAnalizar->ESIEncolados;
+
+		while (contador2 < queue_size(recursoAnalizar->ESIEncolados)){ // tomo su primer ESI bloqueado
+
+			ESI * Aux = queue_pop(colaRecurso);
 
 			int contador3 = 0;
 
-			while(list_size(Aux -> recursosAsignado) > contador3){
+			while(list_size(Aux -> recursosAsignado) > contador3){ // y chequeo si para cada recurso asignado del mismo, hay un ESI en la cola de bloqueados del mismo que tenga asignada la clave que lo está bloqueando
 
-				if ( string_equals_ignore_case(Aux -> recursoPedido, list_get(nuevo -> recursosAsignado,contador3)) && (Aux -> recursosAsignado == nuevo -> recursoPedido)){
+				char * recursoAsignado = list_get(Aux->recursosAsignado,contador3);
 
-					posibleDeadlock->clave = nuevo->id;
-					list_add(posibleDeadlock->ESIasociados, Aux->id);
+				chequearDependenciaDeClave(recursoAnalizar->clave, recursoAsignado, Aux->id, dl );
+
+				if(list_size(dl) > 0){ // en este caso se encontro el DL
+
+					int cont = 0;
+
+					printf("DEADLOCK formado por los siguientes ESI: \n");
+
+					while(list_size(dl)> cont){
+
+						printf("ESI %d \n", (int) list_get(dl,cont));
+
+						cont ++;
+
+						list_clean(dl); // limpio para encontrar otros DL
+					}
+
+				}
 
 				}
 			}
@@ -118,17 +141,93 @@ void comprobarDeadlock(){
 			contador2++;
 
 		}
-		DEADLOCK_destroy(dl);
+
 		contador++;
 
 
-	} //estoy metiendo repetidos los deadlock porque no compruebo si la clave ya está dentro de otra estructura deadlock. ARREGLAR
+}
 
+
+void chequearDependenciaDeClave(char * recursoOriginal, char * recursoESI, int idESI, t_list * listaDL){ //  hay que hacer una busqueda circular entre claves
+
+	t_recurso * recurso = traerRecurso(recursoESI); // busco el recurso que iguale la clave del ESI
+
+	if(recurso == NULL){ // Si no lo encuentra, no mando nada, no deberia pasar, logueo para estar al tanto
+
+		log_info(logPlanificador,"CASO RARO: no se encontro el recurso que tiene asignado un ESI");
+
+	} else { // al encontrar el recurso, tengo que chequear por cada ESI bloqueado de la clave, si su asignado coincide con la clave del recursoOriginal
+
+		int i = 0;
+
+		t_queue * colaESIS = recurso->ESIEncolados; // creo cola para no modificar la cola de esis original
+
+		bool DLEncontrado = false;
+
+		while ( queue_size(colaESIS) > i && !DLEncontrado){ // por cada ESI encolado
+
+			ESI * esi = queue_pop(recurso->ESIEncolados); // tomo de a uno
+
+			int t = 0;
+
+			while (list_size(esi->recursosAsignado) > t && !DLEncontrado){
+
+				char * recurso = list_get (esi->recursosAsignado,t); // saco un recurso asignado
+
+				if(string_equals_ignore_case(recurso,recursoOriginal)){ // es igual al recurso original?
+
+					list_add(listaDL,&idESI);
+					list_add(listaDL, &esi->id);
+					DLEncontrado = true;
+
+				} else { // si no son iguales, va a buscar coincidencia en los recursos que ese esi tiene asignados
+
+					chequearDependenciaDeClave(recursoOriginal, recurso, esi->id, listaDL); //recursivo, el recu original y el nuevo
+
+					if(list_size(listaDL)> 0){ // si metio algo en lista, quiere decir que encontro espera circular, que dada la unicidad de ESI por recurso, va a generar un ciclo de un solo esi por recurso
+						list_add(listaDL, &idESI); // agrego el primer esi, que por recursividad, seria el tercero del dl
+						DLEncontrado = true; // por unicidad de recursos, no puede haber mas de un ciclo asociado a un recurso.
+					}
+
+				}
+
+				t++;
+
+
+			}
+
+			i++;
+
+		}
+
+	}
 
 }
-*/
 
 
+t_recurso * traerRecurso (char * clave){
+
+
+	t_recurso * recurso;
+	bool encontrado = false;
+	int i = 0;
+
+	while(list_size(listaRecursos) > i && !encontrado){
+
+		recurso = list_get(listaRecursos, i);
+
+		if(recurso->clave == clave){
+			encontrado = true;
+		}
+		i++;
+	}
+
+	if(encontrado == false){
+		recurso = NULL;
+	}
+
+	return recurso;
+}
 void lanzarConsola(){
 
 	char* linea;
@@ -151,12 +250,10 @@ void lanzarConsola(){
 		if (string_equals_ignore_case(linea, PAUSEAR_PLANIFICACION))  //Hermosa cadena de if que se viene
 		{
 			pausearPlanificacion = true;
-			break;
 		}
 		else if (string_equals_ignore_case(linea,REANUDAR_PLANIFICACION))
 		{
 			pausearPlanificacion= false;
-			break;
 		}
 		else if (string_equals_ignore_case(linea, BLOQUEAR_ESI))
 		{
@@ -202,21 +299,18 @@ void lanzarConsola(){
 				}
 			}
 
-			break;
 		}
 		else if (string_equals_ignore_case(linea,DESBLOQUEAR_ESI))
 		{
 			linea = readline("CLAVE RECURSO:");
 			desbloquearRecurso(linea);
 
-			break;
 
 		}
 		else if (string_equals_ignore_case(linea, LISTAR_POR_RECURSO)){
 
 			linea = readline("RECURSO:");
 			listarBloqueados(linea);
-			break;
 		}
 		else if (string_equals_ignore_case(linea, KILL_ESI))
 		{
@@ -257,7 +351,6 @@ void lanzarConsola(){
 
 				while(1){
 				if(matarESI == false){
-					break;
 				}
 
 				}
@@ -270,7 +363,6 @@ void lanzarConsola(){
 				seekAndDestroyESI(clave);
 			}
 
-			break;
 		}
 		else if (string_equals_ignore_case(linea, STATUS_ESI))
 		{
@@ -278,12 +370,10 @@ void lanzarConsola(){
 			linea = readline("CLAVE:");
 			statusClave(linea);
 
-			break;
 		}
 		else if (string_equals_ignore_case(linea, COMPROBAR_DEADLOCK))
 		{
-			//devuelve las claves que esten generando deadlock (si es que lo hay)
-			// aca va a haber una escucha del socket a la espera de la respuesta del plani
+			comprobarDeadlock(); // hace printf en la funcion
 			break;
 		}
 		else if (string_equals_ignore_case(linea, "salir"))
@@ -292,8 +382,7 @@ void lanzarConsola(){
 		}
 		else
 		{
-			printf("escribi bien, gil");
-			break;
+			printf("Comando no reconocido");
 		}
 
 	}
