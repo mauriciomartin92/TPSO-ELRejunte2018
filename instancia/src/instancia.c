@@ -255,7 +255,7 @@ int validarArgumentosInstruccion(t_instruccion* instruccion) {
 	case opGET:
 		printf("GET %s\n", instruccion->clave);
 		log_error(logger, "Una Instancia no puede ejecutar GET");
-		//send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+		send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 		return -1;
 		break;
 
@@ -269,12 +269,12 @@ int validarArgumentosInstruccion(t_instruccion* instruccion) {
 
 	default:
 		log_error(logger, "No comprendo la instruccion, le informo al Coordinador que no se puede ejecutar");
-		//send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+		send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 		return -1;
 	}
 
 	log_info(logger, "Le informo al Coordinador que el paquete llego correctamente");
-	//send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0);
+	send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0);
 	return 1;
 }
 
@@ -361,12 +361,13 @@ void dumpMemoria(){
 		t_entrada* entrada = (t_entrada*) nodo;
 		char* _nombreArchivo = string_new();
 		string_append(&_nombreArchivo, entrada->clave);
+		puts(_nombreArchivo);
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd < 0){
 			log_error(logger, "Error al abrir archivo para DUMP");
 			//ERROR AL ABRIR ARCHIVO
 		} else {
-
+			puts(entrada->valor);
 			write(_fd, entrada->valor, strlen(entrada->valor));
 			close(_fd);
 		}
@@ -529,12 +530,11 @@ int procesar(t_instruccion* instruccion) {
 
 t_instruccion* recibirInstruccion(int socketCoordinador) {
 	// Recibo linea de script parseada
-	//uint32_t tam_paquete;
-	//recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
+	uint32_t tam_paquete;
+	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
-	//char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
-	//recv(socketCoordinador, paquete, tam_paquete, 0);
-	char* paquete = readline("Instruccion que llega del Coordinador: ");
+	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
+	recv(socketCoordinador, paquete, tam_paquete, 0);
 	log_info(logger, "Recibi un paquete que me envia el Coordinador");
 
 	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
@@ -637,10 +637,10 @@ int main() {
 					printf("%s\n", para_imprimir[i]);
 					i++;
 				}
-				//send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
+				send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
 			} else {
 				log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");
-				//send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+				send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 			}
 		}
 	}
