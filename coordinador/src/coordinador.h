@@ -31,7 +31,7 @@ enum handshake {
 };
 
 typedef struct {
-	int id;
+	uint32_t id;
 	int socket;
 	int entradas_libres; // se actualizan a medida que la Instancia procesa
 	int rango_inicio;
@@ -44,6 +44,8 @@ t_control_configuracion cargarConfiguracion();
 void establecerProtocoloDistribucion();
 void establecerConexion(void* parametros);
 void atenderInstancia(int socketInstancia);
+bool existeInstanciaID(void* nodo);
+bool instanciaEstaActiva(void* nodo);
 void atenderESI(int socketESI);
 int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID);
 bool instanciaTieneLaClave(void* nodo);
