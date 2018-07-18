@@ -259,6 +259,7 @@ void atenderPeticionEspecial() {
 		if (!instancia) {
 			send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 			log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> No hay Instancia asignada", clave_solicitada);
+			return;
 		}
 		send(socketPlanificador, &(instancia->id), sizeof(uint32_t), 0);
 		log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> Instancia %d", clave_solicitada, instancia->id);
