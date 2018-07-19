@@ -70,14 +70,6 @@ pthread_mutex_t mutexComunicacion = PTHREAD_MUTEX_INITIALIZER;
 
 
 
-t_deadlockeados * deadlockCreate(){
-
-	t_deadlockeados * l = malloc(sizeof(t_deadlockeados));
-	l->ESIasociados = list_create();
-	return l;
-
-}
-
 bool compararClaves (ESI * esi){
 
 		log_info(logPlanificador, "entra a la comparacion de claves");
@@ -352,7 +344,8 @@ extern void cargarValor(char* clave, char* valor){
 		t_recurso * auxiliar = list_get(listaRecursos, i);
 
 		if(string_equals_ignore_case(auxiliar->clave, clave)){
-
+			free(auxiliar->valor);
+			auxiliar->valor = string_new();
 			log_info(logPlanificador, "clave encontrada");
 			string_append(&(auxiliar->valor),valor);
 			log_info(logPlanificador, "valor nuevo: %s",auxiliar->valor);
@@ -425,9 +418,9 @@ bool buscarEnBloqueados (int clave){
 
 			}
 
+			queue_destroy(recu->ESIEncolados);
 			recu->ESIEncolados = colaNueva; // ahora la original apunta a la nueva, que no tiene el hueco.
 			log_info(logPlanificador, "rearmada");
-			queue_destroy(colaNueva); //destruyo la cola nueva pero no los elementos
 		} // cuanto mas facil hubiese sido con una lista..-
 		i++;
 
@@ -710,16 +703,6 @@ void recursoDestroy(t_recurso * recurso)
 
 }
 
-void DEADLOCK_destroy(t_deadlockeados * ESI){
-
-	log_info(logPlanificador, "destruyendo DeadLock");
-
-	list_destroy(ESI->ESIasociados);
-	free(ESI);
-
-}
-
-
 
 // ----------------------------------- COMUNICACIONES --------------------------------- //
 
@@ -914,8 +897,9 @@ void bloquearESI(char * claveRecurso, ESI * esi){
 			queue_push(recursoAuxiliar->ESIEncolados,esi);
 			encontrado = true;
 			log_info(logPlanificador, "esi de clave %d en cola de recurso clave : %s", esi->id, recursoAuxiliar->clave);
-			i++;
 		}
+
+		i++;
 
 	}
 	if(!encontrado){
@@ -1072,9 +1056,10 @@ void statusClave(char * clave){
 
 		pthread_mutex_unlock(&mutexComunicacion);
 
-		if (resp < 0 || resp2 <0){
+		if (resp <= 0 || resp2 <= 0){
 
 			log_info(logPlanificador, " fallo conexion");
+			liberarGlobales();
 			exit (-1);
 
 		} else {
@@ -1140,6 +1125,30 @@ void limpiarRecienLlegados(){
 
 	log_info(logPlanificador,"Cola de listos al dia");
 
+	queue_destroy(colaListos);
 	colaListos = colaAuxiliar;
-	queue_destroy(colaAuxiliar);
 }
+
+
+
+void liberarGlobales (){
+
+	log_info(logPlanificador, "liberando espacio");
+	free(algoritmoDePlanificacion);
+	free(ipCoordinador);
+
+	int i = 0;
+	while(clavesBloqueadas[i]!=NULL)
+	{
+		free(clavesBloqueadas[i]);
+		i++;
+	}
+
+	log_destroy(logPlanificador);
+
+	list_destroy_and_destroy_elements(listaListos, (void *) ESI_destroy);
+	list_destroy_and_destroy_elements(listaFinalizados, (void*) ESI_destroy);
+	queue_destroy_and_destroy_elements(colaListos,(void *)ESI_destroy);
+	list_destroy_and_destroy_elements(listaRecursos, (void *) recursoDestroy);
+}
+

@@ -88,7 +88,6 @@ int rafaga;
 t_config * archivoConfiguracion;
 t_log * logPlanificador;
 t_queue * colaListos;
-t_queue * colaBloqueados; // nota importante: uso una sola para los bloqueados. No le veo sentido tener varias
 t_list * listaListos;
 t_list * listaFinalizados;
 t_list * listaRecursos;
@@ -148,13 +147,6 @@ typedef struct{ // en la lista de subrecursos: futbol, basquet..
 } t_recurso;
 
 
-typedef struct{
-
-	int clave;
-	t_list * ESIasociados;
-
-} t_deadlockeados;
-
 
 
 // ------------------------------------- FUNCIONES ----------------------------------- //
@@ -168,7 +160,6 @@ void liberarRecursos(ESI * esi);
 ESI* estimarProximaRafaga(ESI* proceso );
 bool compararClaves (ESI * esi);
 void comprobarDeadlock();
-void DEADLOCK_destroy(t_deadlockeados * ESI);
 t_recurso * crearRecurso (char * id);
 void crearSubrecurso (char* claveRecurso, char * claveSubrecurso);
 extern void recursoDestroy(t_recurso * recurso);
