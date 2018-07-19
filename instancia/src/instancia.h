@@ -35,28 +35,35 @@
 #include "../../coordinador/src/coordinador.h"
 
 typedef struct {
+	char* mapa_archivo;
+	char* path;
+	int fd;
 	char* clave;
-	char* valor;
 	int entrada_asociada;
 	int size_valor_almacenado;
 	int entradas_ocupadas;
 	int ultima_referencia;
 } __attribute__((packed)) t_entrada;
 
+typedef struct {
+	char* nombre_archivo;
+	char* mapa_archivo;
+	int fd;
+} __attribute__((packed)) t_claves;
+
 t_control_configuracion cargarConfiguracion();
 void establecerProtocoloReemplazo();
-void crearAlmacenamiento();
-void generarTablaDeEntradas();
-void almacenarValorYGenerarTabla(char* clave, char* valor);
+void llenarAlmacenamiento(t_entrada* e);
 void actualizarMapaMemoria();
 void compactarAlmacenamiento();
+t_entrada* crearClaveDesdeArchivo(char* key);
 void dumpMemoria();
-void funcionAbreDirectorio();
+void iniciarInstanciaConDirectorio();
 void imprimirBloqueEntradas();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 int hayEntradasContiguas();
-void escribirEntrada(t_entrada* entrada);
+void escribirEntrada(t_entrada* entrada, char* valor);
 void liberarEntrada(t_entrada* entrada);
 int validarArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 int procesar(t_instruccion* instruccion);
