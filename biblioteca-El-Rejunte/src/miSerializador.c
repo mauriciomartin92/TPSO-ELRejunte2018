@@ -95,13 +95,15 @@ t_instruccion* desempaquetarInstruccion(char* buffer, t_log* logger) {
 		string_append(&(instruccionMutada->valor), vector_componentes_buffer[2]);
 	}
 
-	//destruirVectorComponentesBuffer(vector_componentes_buffer);
+	destruirVectorComponentesBuffer(vector_componentes_buffer);
 
 	return instruccionMutada;
 }
 
 void destruirVectorComponentesBuffer(char** vector_componentes_buffer) {
 	free(vector_componentes_buffer[0]);
+	free(vector_componentes_buffer[1]);
+	free(vector_componentes_buffer[2]);
 	free(vector_componentes_buffer);
 }
 

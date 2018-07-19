@@ -340,6 +340,7 @@ void atenderESI(int socketESI) {
 		}
 
 		destruirPaquete(paquete);
+		destruirInstruccion(instruccion);
 	}
 }
 
