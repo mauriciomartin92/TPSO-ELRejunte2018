@@ -56,8 +56,9 @@ void planificacionSJF(bool desalojo){
 			log_info(logPlanificador, "recibo los datos suficientes para corroborar ejecucion");
 
 
-			if(respuesta1 < 0 || respuesta2 < 0 || respuesta3 < 0){
+			if(respuesta1 <= 0 || respuesta2 <= 0 || respuesta3 <= 0){
 				log_info(logPlanificador, "conexion con el coordinador rota");
+				liberarGlobales();
 				exit(-1);
 			} else {
 				log_info(logPlanificador, "las respuestas llegaron satisfactoriamente");
@@ -86,9 +87,10 @@ void planificacionSJF(bool desalojo){
 					valorRecurso=malloc(sizeof(char)*tamValor);
 					int resp2 =recv (socketCoordinador,valorRecurso,sizeof(char)*tamValor,0);
 
-					if(resp < 0 || resp2 <0){
+					if(resp <= 0 || resp2 <= 0){
 
 						log_info(logPlanificador, "conexion con el coordinador rota");
+						liberarGlobales();
 						exit(-1);
 
 					} else {
@@ -102,16 +104,15 @@ void planificacionSJF(bool desalojo){
 
 				}
 				pthread_mutex_unlock(&mutexComunicacion);
-				char * recursoAUsar = nuevo->recursoPedido;
 
 				if(!recursoEnLista(nuevo)){
 
-					list_add(nuevo->recursosAsignado, recursoAUsar );
+					list_add(nuevo->recursosAsignado, recursoPedido );
 					log_info(logPlanificador, "El recurso se añadio a los recursos asignados del esi");
 
 				}
 
-				bloquearRecurso(recursoAUsar);
+				bloquearRecurso(recursoPedido);
 
 				log_info(logPlanificador, "clave bloqueada");
 
@@ -133,17 +134,23 @@ void planificacionSJF(bool desalojo){
 				log_info(logPlanificador, "rafagas realizadas del esi %d son %d", nuevo-> id, nuevo->rafagasRealizadas);
 
 				uint32_t respuesta ;
-				recv(nuevo->id, &respuesta, sizeof(uint32_t),0);
+				int resp =recv(nuevo->id, &respuesta, sizeof(uint32_t),0);
 
 				pthread_mutex_unlock(&mutexComunicacion);
 
+				if(resp <= 0){
+
+					log_info(logPlanificador, " conexion rota ");
+					liberarGlobales();
+					exit(-1);
+				}
 				if (respuesta != CONTINUAR)
 				{
 					log_info(logPlanificador, " el ESI quiere finalizar ");
 
 					finalizar = true;
 
-				} else if(desalojo) // si hay desalojo activo
+				} else if(desalojo && queue_size(colaListos) > 0) // si hay desalojo activo
 				{
 					log_info(logPlanificador, " hay desalojo ");
 
