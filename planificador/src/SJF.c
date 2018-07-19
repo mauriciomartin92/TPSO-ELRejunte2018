@@ -139,10 +139,14 @@ void planificacionSJF(bool desalojo){
 
 				if (respuesta != CONTINUAR)
 				{
+					log_info(logPlanificador, " el ESI quiere finalizar ");
+
 					finalizar = true;
 
 				} else if(desalojo) // si hay desalojo activo
 				{
+					log_info(logPlanificador, " hay desalojo ");
+
 					pthread_mutex_lock(&mutexColaListos); // por las dudas que entre otro ESI justo en este momento (no lo tengo en cuenta)
 
 					ESI* auxiliar = queue_peek(colaListos);
@@ -151,9 +155,13 @@ void planificacionSJF(bool desalojo){
 					{
 						if(auxiliar->estimacionSiguiente < (nuevo->estimacionSiguiente - nuevo->rafagasRealizadas)) // y si su estimacion siguiente es menor que la del que esta en ejecucion menos lo que ya hizo
 						{
+							log_info(logPlanificador, "se desaloja el ESI ");
+
 							desalojar = true; //se va a desalojar
 						} else
 						{
+							log_info(logPlanificador, "el esi sigue ejecutando");
+
 							limpiarRecienLlegados(); // Si no es menor la estimacion, los recien llegados ya no tendrian validez, los actualizo
 						}
 					}
@@ -163,12 +171,16 @@ void planificacionSJF(bool desalojo){
 
 				if (nuevo->id == claveParaBloquearESI)
 				{
+					log_info(logPlanificador, "se pide bloqueo del esi");
+
 					bloquear = true;
 				}
 
 
 
 			} else {
+				log_info(logPlanificador, " El esi no tiene permiso de ejecucion y se bloquea ");
+
 				pthread_mutex_unlock(&mutexComunicacion);
 				bloquearESI(nuevo->recursoPedido, nuevo);
 
@@ -180,11 +192,15 @@ void planificacionSJF(bool desalojo){
 
 		if(matarESI){
 
-			log_info(logPlanificador, "ESI de clave %d fue matado por consola", nuevo->id);
+			log_info(logPlanificador, "ESI de clave %d fue mandado a matar por consola", nuevo->id);
 			pthread_mutex_lock(&mutexComunicacion);
+			log_info(logPlanificador, "le aviso al coordinador");
+
 			send(socketCoordinador,&FINALIZAR,sizeof(uint32_t),0);
 			send(socketCoordinador,&claveActual,sizeof(claveActual),0);
 			pthread_mutex_unlock(&mutexComunicacion);
+			log_info(logPlanificador, "comunicacion terminada");
+
 			liberarRecursos(nuevo);
 			ESI_destroy(nuevo);
 
@@ -200,12 +216,17 @@ void planificacionSJF(bool desalojo){
 			list_add ( listaFinalizados, nuevo);
 			log_info(logPlanificador, " ESI de clave %d en finalizados!", nuevo->id);
 			liberarRecursos(nuevo);
+			if(bloquearESIActual) bloquearESIActual = false;
+
 
 		} else if( bloquear ){ // este caso sería para bloqueados por usuario. No se libera clave acá
+
+			log_info(logPlanificador, "bloqueando esi..");
 
 			nuevo->bloqueadoPorUsuario = true;
 			bloquearRecurso(claveParaBloquearRecurso);
 			bloquearESI(claveParaBloquearRecurso,nuevo);
+			bloquearESIActual = false;
 			log_info(logPlanificador, " ESI de clave %d en bloqueados para recurso %s", nuevo->id, claveParaBloquearESI);
 
 		} else if (desalojar){
@@ -257,15 +278,23 @@ void armarColaListos(){
 			} else if (ESIMasRapido->estimacionSiguiente == ESIAuxiliar->estimacionSiguiente) //Ante empate de estimaciones
 
 			{
+				log_info(logPlanificador, "hay empate de estimaciones");
+
 				if( !ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
+
+					log_info(logPlanificador, "gana esi nuevo por ser recien llegado");
 
 					ESIMasRapido = ESIAuxiliar;
 
 				} else if( !ESIAuxiliar->recienLlegado && !ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
 
+					log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
+
 					ESIMasRapido = ESIAuxiliar;
 
 				} else if ( ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
+
+					log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
 
 					ESIMasRapido = ESIAuxiliar;
 
@@ -275,7 +304,7 @@ void armarColaListos(){
 			i++;
 		}
 
-		log_info(logPlanificador,"ESI numero %d es de estimacion: %d \n", ESIMasRapido->id, ESIMasRapido->estimacionSiguiente);
+		log_info(logPlanificador,"ESI a entrar en la cola es de estimacion: %d \n",  ESIMasRapido->estimacionSiguiente);
 
 		claveActual = ESIMasRapido->id;
 		ESIMasRapido->bloqueadoPorUsuario = false;

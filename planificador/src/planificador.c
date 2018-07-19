@@ -1,14 +1,6 @@
 #include "planificador.h"
 
 
-// \n
-// todo free de los char*
-/*
- *
- *
- *
- */
-
 int main(void) {
 
 	logPlanificador = log_create("planificador.log", "Planificador" , true, LOG_LEVEL_INFO);
