@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <dirent.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -47,10 +48,10 @@ void establecerProtocoloReemplazo();
 void crearAlmacenamiento();
 void generarTablaDeEntradas();
 void almacenarValorYGenerarTabla(char* clave, char* valor);
-void abrirArchivoInstancia(int* fileDescriptor);
 void actualizarMapaMemoria();
 void compactarAlmacenamiento();
 void dumpMemoria();
+void funcionAbreDirectorio();
 void imprimirBloqueEntradas();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);

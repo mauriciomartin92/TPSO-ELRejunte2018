@@ -34,6 +34,7 @@ uint32_t cant_entradas, tam_entrada, entradas_libres;
 t_list* tabla_entradas;
 char* mapa_archivo;
 char* bloque_instancia;
+char** vector_claves;
 int puntero_circular;
 t_instruccion* instruccion; // es la instruccion actual
 
@@ -278,19 +279,6 @@ int validarArgumentosInstruccion(t_instruccion* instruccion) {
 	return 1;
 }
 
-void abrirArchivoInstancia(int* fileDescriptor) {
-	/*
-	 * La syscall open() nos permite abrir un archivo para escritura/lectura
-	 * con permisos de usuario para realizar dichas operaciones.
-	 */
-	*fileDescriptor = open("/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/instancia.txt", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-
-	if (*fileDescriptor < 0) {
-		log_error(logger, "Error al abrir el archivo de Instancia");
-		finalizar();
-	}
-}
-
 void actualizarMapaMemoria(){
 	//Reescribe el mapa de memoria con los últimos valores y claves en memoria.
 	void guardarValoresEnMap(void* nodo){
@@ -360,8 +348,8 @@ void dumpMemoria(){
 	void obtenerClaves(void* nodo) {
 		t_entrada* entrada = (t_entrada*) nodo;
 		char* _nombreArchivo = string_new();
+		string_append(&_nombreArchivo, "../dump/");
 		string_append(&_nombreArchivo, entrada->clave);
-		puts(_nombreArchivo);
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if(fd < 0){
 			log_error(logger, "Error al abrir archivo para DUMP");
@@ -388,6 +376,29 @@ void escribirEntrada(t_entrada* entrada) {
 	strncpy(bloque_instancia+entrada->entrada_asociada, entrada->valor, entrada->entradas_ocupadas*tam_entrada);
 }
 
+void funcionAbreDirectorio(){
+	DIR* dirp;
+	struct dirent *dp;
+	char* claves;
+	char* nombres_claves;
+
+	dirp = opendir("../dump/");
+
+	claves = string_new();
+	while((dp = readdir(dirp)) != NULL){
+		if(dp->d_type == 8){
+			string_append(&claves, "-");
+			string_append(&claves, dp->d_name);
+		}
+	}
+	nombres_claves = string_new();
+	nombres_claves = string_substring_from(claves, 1);
+
+	vector_claves = string_split(nombres_claves, "-");
+
+	closedir(dirp);
+}
+
 void generarTablaDeEntradas() {
 	int contador;
 	char* una_entrada;
@@ -399,14 +410,6 @@ void generarTablaDeEntradas() {
 	tabla_entradas = list_create();
 
 	//void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entrada)));
-
-	abrirArchivoInstancia(&fd);
-	if (fstat(fd, &sb) < 0) {
-		log_error(logger, "No se pudo obtener el tamaño de archivo");
-		finalizar();
-	}
-
-	//printf("Tamaño de archivo: %ld\n", sb.st_size);
 
 	mapa_archivo = string_new();
 	mapa_archivo = mmap(0, tam_entrada*cant_entradas, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -612,6 +615,7 @@ int main() {
 
 	log_info(logger, "Se recibio la cantidad y tamaño de las entradas correctamente");
 
+	funcionAbreDirectorio();
 	generarTablaDeEntradas(); // Traigo los clave-valor que hay en disco
 	imprimirTablaDeEntradas();
 
