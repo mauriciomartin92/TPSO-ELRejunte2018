@@ -28,8 +28,6 @@ echo "-------------------------------------------- COMPILANDO BIBLIOTECA -------
 
 cd /home/utnso/workspace/tp-2018-1c-El-Rejunte/biblioteca-El-Rejunte/Debug/
 
-make clean
-
 make all
 
 echo "-------------------------------------------- COMPILADA ----------------------------------------------"
@@ -48,8 +46,6 @@ echo "-------------------------------------------- COMPILANDO COORDINADOR ------
 
 cd /home/utnso/workspace/tp-2018-1c-El-Rejunte/coordinador/Debug
 
-make clean
-
 make all
 
 echo "-------------------------------------------- COMPILADO ----------------------------------------------"
@@ -59,8 +55,6 @@ echo "-------------------------------------------- COMPILADO -------------------
 echo "-------------------------------------------- COMPILANDO PLANIFICADOR ----------------------------------------------"
 
 cd /home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/Debug
-
-make clean
 
 make all
 
@@ -72,8 +66,6 @@ echo "-------------------------------------------- COMPILANDO INSTANCIA---------
 
 cd /home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/Debug
 
-make clean
-
 make all
 
 echo "-------------------------------------------- COMPILADA----------------------------------------------"
@@ -83,8 +75,6 @@ echo "-------------------------------------------- COMPILADA--------------------
 echo "-------------------------------------------- COMPILANDO ESI----------------------------------------------"
 
 cd /home/utnso/workspace/tp-2018-1c-El-Rejunte/esi/Debug
-
-make clean
 
 make all
 
