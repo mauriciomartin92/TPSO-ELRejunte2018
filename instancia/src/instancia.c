@@ -351,25 +351,28 @@ void escribirEntrada(t_entrada* entrada, char* valor) {
 }
 
 t_entrada* crearClaveDesdeArchivo(char* clave){
+	log_debug(logger, "%s", clave);
 	struct stat sb;
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
 	entrada->clave = string_new();
-	entrada->mapa_archivo = string_new();
-
-	string_append(&entrada->clave, clave);
+	string_append(&(entrada->clave), clave);
 
 	entrada->path = string_new();
-	string_append(&entrada->path, "../dump/");
+	string_append(&entrada->path, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/");
 	string_append(&entrada->path, clave);
-	string_append(&entrada->path, ".txt");
-
-	puts(entrada->clave);
-	puts(entrada->path);
+	//string_append(&entrada->path, ".txt");
 
 	entrada->fd = open(entrada->path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+	fstat(entrada->fd, &sb);
+	//entrada->mapa_archivo = string_new();
+	//read(entrada->fd, entrada->mapa_archivo, sb.st_size);
 
+	//printf("tamano: %i - mapa: %s\n", sb.st_size, entrada->mapa_archivo);
+
+	entrada->mapa_archivo = string_new();
 	entrada->mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
+	log_debug(logger, "fd: %i - recien mappeado: %s", entrada->fd, entrada->mapa_archivo);
 
 	entrada->size_valor_almacenado = sb.st_size;
 
@@ -387,7 +390,7 @@ void iniciarInstanciaConDirectorio(){
 	char* nombres_claves;
 	char** vector_claves;
 
-	dirp = opendir("../dump/");
+	dirp = opendir("/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/");
 
 	claves = string_new();
 
@@ -419,20 +422,21 @@ void iniciarInstanciaConDirectorio(){
 }
 
 void llenarAlmacenamiento(t_entrada* entrada) {
-	bloque_instancia = (char*) malloc(sizeof(char) * cant_entradas * tam_entrada);
+	bloque_instancia = (char*) malloc(sizeof(char) * ((cant_entradas * tam_entrada) + 1));
 	memset(bloque_instancia, '0', cant_entradas * tam_entrada);
+	bloque_instancia[cant_entradas * tam_entrada] = '\0';
 
-	double entradas_a_ocupar = ceilf((float) entrada->size_valor_almacenado / (float)tam_entrada);
+	int entradas_a_ocupar = obtenerEntradasAOcupar(entrada->mapa_archivo);
 
-	//printf("Entradas a ocupar: %f", entradas_a_ocupar);
-
-	for(int i = 0; i < cant_entradas * tam_entrada; i = i + tam_entrada){
-		if(bloque_instancia[i] == '0'){
+	for (int i = 0; i < cant_entradas * tam_entrada; i = i + tam_entrada) {
+		if (bloque_instancia[i] == '0') {
 			puts("Seteo");
-			strncpy(bloque_instancia+i, entrada->mapa_archivo, strlen(entrada->mapa_archivo));
+			log_debug(logger, "mapa: %s - legth: %d", entrada->mapa_archivo, strlen(entrada->mapa_archivo));
+			strncpy(bloque_instancia + i, entrada->mapa_archivo, strlen(entrada->mapa_archivo));
 			puts("Seteo");
 			entrada->entrada_asociada = i;
 			entrada->entradas_ocupadas = entradas_a_ocupar;
+			log_debug(logger, "%s", bloque_instancia);
 			break;
 		}
 	}
