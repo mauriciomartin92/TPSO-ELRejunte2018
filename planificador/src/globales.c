@@ -14,6 +14,8 @@ char * KEY_IP = "IP";
 char * KEY_PUERTO = "PUERTO";
 char * KEY_CLAVES_BLOQUEADAS = "CLAVES_BLOQUEADAS";
 char * KEY_CONSTANTE_ESTIMACION = "CONSTANTE_ESTIMACION";
+char * KEY_IP_PROPIA = "IP";
+char * KEY_PUERTO_PROPIO = "PUERTO";
 char * RUTA_CONFIGURACION = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/planificador/config_planificador.cfg";
 char * SJF = "SJF";
 char * HRRN = "HRRN";
@@ -25,8 +27,6 @@ char * HRRNConDesalojo = "HRRNConDesalojo";
 // ----------------------------------- SOCKETS ------------------------------------ //
 
 
-char * ipPropia = "127.0.0.2";
-char * puertoPropio = "8080";
 int CONTINUAR = 1;
 int FINALIZAR = 2;
 int socketDeEscucha = 1; //conectarComoServidor(logPlanificador, ip, puerto,1);
@@ -894,6 +894,7 @@ void desbloquearRecurso (char* claveRecurso) {
 					list_add(listaListos,nuevo);
 				} else {
 					log_info(logPlanificador, " la clave no tenia ESIS encolados");
+					nuevoRecurso->estado = 0;
 				}
 
 				log_info(logPlanificador, "Recurso de clave %s desbloqueado", nuevoRecurso->clave);
@@ -1160,6 +1161,10 @@ void liberarGlobales (){
 	log_info(logPlanificador, "liberando espacio");
 	log_info(logPlanificador,"liberando algoPlanif");
 	free(algoritmoDePlanificacion);
+	log_info(logPlanificador,"liberando ipPropia");
+	free(puertoPropio);
+	log_info(logPlanificador,"liberando PuertoPropio");
+	free(ipPropia);
 	log_info(logPlanificador,"liberando ipCoordinador");
 	free(ipCoordinador);
 

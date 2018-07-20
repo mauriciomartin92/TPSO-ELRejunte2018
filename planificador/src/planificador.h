@@ -57,6 +57,8 @@ extern char * KEY_IP;
 extern char * KEY_PUERTO;
 extern char * KEY_CLAVES_BLOQUEADAS ;
 extern char * KEY_CONSTANTE_ESTIMACION ;
+extern char * KEY_IP_PROPIA;
+extern char * KEY_PUERTO_PROPIO;
 extern char * PAUSEAR_PLANIFICACION;
 extern char* REANUDAR_PLANIFICACION ;
 extern char* BLOQUEAR_ESI ;
@@ -71,8 +73,8 @@ extern char* COMPROBAR_DEADLOCK;
 
 
 extern int socketDeEscucha;
-extern char * ipPropia;
-extern char * puertoPropio;
+char * ipPropia;
+char * puertoPropio;
 extern int backlog;
 extern int CONTINUAR;
 extern int FINALIZAR;

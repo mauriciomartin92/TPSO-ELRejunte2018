@@ -77,6 +77,8 @@ void configurar(){
 	algoritmoDePlanificacion = string_new();
 	ipCoordinador = string_new();
 	puertoCoordinador = string_new();
+	ipPropia = string_new();
+	puertoPropio = string_new();
 
 	log_info(logPlanificador, "leyendo archivo configuracion ");
 
@@ -92,15 +94,22 @@ void configurar(){
 
 	log_info(logPlanificador, "estimacion inicial leida = %d", estimacionInicial);
 
-	log_info(logPlanificador, "puerto coordinador leido = %d", puertoCoordinador);
-
 	string_append(&ipCoordinador,config_get_string_value(archivoConfiguracion, KEY_IP_COORDINADOR));
 
-	log_info(logPlanificador, "puerto leido = %s", ipCoordinador);
+	log_info(logPlanificador, "IP coordinador leido = %s", ipCoordinador);
 
 	string_append(&puertoCoordinador,config_get_string_value(archivoConfiguracion, KEY_PUERTO_COORDINADOR));
 
 	log_info(logPlanificador, " puerto coordinador leido = %s", puertoCoordinador);
+
+	string_append(&ipPropia,config_get_string_value(archivoConfiguracion, KEY_IP_PROPIA));
+
+	log_info(logPlanificador, " ip propia leida = %s", ipPropia);
+
+	string_append(&puertoPropio,config_get_string_value(archivoConfiguracion, KEY_PUERTO_PROPIO));
+
+	log_info(logPlanificador, " puerto propio leido = %s", puertoPropio);
+
 
 	clavesBloqueadas = config_get_array_value(archivoConfiguracion, KEY_CLAVES_BLOQUEADAS);
 
