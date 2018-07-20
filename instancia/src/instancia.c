@@ -38,6 +38,7 @@ t_list* lista_claves;
 char* bloque_instancia;
 int puntero_circular;
 t_instruccion* instruccion; // es la instruccion actual
+int referencia_actual = 0;
 
 const uint32_t PAQUETE_OK = 1;
 const int32_t PAQUETE_ERROR = -1;
@@ -108,13 +109,14 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	//Verificamos el tamaño del nuevo valor.
 	if(entradas_a_ocupar <= entrada->entradas_ocupadas){
 		//Ocupa lo mismo que el valor anterior.
+		strcpy(entrada->valor, valor);
 		escribirEntrada(entrada, valor);
 		entrada->entradas_ocupadas = entradas_a_ocupar;
 		entrada->size_valor_almacenado = strlen(valor);
-		entrada->ultima_referencia++;
+		entrada->ultima_referencia = referencia_actual;
 		actualizarCantidadEntradasLibres();
-		return 1;
 		log_info(logger, "Se reemplazo el valor de la clave %s", entrada->clave);
+		return 1;
 	} else {
 		log_error(logger, "El valor a registrar supera la cantidad actual de entradas ocupadas por la clave");
 		return -1;
@@ -156,11 +158,6 @@ t_entrada* algoritmoBSU() {
 
 	list_sort(tabla_entradas, mayorValorAlmacenado);
 	return list_get(tabla_entradas, 0);
-}
-
-void incrementarUltimasReferencias(void* nodo) {
-	t_entrada* entrada = (t_entrada*) nodo;
-	entrada->ultima_referencia++;
 }
 
 t_entrada* algoritmoLRU() {
@@ -232,7 +229,7 @@ int operacion_SET(t_instruccion* instruccion) {
 
 	entrada->size_valor_almacenado = strlen(instruccion->valor);
 	entrada->entradas_ocupadas = entradas_a_ocupar;
-	entrada->ultima_referencia = 0;
+	entrada->ultima_referencia = referencia_actual;
 
 	if (!entrada_a_reemplazar) {
 		entrada->entrada_asociada = hayEntradasContiguas(entradas_a_ocupar);
@@ -347,7 +344,8 @@ void* dumpAutomatico() {
 }
 
 void escribirEntrada(t_entrada* entrada, char* valor) {
-	strncpy(bloque_instancia+entrada->entrada_asociada, valor, entrada->entradas_ocupadas*tam_entrada);
+	strncpy(bloque_instancia + entrada->entrada_asociada, entrada->valor, entrada->entradas_ocupadas * tam_entrada);
+	log_debug(logger, bloque_instancia);
 }
 
 t_entrada* crearClaveDesdeArchivo(char* clave){
@@ -375,7 +373,7 @@ t_entrada* crearClaveDesdeArchivo(char* clave){
 
 	llenarAlmacenamiento(entrada);
 
-	entrada->ultima_referencia = 0;
+	entrada->ultima_referencia = referencia_actual;
 
 	return entrada;
 }
@@ -461,7 +459,8 @@ int hayEntradasContiguas(int entradas_necesarias){
 
 void liberarEntrada(t_entrada* entrada){
 	//strncpy(bloque_instancia+entrada->entrada_asociada, '0', entrada->entradas_ocupadas*tam_entrada);
-	memset(bloque_instancia+entrada->entrada_asociada, 0, entrada->entradas_ocupadas*tam_entrada);
+	memset(bloque_instancia + entrada->entrada_asociada, 0, entrada->entradas_ocupadas * tam_entrada);
+	log_debug(logger, bloque_instancia);
 }
 
 void actualizarCantidadEntradasLibres(){
@@ -612,9 +611,10 @@ int main() {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (validarArgumentosInstruccion(instruccion) > 0) {
-			if(procesar(instruccion) > 0){
-				list_iterate(tabla_entradas, incrementarUltimasReferencias);
 
+			referencia_actual++;
+
+			if(procesar(instruccion) > 0){
 				log_info(logger, "Le aviso al Coordinador que se proceso la instruccion");
 				/*/char** para_imprimir = string_split(mapa_archivo, ";");
 				int i = 0;
