@@ -458,11 +458,13 @@ void lanzarConsola(){
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 			pausearPlanificacion = true;
+			free(linea);
 		}
 		else if (string_equals_ignore_case(linea,REANUDAR_PLANIFICACION))
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 			pausearPlanificacion= false;
+			free(linea);
 		}
 		else if (string_equals_ignore_case(linea, BLOQUEAR_ESI))
 		{
@@ -494,6 +496,7 @@ void lanzarConsola(){
 
 			log_info(logPlanificador, "clave ESI convertida a int: %d ", clave);
 
+			free(linea);
 			linea = readline("CLAVE RECURSO:");
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s", linea);
 
@@ -535,6 +538,7 @@ void lanzarConsola(){
 					bloquearESI(linea, nuevoESI);
 				}
 			}
+			free(linea);
 
 		}
 		else if (string_equals_ignore_case(linea,DESBLOQUEAR_ESI))
@@ -546,6 +550,8 @@ void lanzarConsola(){
 
 			desbloquearRecurso(linea);
 
+			free(linea);
+
 
 		}
 		else if (string_equals_ignore_case(linea, LISTAR_POR_RECURSO)){
@@ -555,6 +561,7 @@ void lanzarConsola(){
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s", linea);
 
 			listarBloqueados(linea);
+			free(linea);
 		}
 		else if (string_equals_ignore_case(linea, KILL_ESI))
 		{
@@ -612,6 +619,7 @@ void lanzarConsola(){
 				claveMatar = clave;
 				seekAndDestroyESI(clave);
 			}
+			free(linea);
 
 		}
 		else if (string_equals_ignore_case(linea, STATUS_ESI))
@@ -620,23 +628,28 @@ void lanzarConsola(){
 			linea = readline("CLAVE:");
 			log_info(logPlanificador, "Clave esi ingresada por consola : %s", linea);
 			statusClave(linea);
+			free(linea);
 
 		}
 		else if (string_equals_ignore_case(linea, COMPROBAR_DEADLOCK))
 		{
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s", linea);
 			comprobarDeadlock(); // hace printf en la funcion
-			break;
+			free(linea);
 		}
 		else if (string_equals_ignore_case(linea, "salir"))
 		{
+			printf("cerrando planificador");
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s", linea);
-			break;
+			liberarGlobales();
+			free(linea);
+			exit(-1);
 		}
 		else
 		{
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s no reconocido", linea);
 			printf("Comando no reconocido");
+			free(linea);
 		}
 
 	}
@@ -859,21 +872,32 @@ void bloquearRecurso (char* claveRecurso) {
 
 void desbloquearRecurso (char* claveRecurso) {
 
+	log_info(logPlanificador, "se intenta desbloquea un recurso clave %s", claveRecurso);
 	int i = 0;
 	bool encontrado = false;
 	while(list_size(listaRecursos) > i && !encontrado)
 	{
 		t_recurso * nuevoRecurso = list_get(listaRecursos,i);
+		log_info(logPlanificador, "clave a analizar = %s", nuevoRecurso->clave);
 		if(string_equals_ignore_case(nuevoRecurso->clave,claveRecurso))
 		{
+			log_info(logPlanificador, "recurso encontrado");
 			if(nuevoRecurso->estado == 1){ // libera el recurso y saca de la cola a SOLO UN ESI que lo estaba esperando
-
+				log_info(logPlanificador, "que esta bloqueado");
+				log_info(logPlanificador, "clave recurso : %s", nuevoRecurso->clave);
 				nuevoRecurso->estado = 0;
 				encontrado = true;
 				ESI * nuevo = queue_pop(nuevoRecurso->ESIEncolados);
-				nuevo->recienDesbloqueadoPorRecurso = true;
+				if(nuevo != NULL){
+					log_info(logPlanificador, "desencolo el primer esi bloqueado");
+					nuevo->recienDesbloqueadoPorRecurso = true;
+					list_add(listaListos,nuevo);
+				} else {
+					log_info(logPlanificador, " la clave no tenia ESIS encolados");
+				}
+
 				log_info(logPlanificador, "Recurso de clave %s desbloqueado", nuevoRecurso->clave);
-				list_add(listaListos,nuevo);
+
 
 			} else {
 				log_info(logPlanificador, " se intento desbloquear un recurso no bloqueado. Se ignora");
@@ -1134,21 +1158,61 @@ void limpiarRecienLlegados(){
 void liberarGlobales (){
 
 	log_info(logPlanificador, "liberando espacio");
+	log_info(logPlanificador,"liberando algoPlanif");
 	free(algoritmoDePlanificacion);
+	log_info(logPlanificador,"liberando ipCoordinador");
 	free(ipCoordinador);
+
 
 	int i = 0;
 	while(clavesBloqueadas[i]!=NULL)
 	{
+		log_info(logPlanificador,"liberando clave: %s", clavesBloqueadas[i]);
 		free(clavesBloqueadas[i]);
 		i++;
 	}
 
-	log_destroy(logPlanificador);
+	log_info(logPlanificador,"liberando lista listos ");
 
-	list_destroy_and_destroy_elements(listaListos, (void *) ESI_destroy);
-	list_destroy_and_destroy_elements(listaFinalizados, (void*) ESI_destroy);
-	queue_destroy_and_destroy_elements(colaListos,(void *)ESI_destroy);
-	list_destroy_and_destroy_elements(listaRecursos, (void *) recursoDestroy);
+	if(list_size(listaListos)>0){
+		log_info(logPlanificador,"tiene elementos");
+		list_destroy_and_destroy_elements(listaListos, (void *) ESI_destroy);
+	} else {
+		log_info(logPlanificador,"LIsta vacia");
+		list_destroy(listaListos);
+	}
+	log_info(logPlanificador,"liberando finalizados");
+
+	if(list_size(listaFinalizados)>0){
+		log_info(logPlanificador, "lista con elementos");
+		list_destroy_and_destroy_elements(listaFinalizados, (void*) ESI_destroy);
+	} else {
+		log_info(logPlanificador, "lista vacia");
+		list_destroy(listaFinalizados);
+	}
+
+	log_info(logPlanificador, "liberando colaListos");
+	if(queue_size(colaListos)>0){
+		log_info(logPlanificador, "cola con elementos");
+		queue_destroy_and_destroy_elements(colaListos,(void *)ESI_destroy);
+	} else {
+		log_info(logPlanificador, "cola vacia");
+		queue_destroy(colaListos);
+	}
+
+
+	log_info(logPlanificador,"liberando lista recursos ");
+	if(list_size(listaRecursos)>0){
+
+		log_info(logPlanificador,"lista con elementos");
+		list_destroy_and_destroy_elements(listaRecursos, (void *) recursoDestroy);
+	} else {
+
+		log_info(logPlanificador, "lista vacia");
+		list_destroy(listaRecursos);
+	}
+
+	log_info(logPlanificador,"cerrando log ");
+	log_destroy(logPlanificador);
 }
 

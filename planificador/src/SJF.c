@@ -18,8 +18,8 @@ void planificacionSJF(bool desalojo){
 		if (queue_size(colaListos) > 0){
 			break;
 		}
-
 	}
+
 
 	log_info(logPlanificador, "Comienza planificacion SJF");
 
