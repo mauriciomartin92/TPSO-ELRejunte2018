@@ -40,9 +40,12 @@ t_list* tabla_instancias;
 int socketDeEscucha;
 int socketPlanificador;
 char* clave_actual;
+uint32_t instancia_ID;
+pthread_mutex_t mutexNuevaInstancia = PTHREAD_MUTEX_INITIALIZER;
 
-const uint32_t ABORTA_ESI = -1;
+const uint32_t ABORTA_ESI = -2;
 const uint32_t PAQUETE_OK = 1;
+const uint32_t PAQUETE_ERROR = -1;
 const int TAM_MAXIMO_CLAVE = 40;
 const uint32_t PETICION_ESPECIAL = 4;
 const uint32_t TERMINA_ESI = 0;
@@ -85,7 +88,7 @@ t_instancia* algoritmoKE() {
 	int letra_fin = 'z'; // z
 
 	int rango_letras = letra_fin - letra_inicio; // a-z
-	int cant_instancias = list_size(tabla_instancias);
+	int cant_instancias = list_count_satisfying(tabla_instancias, instanciaEstaActiva);
 	int asignacion = rango_letras / cant_instancias;
 
 	int i;
@@ -245,11 +248,24 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 void atenderPeticionEspecial() {
 	uint32_t operacion;
 	recv(socketPlanificador, &operacion, sizeof(uint32_t), 0);
+	log_info(logger, "Me llega una peticion especial del Planificador");
 
-	switch (operacion) {
-		/*
-		 * TODO
-		 */
+	if (operacion == 4) {
+		uint32_t tam_clave;
+		recv(socketPlanificador, &tam_clave, sizeof(uint32_t), 0);
+		char* clave_solicitada = malloc(sizeof(char) * tam_clave);
+		recv(socketPlanificador, &clave_solicitada, tam_clave, 0);
+		t_instancia* instancia = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave);
+		if (!instancia) {
+			send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+			log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> No hay Instancia asignada", clave_solicitada);
+			return;
+		}
+		send(socketPlanificador, &(instancia->id), sizeof(uint32_t), 0);
+		log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> Instancia %d", clave_solicitada, instancia->id);
+	} else {
+		send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+		log_error(logger, "No se comprende el pedido, sigue la ejecucion normalmente");
 	}
 }
 
@@ -322,19 +338,34 @@ void atenderESI(int socketESI) {
 		} else {
 			log_warning(logger, "El Planificador me informa que el ESI %d no tiene permisos", esi_ID);
 		}
+
 		destruirPaquete(paquete);
+		destruirInstruccion(instruccion);
 	}
+}
+
+bool instanciaEstaActiva(void* nodo) {
+	t_instancia* instancia = (t_instancia*) nodo;
+	return instancia->estado;
+}
+
+bool existeInstanciaID(void* nodo) {
+	t_instancia* instancia = (t_instancia*) nodo;
+	return (instancia->id == instancia_ID);
 }
 
 void atenderInstancia(int socketInstancia) {
 	// Recibo la ID
-	uint32_t instancia_ID;
+	pthread_mutex_lock(&mutexNuevaInstancia);
+
 	recv(socketInstancia, &instancia_ID, sizeof(uint32_t), 0);
 	log_info(logger, "Es la Instancia %d", instancia_ID);
 
 	log_info(logger, "Busco si ya fue creada en la Tabla de Instancias");
-	//t_instancia* instancia = list_find(tabla_instancias, existeID); // TODO
-	t_instancia* instancia = NULL; // no va
+	t_instancia* instancia = list_find(tabla_instancias, existeInstanciaID);
+
+	pthread_mutex_unlock(&mutexNuevaInstancia);
+
 	if (instancia) {
 		log_info(logger, "La Instancia %d ya existia, la pongo ACTIVA", instancia_ID);
 		instancia->estado = ACTIVA;
@@ -342,12 +373,12 @@ void atenderInstancia(int socketInstancia) {
 	}
 
 	// Guarda el struct de la Instancia en mi lista
-	t_instancia* unaInstancia = (t_instancia*) malloc(sizeof(t_instancia));
-	unaInstancia->id = instancia_ID;
-	unaInstancia->socket = socketInstancia;
-	unaInstancia->entradas_libres = cant_entradas;
-	unaInstancia->estado = ACTIVA;
-	unaInstancia->claves_asignadas = list_create();
+	instancia = (t_instancia*) malloc(sizeof(t_instancia));
+	instancia->id = instancia_ID;
+	instancia->socket = socketInstancia;
+	instancia->entradas_libres = cant_entradas;
+	instancia->estado = ACTIVA;
+	instancia->claves_asignadas = list_create();
 
 	log_info(logger, "Envio a la Instancia su cantidad de entradas");
 	send(socketInstancia, &cant_entradas, sizeof(uint32_t), 0);
@@ -355,10 +386,10 @@ void atenderInstancia(int socketInstancia) {
 	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
 	send(socketInstancia, &tam_entradas, sizeof(uint32_t), 0);
 
-	list_add(tabla_instancias, unaInstancia);
-	log_info(logger, "Instancia agregada a la Tabla de Instancias");
+	list_add(tabla_instancias, instancia);
+	log_info(logger, "Instancia %d agregada a la Tabla de Instancias", instancia_ID);
 
-	log_debug(logger, "La cantidad de instancias actual es %d\n", list_size(tabla_instancias));
+	log_debug(logger, "La cantidad de instancias actual es %d\n", list_count_satisfying(tabla_instancias, instanciaEstaActiva));
 }
 
 void establecerConexion(void* socketCliente) {
@@ -383,7 +414,7 @@ void establecerConexion(void* socketCliente) {
 	} else if (handshake == PLANIFICADOR) {
 		log_info(logger, "El cliente es el Planificador");
 		socketPlanificador = *(int*) socketCliente;
-		send(*(int*) socketCliente, &PAQUETE_OK, sizeof(uint32_t), 0);
+		send(socketPlanificador, &PAQUETE_OK, sizeof(uint32_t), 0);
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente");
 	}

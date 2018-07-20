@@ -29,7 +29,7 @@ FILE *fp;
 uint32_t respuesta;
 
 /* INFORMES AL PLANIFICADOR */
-const uint32_t ABORTA_ESI = -1;
+const uint32_t ABORTA_ESI = -2;
 const uint32_t TERMINA_ESI = 0;
 const uint32_t PAQUETE_OK = 1;
 
@@ -162,6 +162,9 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			 * con el oordinador, entonces le aviso al Coordinador que lo escuche =)
 			 */
 			send(socketCoordinador, &PETICION_ESPECIAL, sizeof(uint32_t), 0);
+		} else if (orden == ABORTA_ESI) {
+			log_warning(logger, "EL PLANIFICADOR INFORMA QUE DEBO ABORTAR");
+			break;
 		}
 	}
 

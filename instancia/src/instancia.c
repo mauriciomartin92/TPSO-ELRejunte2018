@@ -351,7 +351,6 @@ void* dumpAutomatico() {
 
 void escribirEntrada(t_entrada* entrada, char* valor) {
 	strncpy(bloque_instancia + entrada->entrada_asociada, valor, entrada->entradas_ocupadas * tam_entrada);
-}
 
 t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	log_debug(logger, "%s", archivo);
@@ -487,6 +486,8 @@ int procesar(t_instruccion* instruccion) {
 		return (strcmp(instruccion->clave, entrada->clave) == 0);
 	}
 
+	log_debug(logger, "%d", list_size(tabla_entradas));
+
 	// Busco la clave en la tabla usando la funcion magica
 	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
 
@@ -505,7 +506,7 @@ int procesar(t_instruccion* instruccion) {
 	} else { // la entrada si estaba
 		log_warning(logger, "La clave esta registrada en la Tabla de Entradas");
 
-		switch (instruccion->operacion){
+		switch (instruccion->operacion) {
 		case opSET: // SET de clave presente.
 			log_debug(logger, "Operacion SET con reemplazo");
 			return operacion_SET_reemplazo(entrada, instruccion->valor);
@@ -623,7 +624,7 @@ int main() {
 
 			if(procesar(instruccion) > 0){
 				log_info(logger, "Le aviso al Coordinador que se proceso la instruccion");
-				/*/char** para_imprimir = string_split(mapa_archivo, ";");
+				/*char** para_imprimir = string_split(mapa_archivo, ";");
 				int i = 0;
 				while (para_imprimir[i] != NULL) {
 					printf("%s\n", para_imprimir[i]);

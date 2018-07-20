@@ -1,21 +1,12 @@
 #include "planificador.h"
 
 
-// \n
-// todo free de los char*
-/*
- *
- *
- *
- */
-
 int main(void) {
 
 	logPlanificador = log_create("planificador.log", "Planificador" , true, LOG_LEVEL_INFO);
 	colaListos = queue_create();
 	listaListos = list_create();
 	listaFinalizados = list_create();
-	deadlockeados = list_create();
 	listaRecursos = list_create();
 
 	log_info(logPlanificador,"Arranca el proceso planificador");
@@ -38,7 +29,7 @@ int main(void) {
 
 	comprobar = recv(socketCoordinador, &respuesta, sizeof(respuesta),0);
 
-	if(respuesta != 1 || comprobar < 0)
+	if(respuesta != 1 || comprobar <= 0)
 	{
 		log_info(logPlanificador,"Conexion rota");
 		liberarGlobales();
@@ -129,29 +120,4 @@ void configurar(){
 	log_info(logPlanificador, "se llenó la cola de bloqueados");
 
 	config_destroy(archivoConfiguracion);
-}
-
-
-
-void liberarGlobales (){
-
-	log_info(logPlanificador, "liberando espacio");
-	free(algoritmoDePlanificacion);
-	free(ipCoordinador);
-
-	int i = 0;
-	while(clavesBloqueadas[i]!=NULL)
-	{
-		free(clavesBloqueadas[i]);
-		i++;
-	}
-	free (clavesBloqueadas);
-
-	log_destroy(logPlanificador);
-
-	list_destroy_and_destroy_elements(listaListos, (void *) ESI_destroy);
-	list_destroy_and_destroy_elements(listaFinalizados, (void*) ESI_destroy);
-	list_destroy_and_destroy_elements(deadlockeados, (void *) DEADLOCK_destroy);
-	queue_destroy_and_destroy_elements(colaListos,(void *)ESI_destroy);
-	list_destroy_and_destroy_elements(listaRecursos, (void *) recursoDestroy);
 }
