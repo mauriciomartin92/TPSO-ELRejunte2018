@@ -40,6 +40,7 @@ int puntero_circular;
 t_instruccion* instruccion; // es la instruccion actual
 int referencia_actual = 0;
 
+const char* ruta_directorio = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/";
 const uint32_t PAQUETE_OK = 1;
 const int32_t PAQUETE_ERROR = -1;
 
@@ -77,7 +78,7 @@ int operacion_STORE(char* clave) {
 	strncpy(_valor, bloque_instancia+entrada->entrada_asociada, entrada->size_valor_almacenado);
 	_valor[entrada->size_valor_almacenado] = '\0';
 	_nombreArchivo = string_new();
-	string_append(&_nombreArchivo, "../dump/");
+	string_append(&_nombreArchivo, ruta_directorio);
 	string_append(&_nombreArchivo, entrada->clave);
 	string_append(&_nombreArchivo, ".txt");
 
@@ -300,16 +301,18 @@ void compactarAlmacenamiento() {
 	log_debug(logger, "Se corrieron todas las entradas");
 }
 
-void dumpMemoria(){
+void dumpMemoria() {
 	int _fd;
 	struct stat sb;
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
 	void obtenerClaves(void* nodo) {
 		t_entrada* entrada = (t_entrada*) nodo;
 		char* _nombreArchivo = string_new();
+		string_append(&_nombreArchivo, ruta_directorio);
 		string_append(&_nombreArchivo, entrada->clave);
 		string_append(&_nombreArchivo, ".txt");
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+		fstat(entrada->fd, &sb);
 
 		if(_fd < 0){
 			log_error(logger, "Error al abrir archivo para DUMP");
@@ -318,8 +321,7 @@ void dumpMemoria(){
 			if(sb.st_size > 0){
 				if(entrada->size_valor_almacenado <= strlen(entrada->mapa_archivo)){
 					memset(entrada->mapa_archivo, '0', strlen(entrada->mapa_archivo));
-					strncpy(entrada->mapa_archivo, bloque_instancia+((entrada->entrada_asociada - 1) * tam_entrada), strlen(entrada->mapa_archivo));
-					//entrada->mapa_archivo = string_substring(bloque_instancia, (entrada->entrada_asociada - 1) * tam_entrada, entrada->size_valor_almacenado);
+					strncpy(entrada->mapa_archivo, bloque_instancia + ((entrada->entrada_asociada - 1) * tam_entrada), strlen(entrada->mapa_archivo));
 				} else {
 					ftruncate(entrada->fd, entrada->size_valor_almacenado);
 					munmap(entrada->mapa_archivo, strlen(entrada->mapa_archivo));
@@ -361,15 +363,15 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	string_append(&(entrada->clave), vector_clave[0]);
 
 	entrada->path = string_new();
-	string_append(&entrada->path, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/");
+	string_append(&entrada->path, ruta_directorio);
 	string_append(&entrada->path, archivo);
+	log_debug(logger, "%s", entrada->path);
 
 	entrada->fd = open(entrada->path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 	fstat(entrada->fd, &sb);
 
 	entrada->mapa_archivo = string_new();
 	entrada->mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
-	log_debug(logger, "fd: %i - recien mappeado: %s", entrada->fd, entrada->mapa_archivo);
 
 	entrada->size_valor_almacenado = sb.st_size;
 
@@ -388,7 +390,7 @@ void iniciarDirectorio(){
 
 	tabla_entradas = list_create();
 
-	dirp = opendir("/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/");
+	dirp = opendir(ruta_directorio);
 
 	archivos = string_new();
 
@@ -419,12 +421,9 @@ void llenarAlmacenamiento(t_entrada* entrada) {
 	int entradas_a_ocupar = obtenerEntradasAOcupar(entrada->mapa_archivo);
 
 	for (int i = 0; i < cant_entradas * tam_entrada; i = i + tam_entrada) {
-		log_error(logger, "%c", bloque_instancia[i]);
 		if (bloque_instancia[i] == '0') {
-			puts("Seteo");
-			log_debug(logger, "mapa: %s - legth: %d", entrada->mapa_archivo, strlen(entrada->mapa_archivo));
+			log_debug(logger, "mapa: %s", entrada->mapa_archivo);
 			strncpy(bloque_instancia + i, entrada->mapa_archivo, strlen(entrada->mapa_archivo));
-			puts("Seteo");
 			entrada->entrada_asociada = (i / tam_entrada) + 1;
 			entrada->entradas_ocupadas = entradas_a_ocupar;
 			log_debug(logger, "%s", bloque_instancia);
@@ -640,4 +639,3 @@ int main() {
 	finalizar();
 	return EXIT_SUCCESS;
 }
-
