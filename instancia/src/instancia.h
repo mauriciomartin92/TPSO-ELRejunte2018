@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <dirent.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -35,7 +36,9 @@
 
 typedef struct {
 	char* clave;
-	char* valor;
+	char* mapa_archivo;
+	char* path;
+	int fd;
 	int entrada_asociada;
 	int size_valor_almacenado;
 	int entradas_ocupadas;
@@ -44,18 +47,17 @@ typedef struct {
 
 t_control_configuracion cargarConfiguracion();
 void establecerProtocoloReemplazo();
-void crearAlmacenamiento();
-void generarTablaDeEntradas();
-void almacenarValorYGenerarTabla(char* clave, char* valor);
-int obtenerEntradasAOcupar(char* valor);
-void abrirArchivoInstancia(int* fileDescriptor);
-void actualizarMapaMemoria();
+void inicializarBloqueInstancia();
+void iniciarDirectorio();
+void llenarAlmacenamiento(t_entrada* entrada);
+t_entrada* crearEntradaDesdeArchivo(char* archivo);
 void compactarAlmacenamiento();
 void dumpMemoria();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
+int obtenerEntradasAOcupar(char* valor);
 int hayEntradasContiguas();
-void escribirEntrada(t_entrada* entrada);
+void escribirEntrada(t_entrada* entrada, char* valor);
 void liberarEntrada(t_entrada* entrada);
 int validarArgumentosInstruccion(t_instruccion* instruccion); // Creo que despues se borra esta funcion
 int procesar(t_instruccion* instruccion);

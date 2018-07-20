@@ -16,6 +16,7 @@
 #include "instancia.h"
 #include "../../biblioteca-El-Rejunte/src/misSockets.h"
 
+
 typedef enum {
 	CIRC = 0,
 	LRU = 1,
@@ -32,14 +33,14 @@ uint32_t id_instancia;
 int socketCoordinador, intervalo_dump, fd;
 uint32_t cant_entradas, tam_entrada, entradas_libres;
 t_list* tabla_entradas;
-char* mapa_archivo;
+t_list* lista_claves;
+//char* mapa_archivo;
 char* bloque_instancia;
 int puntero_circular;
 t_instruccion* instruccion; // es la instruccion actual
 int referencia_actual = 0;
 
-struct stat sb;
-
+const char* ruta_directorio = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/";
 const uint32_t PAQUETE_OK = 1;
 const int32_t PAQUETE_ERROR = -1;
 
@@ -50,6 +51,13 @@ void imprimirTablaDeEntradas() {
 		printf("%s - %d - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado);
 	}
 	printf("\n");
+}
+
+int obtenerEntradasAOcupar(char* valor) {
+	div_t division = div(strlen(valor), tam_entrada);
+	int entradas_a_ocupar = division.quot;
+	if (division.rem > 0) entradas_a_ocupar++;
+	return entradas_a_ocupar;
 }
 
 int operacion_STORE(char* clave) {
@@ -69,13 +77,16 @@ int operacion_STORE(char* clave) {
 	_valor = malloc(sizeof(char) * tam_entrada);
 	strncpy(_valor, bloque_instancia+entrada->entrada_asociada, entrada->size_valor_almacenado);
 	_valor[entrada->size_valor_almacenado] = '\0';
-	_nombreArchivo = clave;
+	_nombreArchivo = string_new();
+	string_append(&_nombreArchivo, ruta_directorio);
+	string_append(&_nombreArchivo, entrada->clave);
+	string_append(&_nombreArchivo, ".txt");
 
 	//MANEJO DE ERRORES!
 	if((_archivoClave = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) > 0){
 		if ((int)write(_archivoClave, _valor, string_length(_valor)) > 0) {
 			//SE ESCRIBIÓ PERSISTIÓ LA CLAVE
-			actualizarMapaMemoria();
+
 			log_info(logger, "Se persistió la clave-valor");
 			close(_archivoClave);
 			return 1;
@@ -102,9 +113,7 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	//Verificamos el tamaño del nuevo valor.
 	if (entradas_a_ocupar <= entrada->entradas_ocupadas) {
 		//Ocupa lo mismo que el valor anterior.
-		entrada->valor = string_new();
-		string_append(&(entrada->valor), valor);
-		escribirEntrada(entrada);
+		escribirEntrada(entrada, valor);
 		entrada->entradas_ocupadas = entradas_a_ocupar;
 		entrada->size_valor_almacenado = strlen(valor);
 		entrada->ultima_referencia = referencia_actual;
@@ -221,8 +230,7 @@ int operacion_SET(t_instruccion* instruccion) {
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 	entrada->clave = string_new();
 	string_append(&(entrada->clave), instruccion->clave);
-	entrada->valor = string_new();
-	string_append(&(entrada->valor), instruccion->valor);
+
 	entrada->size_valor_almacenado = strlen(instruccion->valor);
 	entrada->entradas_ocupadas = entradas_a_ocupar;
 	entrada->ultima_referencia = referencia_actual;
@@ -233,7 +241,7 @@ int operacion_SET(t_instruccion* instruccion) {
 		liberarEntrada(entrada_a_reemplazar);
 		entrada->entrada_asociada = entrada_a_reemplazar->entrada_asociada;
 	}
-	escribirEntrada(entrada);
+	escribirEntrada(entrada, instruccion->valor);
 	actualizarCantidadEntradasLibres();
 	puntero_circular = entrada->entrada_asociada;
 	list_add(tabla_entradas, entrada);
@@ -272,69 +280,6 @@ int validarArgumentosInstruccion(t_instruccion* instruccion) {
 	return 1;
 }
 
-void abrirArchivoInstancia(int* fileDescriptor) {
-	/*
-	 * La syscall open() nos permite abrir un archivo para escritura/lectura
-	 * con permisos de usuario para realizar dichas operaciones.
-	 */
-	*fileDescriptor = open("/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/instancia.txt", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-
-	if (*fileDescriptor < 0) {
-		log_error(logger, "Error al abrir el archivo de Instancia");
-		finalizar();
-	}
-}
-
-void actualizarMapaMemoria(){
-	//Reescribe el mapa de memoria con los últimos valores y claves en memoria.
-	void guardarValoresEnMap(void* nodo){
-		t_entrada* entrada_en_tabla = (t_entrada*) nodo;
-		char* entrada_a_map = string_new();
-
-		string_append(&entrada_a_map, entrada_en_tabla->clave);
-		string_append(&entrada_a_map, "-");
-		string_append(&entrada_a_map, entrada_en_tabla->valor);
-		string_append(&entrada_a_map, ";");
-		string_append(&entrada_a_map, "\0");
-
-		for (int i = 0; i < string_length(entrada_a_map); i++){
-			mapa_archivo[i] = entrada_a_map[i];
-		}
-	}
-
-	list_iterate(tabla_entradas, guardarValoresEnMap);
-}
-
-int obtenerEntradasAOcupar(char* valor) {
-	div_t division = div(strlen(valor), tam_entrada);
-	int entradas_a_ocupar = division.quot;
-	if (division.rem > 0) entradas_a_ocupar++;
-	return entradas_a_ocupar;
-}
-
-void almacenarValorYGenerarTabla(char* valor, char* clave){
-	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
-
-	int entradas_a_ocupar = obtenerEntradasAOcupar(valor);
-
-	for(int i = 0; i < cant_entradas * tam_entrada; i = i + tam_entrada){
-		if(bloque_instancia[i] == '0'){
-			strncpy(bloque_instancia+i, valor, strlen(valor));
-			entrada->clave = string_new();
-			string_append(&(entrada->clave), clave);
-			entrada->valor = string_new();
-			string_append(&(entrada->valor), valor);
-			entrada->entrada_asociada = i;
-			entrada->size_valor_almacenado = strlen(valor);
-			entrada->entradas_ocupadas = entradas_a_ocupar;
-			entrada->ultima_referencia = referencia_actual;
-			list_add(tabla_entradas, entrada);
-			break;
-		}
-	}
-	bloque_instancia[cant_entradas * tam_entrada] = '\0';
-}
-
 void compactarAlmacenamiento() {
 	log_debug(logger, "Se inicia la compactacion");
 	for(int x = 0; x < cant_entradas * tam_entrada; x += tam_entrada) {
@@ -356,21 +301,39 @@ void compactarAlmacenamiento() {
 	log_debug(logger, "Se corrieron todas las entradas");
 }
 
-void dumpMemoria(){
+void dumpMemoria() {
 	int _fd;
-
+	struct stat sb;
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
 	void obtenerClaves(void* nodo) {
 		t_entrada* entrada = (t_entrada*) nodo;
 		char* _nombreArchivo = string_new();
+		string_append(&_nombreArchivo, ruta_directorio);
 		string_append(&_nombreArchivo, entrada->clave);
-		puts(_nombreArchivo);
+		string_append(&_nombreArchivo, ".txt");
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-		if(fd < 0){
+		fstat(entrada->fd, &sb);
+
+		if(_fd < 0){
 			log_error(logger, "Error al abrir archivo para DUMP");
 			//ERROR AL ABRIR ARCHIVO
 		} else {
-			write(_fd, entrada->valor, strlen(entrada->valor));
+			if(sb.st_size > 0){
+				if(entrada->size_valor_almacenado <= strlen(entrada->mapa_archivo)){
+					memset(entrada->mapa_archivo, '0', strlen(entrada->mapa_archivo));
+					strncpy(entrada->mapa_archivo, bloque_instancia + ((entrada->entrada_asociada - 1) * tam_entrada), strlen(entrada->mapa_archivo));
+				} else {
+					ftruncate(entrada->fd, entrada->size_valor_almacenado);
+					munmap(entrada->mapa_archivo, strlen(entrada->mapa_archivo));
+					entrada->mapa_archivo = string_new();
+					entrada->mapa_archivo = mmap(NULL, entrada->size_valor_almacenado, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
+					//entrada->mapa_archivo = mremap(NULL, strlen(entrada->mapa_archivo), entrada->size_valor_almacenado, 0);
+				}
+			} else {
+				entrada->fd = _fd;
+				entrada->mapa_archivo = mmap(NULL, entrada->size_valor_almacenado, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
+				entrada->mapa_archivo = string_substring(bloque_instancia, entrada->entrada_asociada, entrada->size_valor_almacenado);
+			}
 			close(_fd);
 		}
 	}
@@ -386,73 +349,87 @@ void* dumpAutomatico() {
 	return NULL;
 }
 
-void escribirEntrada(t_entrada* entrada) {
-	strncpy(bloque_instancia + entrada->entrada_asociada, entrada->valor, entrada->entradas_ocupadas * tam_entrada);
+void escribirEntrada(t_entrada* entrada, char* valor) {
+	strncpy(bloque_instancia + entrada->entrada_asociada, valor, entrada->entradas_ocupadas * tam_entrada);
+
+t_entrada* crearEntradaDesdeArchivo(char* archivo) {
+	log_debug(logger, "%s", archivo);
+	struct stat sb;
+	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
+
+	entrada->clave = string_new();
+	char** vector_clave = string_split(archivo, ".");
+	string_append(&(entrada->clave), vector_clave[0]);
+
+	entrada->path = string_new();
+	string_append(&entrada->path, ruta_directorio);
+	string_append(&entrada->path, archivo);
+	log_debug(logger, "%s", entrada->path);
+
+	entrada->fd = open(entrada->path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+	fstat(entrada->fd, &sb);
+
+	entrada->mapa_archivo = string_new();
+	entrada->mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
+
+	entrada->size_valor_almacenado = sb.st_size;
+
+	llenarAlmacenamiento(entrada);
+
+	entrada->ultima_referencia = referencia_actual;
+
+	return entrada;
 }
 
-void generarTablaDeEntradas() {
-	int contador;
-	char* una_entrada;
-	char** vec_clave_valor;
+void iniciarDirectorio(){
+	DIR* dirp;
+	struct dirent *dp;
+	char* archivos;
+	char** vector_archivos;
 
-	log_info(logger, "Cargo la Tabla de Entradas con lo que esta en el disco");
-
-	//Creo la tabla de entradas de la instancia, que consiste en una lista.
 	tabla_entradas = list_create();
 
-	//void** storage_volatil = malloc(atoi(cant_entradas) * sizeof(atoi(tam_entrada)));
+	dirp = opendir(ruta_directorio);
 
-	abrirArchivoInstancia(&fd);
-	if (fstat(fd, &sb) < 0) {
-		log_error(logger, "No se pudo obtener el tamaño de archivo");
-		finalizar();
-	}
+	archivos = string_new();
 
-	//printf("Tamaño de archivo: %ld\n", sb.st_size);
-
-	mapa_archivo = string_new();
-	mapa_archivo = mmap(0, tam_entrada*cant_entradas, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-	bloque_instancia = (char*) malloc(sizeof(char) * ((cant_entradas * tam_entrada) + 1));
-	memset(bloque_instancia, '0', cant_entradas * tam_entrada);
-
-	//Si el tamaño del archivo es mayor a 0, es porque existía y tiene información.
-	if (sb.st_size > 0) {
-		/*
-		 * Con mmap() paso el archivo a un bloque de memoria de igual tamaño
-		 * con dirección elegida por el SO y permisos de lectura/escritura.
-		 */
-		/*
-		 * Se crea un string vacío, donde se almacenará el contenido del archivo.
-		 */
-
-		//El contador se inicia en la posición inicial del archivo en memoria (byte 0)
-		contador = 0;
-
-		for (int i = 0; i < string_length(mapa_archivo); i++) {
-			/*
-			 * Cuando llego al caracter de fin de entrada, creo un string vacío donde guardarla,
-			 * usando como datos el inicio (contador) y el byte actual (i) con string_substring.
-			 * En un vector de strings, se divide la entrada en 2, clave y valor (separados por -).
-			 * En la estructura entrada, se guarda la clave; en el campo entrada asociada se usa el contador;
-			 * en el tamaño del valor almacenado, se usa la longitud del valor almacenado en el vector.
-			 * Por último, se agrega a la lista un nuevo elemento con la estructura completa.
-			 * El contador se actualiza a la posición siguiente al fin de entrada.
-			 */
-			//printf("--> i = %i \n mapa_archivo(i): %c \n", i, mapa_archivo[i]);
-			if (mapa_archivo[i] == ';') {
-				una_entrada = string_new();
-				una_entrada = string_substring(mapa_archivo, contador, i - contador);
-				vec_clave_valor = string_split(una_entrada, "-");
-				almacenarValorYGenerarTabla(vec_clave_valor[1], vec_clave_valor[0]);
-				contador = i + 1;
-			}
+	while ((dp = readdir(dirp)) != NULL){
+		if (dp->d_type == 8) { // Si es .txt
+			string_append(&archivos, "-");
+			string_append(&archivos, dp->d_name);
 		}
-	} else {
-		log_info(logger, "El archivo fue creado y está vacío");
 	}
 
-	printf("Lista size: %i\n", list_size(tabla_entradas));
+	if (string_length(archivos) == 0) {
+		closedir(dirp);
+		return;
+	}
+
+	archivos = string_substring_from(archivos, 1);
+	vector_archivos = string_split(archivos, "-");
+
+	int i = 0;
+	while(vector_archivos[i] != NULL){
+		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
+		i++;
+	}
+	closedir(dirp);
+}
+
+void llenarAlmacenamiento(t_entrada* entrada) {
+	int entradas_a_ocupar = obtenerEntradasAOcupar(entrada->mapa_archivo);
+
+	for (int i = 0; i < cant_entradas * tam_entrada; i = i + tam_entrada) {
+		if (bloque_instancia[i] == '0') {
+			log_debug(logger, "mapa: %s", entrada->mapa_archivo);
+			strncpy(bloque_instancia + i, entrada->mapa_archivo, strlen(entrada->mapa_archivo));
+			entrada->entrada_asociada = (i / tam_entrada) + 1;
+			entrada->entradas_ocupadas = entradas_a_ocupar;
+			log_debug(logger, "%s", bloque_instancia);
+			break;
+		}
+	}
+	bloque_instancia[cant_entradas * tam_entrada] = '\0';
 }
 
 int hayEntradasContiguas(int entradas_necesarias){
@@ -478,7 +455,7 @@ int hayEntradasContiguas(int entradas_necesarias){
 
 void liberarEntrada(t_entrada* entrada){
 	//strncpy(bloque_instancia+entrada->entrada_asociada, '0', entrada->entradas_ocupadas*tam_entrada);
-	memset(bloque_instancia+entrada->entrada_asociada, 0, entrada->entradas_ocupadas*tam_entrada);
+	memset(bloque_instancia + entrada->entrada_asociada, 0, entrada->entradas_ocupadas * tam_entrada);
 }
 
 void actualizarCantidadEntradasLibres(){
@@ -492,6 +469,12 @@ void actualizarCantidadEntradasLibres(){
 	}
 
 	entradas_libres = cont;
+}
+
+void inicializarBloqueInstancia() {
+	bloque_instancia = (char*) malloc(sizeof(char) * ((cant_entradas * tam_entrada) + 1));
+	memset(bloque_instancia, '0', cant_entradas * tam_entrada);
+	bloque_instancia[cant_entradas * tam_entrada] = '\0';
 }
 
 int procesar(t_instruccion* instruccion) {
@@ -586,7 +569,7 @@ void finalizar() {
 	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	list_destroy(tabla_entradas);
 	log_destroy(logger);
-	munmap(mapa_archivo, sizeof(mapa_archivo));
+	//munmap(mapa_archivo, sizeof(mapa_archivo));
 	close(fd);
 	free(bloque_instancia);
 	free(tabla_entradas);
@@ -620,7 +603,8 @@ int main() {
 
 	log_info(logger, "Se recibio la cantidad y tamaño de las entradas correctamente");
 
-	generarTablaDeEntradas(); // Traigo los clave-valor que hay en disco
+	inicializarBloqueInstancia();
+	iniciarDirectorio();
 	imprimirTablaDeEntradas();
 
 	//Generamos temporizador
@@ -636,7 +620,7 @@ int main() {
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (validarArgumentosInstruccion(instruccion) > 0) {
 
-			referencia_actual++; // Actualizo la referencia que se va a cargar
+			referencia_actual++;
 
 			if(procesar(instruccion) > 0){
 				log_info(logger, "Le aviso al Coordinador que se proceso la instruccion");
