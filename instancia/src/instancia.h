@@ -35,29 +35,24 @@
 #include "../../coordinador/src/coordinador.h"
 
 typedef struct {
+	char* clave;
 	char* mapa_archivo;
 	char* path;
 	int fd;
-	char* clave;
 	int entrada_asociada;
 	int size_valor_almacenado;
 	int entradas_ocupadas;
 	int ultima_referencia;
 } __attribute__((packed)) t_entrada;
 
-typedef struct {
-	char* nombre_archivo;
-	char* mapa_archivo;
-	int fd;
-} __attribute__((packed)) t_claves;
-
 t_control_configuracion cargarConfiguracion();
 void establecerProtocoloReemplazo();
-void llenarAlmacenamiento(t_entrada* e);
+void inicializarBloqueInstancia();
+void iniciarDirectorio();
+void llenarAlmacenamiento(t_entrada* entrada);
+t_entrada* crearEntradaDesdeArchivo(char* archivo);
 void compactarAlmacenamiento();
-t_entrada* crearClaveDesdeArchivo(char* key);
 void dumpMemoria();
-void iniciarInstanciaConDirectorio();
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 int obtenerEntradasAOcupar(char* valor);

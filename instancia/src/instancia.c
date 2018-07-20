@@ -350,25 +350,21 @@ void escribirEntrada(t_entrada* entrada, char* valor) {
 	strncpy(bloque_instancia + entrada->entrada_asociada, valor, entrada->entradas_ocupadas * tam_entrada);
 }
 
-t_entrada* crearClaveDesdeArchivo(char* clave){
-	log_debug(logger, "%s", clave);
+t_entrada* crearEntradaDesdeArchivo(char* archivo) {
+	log_debug(logger, "%s", archivo);
 	struct stat sb;
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
 	entrada->clave = string_new();
-	string_append(&(entrada->clave), clave);
+	char** vector_clave = string_split(archivo, ".");
+	string_append(&(entrada->clave), vector_clave[0]);
 
 	entrada->path = string_new();
 	string_append(&entrada->path, "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/");
-	string_append(&entrada->path, clave);
-	//string_append(&entrada->path, ".txt");
+	string_append(&entrada->path, archivo);
 
 	entrada->fd = open(entrada->path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 	fstat(entrada->fd, &sb);
-	//entrada->mapa_archivo = string_new();
-	//read(entrada->fd, entrada->mapa_archivo, sb.st_size);
-
-	//printf("tamano: %i - mapa: %s\n", sb.st_size, entrada->mapa_archivo);
 
 	entrada->mapa_archivo = string_new();
 	entrada->mapa_archivo = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
@@ -383,58 +379,52 @@ t_entrada* crearClaveDesdeArchivo(char* clave){
 	return entrada;
 }
 
-void iniciarInstanciaConDirectorio(){
+void iniciarDirectorio(){
 	DIR* dirp;
 	struct dirent *dp;
-	char* claves;
-	char* nombres_claves;
-	char** vector_claves;
-
-	dirp = opendir("/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/");
-
-	claves = string_new();
+	char* archivos;
+	char** vector_archivos;
 
 	tabla_entradas = list_create();
 
-	while((dp = readdir(dirp)) != NULL){
-		if(dp->d_type == 8){
-			string_append(&claves, "-");
-			string_append(&claves, dp->d_name);
+	dirp = opendir("/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/");
+
+	archivos = string_new();
+
+	while ((dp = readdir(dirp)) != NULL){
+		if (dp->d_type == 8) { // Si es .txt
+			string_append(&archivos, "-");
+			string_append(&archivos, dp->d_name);
 		}
 	}
 
-	if(string_length(claves) == 0){
+	if (string_length(archivos) == 0) {
 		closedir(dirp);
 		return;
 	}
 
-	nombres_claves = string_new();
-	nombres_claves = string_substring_from(claves, 1);
-	vector_claves = string_split(nombres_claves, "-");
+	archivos = string_substring_from(archivos, 1);
+	vector_archivos = string_split(archivos, "-");
 
 	int i = 0;
-	while(vector_claves[i] != NULL){
-		printf("i :: %i\n", i);
-		list_add(tabla_entradas, crearClaveDesdeArchivo(vector_claves[i]));
+	while(vector_archivos[i] != NULL){
+		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
 	closedir(dirp);
 }
 
 void llenarAlmacenamiento(t_entrada* entrada) {
-	bloque_instancia = (char*) malloc(sizeof(char) * ((cant_entradas * tam_entrada) + 1));
-	memset(bloque_instancia, '0', cant_entradas * tam_entrada);
-	bloque_instancia[cant_entradas * tam_entrada] = '\0';
-
 	int entradas_a_ocupar = obtenerEntradasAOcupar(entrada->mapa_archivo);
 
 	for (int i = 0; i < cant_entradas * tam_entrada; i = i + tam_entrada) {
+		log_error(logger, "%c", bloque_instancia[i]);
 		if (bloque_instancia[i] == '0') {
 			puts("Seteo");
 			log_debug(logger, "mapa: %s - legth: %d", entrada->mapa_archivo, strlen(entrada->mapa_archivo));
 			strncpy(bloque_instancia + i, entrada->mapa_archivo, strlen(entrada->mapa_archivo));
 			puts("Seteo");
-			entrada->entrada_asociada = i;
+			entrada->entrada_asociada = (i / tam_entrada) + 1;
 			entrada->entradas_ocupadas = entradas_a_ocupar;
 			log_debug(logger, "%s", bloque_instancia);
 			break;
@@ -480,6 +470,12 @@ void actualizarCantidadEntradasLibres(){
 	}
 
 	entradas_libres = cont;
+}
+
+void inicializarBloqueInstancia() {
+	bloque_instancia = (char*) malloc(sizeof(char) * ((cant_entradas * tam_entrada) + 1));
+	memset(bloque_instancia, '0', cant_entradas * tam_entrada);
+	bloque_instancia[cant_entradas * tam_entrada] = '\0';
 }
 
 int procesar(t_instruccion* instruccion) {
@@ -606,7 +602,8 @@ int main() {
 
 	log_info(logger, "Se recibio la cantidad y tamaño de las entradas correctamente");
 
-	iniciarInstanciaConDirectorio();
+	inicializarBloqueInstancia();
+	iniciarDirectorio();
 	imprimirTablaDeEntradas();
 
 	//Generamos temporizador
