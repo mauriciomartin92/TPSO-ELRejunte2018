@@ -54,7 +54,6 @@ typedef struct {
 t_control_configuracion cargarConfiguracion();
 void establecerProtocoloReemplazo();
 void llenarAlmacenamiento(t_entrada* e);
-void actualizarMapaMemoria();
 void compactarAlmacenamiento();
 t_entrada* crearClaveDesdeArchivo(char* key);
 void dumpMemoria();
