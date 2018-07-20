@@ -604,7 +604,7 @@ int main() {
 
 	inicializarBloqueInstancia();
 	iniciarDirectorio();
-	imprimirTablaDeEntradas();
+	if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas();
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;

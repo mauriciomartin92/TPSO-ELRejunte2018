@@ -214,7 +214,10 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 			log_info(logger, "Escojo una Instancia segun el algoritmo %s", algoritmo_distribucion);
 			instancia = algoritmoDeDistribucion();
 			log_info(logger, "La Instancia sera la %d", instancia->id);
-			list_add(instancia->claves_asignadas, instruccion->clave);
+			char* nueva_clave = string_new();
+			string_append(&nueva_clave, instruccion->clave);
+			//nueva_clave[strlen(instruccion->clave)] = '\0';
+			list_add(instancia->claves_asignadas, nueva_clave);
 			log_info(logger, "La clave %s fue asignada a la Instancia %d", instruccion->clave, instancia->id);
 		} else {
 			log_info(logger, "Como la clave ya esta asignada no hago nada");
@@ -234,6 +237,12 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 			// La Instancia me devuelve la cantidad de entradas libres que tiene
 			uint32_t respuesta;
 			recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
+
+			if (respuesta == PAQUETE_ERROR) {
+				log_error(logger, "La Instancia me avisa que no pudo procesar la instruccion");
+				return -1;
+			}
+
 			instancia->entradas_libres = respuesta;
 			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
 		} else {
@@ -369,16 +378,18 @@ void atenderInstancia(int socketInstancia) {
 	if (instancia) {
 		log_info(logger, "La Instancia %d ya existia, la pongo ACTIVA", instancia_ID);
 		instancia->estado = ACTIVA;
-		return;
-	}
+	} else {
+		// Guarda el struct de la Instancia en mi lista
+		instancia = (t_instancia*) malloc(sizeof(t_instancia));
+		instancia->id = instancia_ID;
+		instancia->socket = socketInstancia;
+		instancia->entradas_libres = cant_entradas;
+		instancia->estado = ACTIVA;
+		instancia->claves_asignadas = list_create();
 
-	// Guarda el struct de la Instancia en mi lista
-	instancia = (t_instancia*) malloc(sizeof(t_instancia));
-	instancia->id = instancia_ID;
-	instancia->socket = socketInstancia;
-	instancia->entradas_libres = cant_entradas;
-	instancia->estado = ACTIVA;
-	instancia->claves_asignadas = list_create();
+		list_add(tabla_instancias, instancia);
+		log_info(logger, "Instancia %d agregada a la Tabla de Instancias", instancia_ID);
+	}
 
 	log_info(logger, "Envio a la Instancia su cantidad de entradas");
 	send(socketInstancia, &cant_entradas, sizeof(uint32_t), 0);
@@ -386,10 +397,7 @@ void atenderInstancia(int socketInstancia) {
 	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
 	send(socketInstancia, &tam_entradas, sizeof(uint32_t), 0);
 
-	list_add(tabla_instancias, instancia);
-	log_info(logger, "Instancia %d agregada a la Tabla de Instancias", instancia_ID);
-
-	log_debug(logger, "La cantidad de instancias actual es %d\n", list_count_satisfying(tabla_instancias, instanciaEstaActiva));
+	log_debug(logger, "La cantidad de instancias actual es %d", list_count_satisfying(tabla_instancias, instanciaEstaActiva));
 }
 
 void establecerConexion(void* socketCliente) {
