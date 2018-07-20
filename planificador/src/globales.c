@@ -29,7 +29,7 @@ char * HRRNConDesalojo = "HRRNConDesalojo";
 
 int CONTINUAR = 1;
 int FINALIZAR = 2;
-int socketDeEscucha = 1; //conectarComoServidor(logPlanificador, ip, puerto,1);
+int socketDeEscucha;
 uint32_t idESI = 0;
 uint32_t GET = 0;
 
@@ -724,6 +724,8 @@ void recursoDestroy(t_recurso * recurso)
 void escucharNuevosESIS(){
 
 	log_info(logPlanificador, "inicio hilo de escucha de ESIS");
+
+	socketDeEscucha = conectarComoServidor(logPlanificador, ipPropia, puertoPropio,1);
 
 	while(1){
 
