@@ -43,13 +43,6 @@ int referencia_actual = 0;
 const uint32_t PAQUETE_OK = 1;
 const int32_t PAQUETE_ERROR = -1;
 
-void imprimirBloqueEntradas(){
-	for(int i = 0; i < strlen(bloque_instancia); i++) {
-			printf("%c", bloque_instancia[i]);
-		}
-		printf("\n");
-}
-
 void imprimirTablaDeEntradas() {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
 	for(int i = 0; i < list_size(tabla_entradas); i++) {
@@ -57,6 +50,13 @@ void imprimirTablaDeEntradas() {
 		printf("%s - %d - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado);
 	}
 	printf("\n");
+}
+
+int obtenerEntradasAOcupar(char* valor) {
+	div_t division = div(strlen(valor), tam_entrada);
+	int entradas_a_ocupar = division.quot;
+	if (division.rem > 0) entradas_a_ocupar++;
+	return entradas_a_ocupar;
 }
 
 int operacion_STORE(char* clave) {
@@ -104,12 +104,14 @@ int operacion_STORE(char* clave) {
 }
 
 int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
-	int entradas_a_ocupar = (int) ceilf((float) strlen(valor) / (float) tam_entrada);
+	int entradas_a_ocupar = obtenerEntradasAOcupar(valor);
+
+	log_debug(logger, "strlen valor: %d - tam entrada: %d", strlen(valor), tam_entrada);
+	log_debug(logger, "entradas a ocupar: %d - entradas ocupadas: %d", entradas_a_ocupar, entrada->entradas_ocupadas);
 
 	//Verificamos el tamaño del nuevo valor.
-	if(entradas_a_ocupar <= entrada->entradas_ocupadas){
+	if (entradas_a_ocupar <= entrada->entradas_ocupadas) {
 		//Ocupa lo mismo que el valor anterior.
-		strcpy(entrada->valor, valor);
 		escribirEntrada(entrada, valor);
 		entrada->entradas_ocupadas = entradas_a_ocupar;
 		entrada->size_valor_almacenado = strlen(valor);
@@ -194,7 +196,8 @@ t_entrada* algoritmoDeReemplazo() {
 }
 
 int operacion_SET(t_instruccion* instruccion) {
-	int entradas_a_ocupar = (int) ceilf((float) strlen(instruccion->valor) / (float)tam_entrada);
+	int entradas_a_ocupar = obtenerEntradasAOcupar(instruccion->clave);
+
 	t_entrada* entrada_a_reemplazar = NULL;
 	log_info(logger, "El valor a almacenar requiere %i entradas", entradas_a_ocupar);
 
@@ -344,8 +347,7 @@ void* dumpAutomatico() {
 }
 
 void escribirEntrada(t_entrada* entrada, char* valor) {
-	strncpy(bloque_instancia + entrada->entrada_asociada, entrada->valor, entrada->entradas_ocupadas * tam_entrada);
-	log_debug(logger, bloque_instancia);
+	strncpy(bloque_instancia + entrada->entrada_asociada, valor, entrada->entradas_ocupadas * tam_entrada);
 }
 
 t_entrada* crearClaveDesdeArchivo(char* clave){
@@ -417,7 +419,7 @@ void iniciarInstanciaConDirectorio(){
 }
 
 void llenarAlmacenamiento(t_entrada* entrada) {
-	bloque_instancia = (char*) malloc(cant_entradas * tam_entrada);
+	bloque_instancia = (char*) malloc(sizeof(char) * cant_entradas * tam_entrada);
 	memset(bloque_instancia, '0', cant_entradas * tam_entrada);
 
 	double entradas_a_ocupar = ceilf((float) entrada->size_valor_almacenado / (float)tam_entrada);
@@ -434,6 +436,7 @@ void llenarAlmacenamiento(t_entrada* entrada) {
 			break;
 		}
 	}
+	bloque_instancia[cant_entradas * tam_entrada] = '\0';
 }
 
 int hayEntradasContiguas(int entradas_necesarias){
@@ -460,7 +463,6 @@ int hayEntradasContiguas(int entradas_necesarias){
 void liberarEntrada(t_entrada* entrada){
 	//strncpy(bloque_instancia+entrada->entrada_asociada, '0', entrada->entradas_ocupadas*tam_entrada);
 	memset(bloque_instancia + entrada->entrada_asociada, 0, entrada->entradas_ocupadas * tam_entrada);
-	log_debug(logger, bloque_instancia);
 }
 
 void actualizarCantidadEntradasLibres(){
@@ -494,6 +496,7 @@ int procesar(t_instruccion* instruccion) {
 
 		switch (instruccion->operacion) {
 		case opSET: // SET de clave ausente
+			log_debug(logger, "Operacion SET de clave nueva");
 			return operacion_SET(instruccion);
 		case opSTORE: // STORE de clave ausente
 			log_error(logger, "Intento de STORE para una clave inexistente");
@@ -504,8 +507,10 @@ int procesar(t_instruccion* instruccion) {
 
 		switch (instruccion->operacion){
 		case opSET: // SET de clave presente.
+			log_debug(logger, "Operacion SET con reemplazo");
 			return operacion_SET_reemplazo(entrada, instruccion->valor);
 		case opSTORE: // STORE de clave presente.
+			log_debug(logger, "Operacion STORE para clave existente");
 			return operacion_STORE(instruccion->clave);
 		}
 	}
@@ -520,6 +525,7 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
 	recv(socketCoordinador, paquete, tam_paquete, 0);
 	log_info(logger, "Recibi un paquete que me envia el Coordinador");
+	log_debug(logger, "%s", paquete);
 
 	t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
 	//destruirPaquete(paquete);
@@ -599,8 +605,6 @@ int main() {
 	iniciarInstanciaConDirectorio();
 	imprimirTablaDeEntradas();
 
-	imprimirBloqueEntradas();
-
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
 	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
@@ -609,6 +613,8 @@ int main() {
 
 	while (1) {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
+		log_debug(logger, "%s", bloque_instancia);
+
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (validarArgumentosInstruccion(instruccion) > 0) {
 
