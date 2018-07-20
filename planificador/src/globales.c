@@ -725,7 +725,7 @@ void escucharNuevosESIS(){
 
 	log_info(logPlanificador, "inicio hilo de escucha de ESIS");
 
-	socketDeEscucha = conectarComoServidor(logPlanificador, ipPropia, puertoPropio,1);
+	socketDeEscucha = conectarComoServidor(logPlanificador, ipPropia, puertoPropio);
 
 	while(1){
 
