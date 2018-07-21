@@ -284,6 +284,103 @@ estimarYCalcularTiempos (ESI * nuevo)
 
 void armarCola(ESI * esi){
 
+	log_info(logPlanificador, " ESI de ID %d quiere entrar en cola de listos", esi->id);
+
+	estimarProximaRafaga(esi);
+
+	log_info(logPlanificador, "Tiene estimación proxima rafaga: %d", esi->estimacionSiguiente);
+
+	log_info(logPlanificador,"Se procede a meterlo en cola listos ");
+
+
+	if(queue_size(colaListos) == 0){
+
+		log_info(logPlanificador, "la cola estaba vacía! Entra directo");
+		queue_push(colaListos, esi);
+		log_info(logPlanificador, "adentro!");
+
+	} else if(queue_size(colaListos) > 0){
+
+
+		log_info(logPlanificador, "La cola tiene tamaño de %d", queue_size(colaListos));
+		queue_push(colaListos, esi);
+
+		t_list * auxiliar = list_create();
+
+		log_info(logPlanificador,"armando lista auxiliar");
+
+		while(!queue_is_empty(colaListos)){
+			ESI * esi1 = queue_pop(colaListos);
+			list_add(auxiliar, esi1);
+			log_info(logPlanificador, " id : %d a lista", esi1->id);
+
+		}
+		log_info(logPlanificador, "la lista quedo de : %d", list_size(auxiliar));
+
+
+		list_sort(auxiliar, ordenarESISHRRN);
+
+		log_info(logPlanificador, "la lista quedo de : %d", list_size(auxiliar));
+
+		int i = 0;
+		while(!list_is_empty(auxiliar)){
+
+			ESI * hola = list_remove(auxiliar,i);
+			log_info(logPlanificador, "meto en cola ESI id : %d", hola->id);
+			queue_push(colaListos,hola);
+
+		}
+
+
+	}
+
+	log_info(logPlanificador,"cola armada ");
+
+
+}
+
+bool ordenarESISHRRN(void* nodo1, void* nodo2){
+	ESI* e1 = (ESI*) nodo1;
+	ESI* e2 = (ESI*) nodo2;
+
+
+	log_info (logPlanificador, "ESI  : %d contra ESI a comparar : %d", e1->estimacionSiguiente, e2->estimacionSiguiente);
+
+	if (e1->tiempoRespuesta > e2->tiempoRespuesta){
+
+		log_info(logPlanificador, " el esi a comparar fue se especula que será mas rapido");
+
+		return false;
+
+	} else if (e1->tiempoRespuesta == e2->tiempoRespuesta) //Ante empate de estimaciones
+
+	{
+		log_info(logPlanificador, "hay empate de estimaciones");
+
+		if( !e2->recienDesalojado && e1->recienDesalojado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
+
+			log_info(logPlanificador, "gana esi nuevo por ser recien llegado");
+
+			return false;
+
+		} else if( !e2->recienDesalojado && !e1->recienDesalojado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
+
+			log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
+
+			return false;
+
+		} else if ( e2->recienDesalojado && e1->recienDesalojado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
+
+			log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
+
+			return false;
+
+		} else return true;
+
+		} else return true;
+
+}
+
 	/*
 
 	log_info(logPlanificador, "ESI de ID %d quiere entrar en cola de listos", esi->id);
@@ -390,8 +487,6 @@ void armarCola(ESI * esi){
 
 }
 
-/*
-
 void
 armarCola ()
 {
@@ -463,7 +558,6 @@ armarCola ()
 	  log_info (logPlanificador, "cola armada \n");
 
 */
-}
 
 
 float
