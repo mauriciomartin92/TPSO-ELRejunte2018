@@ -316,8 +316,6 @@ void dumpMemoria() {
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		printf("se abrio el archivo\n");
 		//fstat(entrada->fd, &sb);
-		puts("funcion fstat\n");
-		printf("contenido sb: %i", sb->st_size);
 
 		if (_fd < 0) {
 			log_error(logger, "Error al abrir archivo para DUMP");
@@ -340,7 +338,7 @@ void dumpMemoria() {
 				puts("el archivo no existe, hay que crearlo");
 				entrada->fd = _fd;
 				entrada->mapa_archivo = mmap(NULL, entrada->size_valor_almacenado, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
-				entrada->mapa_archivo = string_substring(bloque_instancia, entrada->entrada_asociada, entrada->size_valor_almacenado);
+				entrada->mapa_archivo = string_substring(bloque_instancia, (entrada->entrada_asociada - 1) * tam_entrada, entrada->size_valor_almacenado);
 			}
 			close(_fd);
 		}
