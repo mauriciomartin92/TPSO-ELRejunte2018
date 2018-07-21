@@ -305,24 +305,31 @@ void dumpMemoria() {
 	int _fd;
 	struct stat sb;
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
-	void obtenerClaves(void* nodo) {
+	void dumpearClave(void* nodo) {
+		printf("nueva clave\n");
 		t_entrada* entrada = (t_entrada*) nodo;
 		char* _nombreArchivo = string_new();
 		string_append(&_nombreArchivo, ruta_directorio);
 		string_append(&_nombreArchivo, entrada->clave);
 		string_append(&_nombreArchivo, ".txt");
+		printf("nombre archivo es: %s\n", _nombreArchivo);
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-		fstat(entrada->fd, &sb);
+		printf("se abrio el archivo\n");
+		//fstat(entrada->fd, &sb);
+		puts("funcion fstat\n");
+		printf("contenido sb: %i", sb->st_size);
 
-		if(_fd < 0){
+		if (_fd < 0) {
 			log_error(logger, "Error al abrir archivo para DUMP");
-			//ERROR AL ABRIR ARCHIVO
 		} else {
-			if(sb.st_size > 0){
-				if(entrada->size_valor_almacenado <= strlen(entrada->mapa_archivo)){
+			if(sb.st_size > 0) {
+				printf("hay algo en el archivo...\n");
+				if (entrada->size_valor_almacenado <= strlen(entrada->mapa_archivo)) {
+					printf("tamaño nuevo valor es menor o igual que el almacenado\n");
 					memset(entrada->mapa_archivo, '0', strlen(entrada->mapa_archivo));
 					strncpy(entrada->mapa_archivo, bloque_instancia + ((entrada->entrada_asociada - 1) * tam_entrada), strlen(entrada->mapa_archivo));
 				} else {
+					printf("tamaño nuevo valor es mayor que el almacenado\n");
 					ftruncate(entrada->fd, entrada->size_valor_almacenado);
 					munmap(entrada->mapa_archivo, strlen(entrada->mapa_archivo));
 					entrada->mapa_archivo = string_new();
@@ -330,6 +337,7 @@ void dumpMemoria() {
 					//entrada->mapa_archivo = mremap(NULL, strlen(entrada->mapa_archivo), entrada->size_valor_almacenado, 0);
 				}
 			} else {
+				puts("el archivo no existe, hay que crearlo");
 				entrada->fd = _fd;
 				entrada->mapa_archivo = mmap(NULL, entrada->size_valor_almacenado, PROT_READ | PROT_WRITE, MAP_SHARED, entrada->fd, 0);
 				entrada->mapa_archivo = string_substring(bloque_instancia, entrada->entrada_asociada, entrada->size_valor_almacenado);
@@ -338,13 +346,15 @@ void dumpMemoria() {
 		}
 	}
 	// Busco la clave en la tabla usando la funcion magica
-	list_iterate(tabla_entradas, obtenerClaves);
+	list_iterate(tabla_entradas, dumpearClave);
 }
 
 void* dumpAutomatico() {
 	while(1){
 		sleep(intervalo_dump);
+		printf("\n...EJECUTANDO DUMP AUTOMATICO...\n");
 		dumpMemoria();
+		printf("...FIN DUMP AUTOMATICO...\n\n");
 	}
 	return NULL;
 }
@@ -382,7 +392,7 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	return entrada;
 }
 
-void iniciarDirectorio(){
+int iniciarDirectorio(){
 	DIR* dirp;
 	struct dirent *dp;
 	char* archivos;
@@ -391,6 +401,10 @@ void iniciarDirectorio(){
 	tabla_entradas = list_create();
 
 	dirp = opendir(ruta_directorio);
+	if (!dirp) {
+		log_error(logger, "No se encontro el directorio de valores persistidos, se aborta la Instancia");
+		return -1;
+	}
 
 	archivos = string_new();
 
@@ -403,7 +417,7 @@ void iniciarDirectorio(){
 
 	if (string_length(archivos) == 0) {
 		closedir(dirp);
-		return;
+		return 1;
 	}
 
 	archivos = string_substring_from(archivos, 1);
@@ -415,6 +429,7 @@ void iniciarDirectorio(){
 		i++;
 	}
 	closedir(dirp);
+	return 1;
 }
 
 void llenarAlmacenamiento(t_entrada* entrada) {
@@ -603,7 +618,10 @@ int main() {
 	log_info(logger, "Se recibio la cantidad y tamaño de las entradas correctamente");
 
 	inicializarBloqueInstancia();
-	iniciarDirectorio();
+	if (iniciarDirectorio() < 0) {
+		finalizar();
+		return EXIT_FAILURE;
+	}
 	if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas();
 
 	//Generamos temporizador

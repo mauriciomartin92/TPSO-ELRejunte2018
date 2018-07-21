@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 				send(socketPlanificador, &PAQUETE_OK, sizeof(uint32_t), 0);
 			} else {
 				log_error(logger, "El Coordinador informa que la instruccion no se pudo procesar");
-				log_error(logger, "SE ABORTA EL ESI");
+				log_error(logger, "Se aborta el ESI");
 				send(socketPlanificador, &ABORTA_ESI, sizeof(uint32_t), 0);
 				finalizar();
 				return EXIT_FAILURE;
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			 */
 			send(socketCoordinador, &PETICION_ESPECIAL, sizeof(uint32_t), 0);
 		} else if (orden == ABORTA_ESI) {
-			log_warning(logger, "EL PLANIFICADOR INFORMA QUE DEBO ABORTAR");
+			log_warning(logger, "El Planificador me informa que debo abortar");
 			break;
 		}
 	}
