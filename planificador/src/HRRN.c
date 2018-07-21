@@ -209,7 +209,7 @@ planificacionHRRN (bool desalojo)
 		  log_info(logPlanificador, "le comunico al coordinador");
     	  pthread_mutex_lock(&mutexComunicacion);
     	  send(socketCoordinador,&FINALIZAR,sizeof(uint32_t),0);
-    	  send(socketCoordinador,&claveActual,sizeof(claveActual),0); //todo decirle a gabi q es int
+    	  send(socketCoordinador,&claveActual,sizeof(claveActual),0);
     	  pthread_mutex_unlock(&mutexComunicacion);
 		  log_info(logPlanificador, "terminada comunicacion");
 		  log_info(logPlanificador, " se liberan sus recursos y se lo destruye ");
@@ -247,9 +247,8 @@ planificacionHRRN (bool desalojo)
 	}
       else if (desalojar)
       {
-    	  list_add(listaListos,nuevoESI);
+    	  armarCola(nuevoESI);
     	  log_info(logPlanificador," ESI de clave %d desalojado", nuevoESI->id);
-    	  armarCola();
 
       }
 
@@ -260,40 +259,133 @@ planificacionHRRN (bool desalojo)
 }
 
 
-
 void
-estimarYCalcularTiempos ()
+estimarYCalcularTiempos (ESI * nuevo)
 {
-
 
   log_info (logPlanificador,
 	    "Empieza la estimación de ráfagas y tiempos de respuesta");
-  int i = 0;
 
-  ESI *nuevo;
-
-  while (i < list_size (listaListos))
-    {
-      nuevo = list_get (listaListos, i);
-
-      log_info (logPlanificador, "Entra ESI clave %d", nuevo->id);
-
-
-      estimarProximaRafaga (nuevo);
-
-      nuevo->tiempoRespuesta =
+  estimarProximaRafaga (nuevo);
+  nuevo->tiempoRespuesta =
 	calcularTiempoEspera (nuevo->tiempoEspera,
 			      nuevo->estimacionSiguiente);
 
-      log_info (logPlanificador, "un tiempo calculado: %.6f", nuevo->tiempoRespuesta);
-
-      i++;
-
-    }
+  log_info (logPlanificador, "un tiempo calculado: %.6f", nuevo->tiempoRespuesta);
 
 
 }
 
+void armarCola(ESI * esi){
+
+	log_info(logPlanificador, "ESI de ID %d quiere entrar en cola de listos", esi->id);
+
+	estimarYCalcularTiempos(esi);
+
+	log_info(logPlanificador, "Tiene estimación proxima rafaga: %d", esi->estimacionSiguiente);
+
+	log_info(logPlanificador,"Se procede a meterlo en cola listos ");
+
+	if(queue_size(colaListos) == 0){
+
+		log_info(logPlanificador, "la cola estaba vacía! Entra directo");
+		queue_push(colaListos, esi);
+		log_info(logPlanificador, "adentro!");
+
+	} else if(queue_size(colaListos) > 0){
+
+		log_info(logPlanificador, " cola llena, procedo a meter el esi de forma ordenada ");
+		t_queue * colaAux; // Apunto a cola listos original para ir sacando de a uno de ahi
+		t_queue * final = queue_create(); // cola final ordenada
+		t_list * llenada = list_create();
+
+		while (0 < queue_size(colaListos)){
+
+			log_info(logPlanificador, " entro a comparar los tiempos");
+			ESI * ESIMasRapido = queue_peek(colaListos); // Chusmeo de la cola listos
+
+			colaAux = colaListos;
+			int i = 0;
+			bool enLista = idEnLista(llenada,ESIMasRapido);
+
+			while (i < queue_size(colaAux) && !enLista){ //voy sacando de a uno
+
+				ESI * ESIAuxiliar = queue_pop(colaAux);
+
+				if(!idEnLista(llenada,ESIAuxiliar)){
+
+					log_info (logPlanificador, "ESI original : %d contra ESI a comparar : %d", ESIMasRapido->estimacionSiguiente, ESIAuxiliar->estimacionSiguiente);
+
+					if (ESIMasRapido->tiempoRespuesta > ESIAuxiliar->tiempoRespuesta){
+
+						log_info(logPlanificador, " el esi a comparar fue se especula que será mas rapido");
+
+						ESIMasRapido = ESIAuxiliar;
+
+					} else if (ESIMasRapido->tiempoRespuesta == ESIAuxiliar->tiempoRespuesta) //Ante empate de estimaciones
+
+					{
+						log_info(logPlanificador, "hay empate de estimaciones");
+
+						if( !ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
+
+							log_info(logPlanificador, "gana esi nuevo por ser recien llegado");
+
+							ESIMasRapido = ESIAuxiliar;
+
+						} else if( !ESIAuxiliar->recienLlegado && !ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
+
+							log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
+
+							ESIMasRapido = ESIAuxiliar;
+
+						} else if ( ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
+
+							log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
+
+							ESIMasRapido = ESIAuxiliar;
+
+						}
+
+					}
+				} log_info(logPlanificador, " el esi para comparar esta en lista, lo salteo ");
+
+				i++;
+			}
+
+			if(enLista){
+
+				log_info(logPlanificador, " el ESI que chusmeamos de la cola original estaba en la lista, lo sacamos");
+				ESIMasRapido = queue_pop(colaListos);
+
+			}else {
+
+				ESIMasRapido->bloqueadoPorUsuario = false;
+				log_info(logPlanificador,"ESI a entrar en la cola es de estimacion: %d",  ESIMasRapido->estimacionSiguiente);
+				list_add(llenada, ESIMasRapido);
+				queue_push(final, ESIMasRapido); // Meto el ESI mas rapido de los comparados a la cola final
+
+			}
+
+		}
+
+
+		log_info(logPlanificador,"cola armada ");
+		queue_destroy(colaListos);
+		list_destroy(llenada);
+		colaListos = final;
+
+	}
+
+	ESI * paraClave = queue_peek(colaListos);
+	log_info (logPlanificador, "clave actual ahora es : %d", paraClave->id);
+
+	claveActual = paraClave -> id;
+
+
+}
+
+/*
 
 void
 armarCola ()
@@ -367,13 +459,13 @@ armarCola ()
 
 }
 
-
+*/
 
 float
 calcularTiempoEspera (float espera, int estimacionSiguiente)
 {
 
-  log_info (logPlanificador, "calculando tiempo espera..");
+  log_info (logPlanificador, "calculando tiempo respuesta..");
   return (espera + estimacionSiguiente) / estimacionSiguiente;
 
 }
@@ -396,3 +488,5 @@ void aumentarEspera(){
 	colaListos = aux;
 
 }
+
+
