@@ -83,7 +83,7 @@ int operacion_STORE(char* clave) {
 	string_append(&_nombreArchivo, ".txt");
 
 	//MANEJO DE ERRORES!
-	if((_archivoClave = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) > 0){
+	if ((_archivoClave = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) > 0) {
 		if ((int)write(_archivoClave, _valor, string_length(_valor)) > 0) {
 			//SE ESCRIBIÓ PERSISTIÓ LA CLAVE
 
@@ -113,6 +113,7 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	//Verificamos el tamaño del nuevo valor.
 	if (entradas_a_ocupar <= entrada->entradas_ocupadas) {
 		//Ocupa lo mismo que el valor anterior.
+		liberarEntrada(entrada);
 		escribirEntrada(entrada, valor);
 		entrada->entradas_ocupadas = entradas_a_ocupar;
 		entrada->size_valor_almacenado = strlen(valor);
@@ -197,28 +198,28 @@ t_entrada* algoritmoDeReemplazo() {
 }
 
 int operacion_SET(t_instruccion* instruccion) {
-	int entradas_a_ocupar = obtenerEntradasAOcupar(instruccion->clave);
+	int entradas_a_ocupar = obtenerEntradasAOcupar(instruccion->valor);
 
 	t_entrada* entrada_a_reemplazar = NULL;
 	log_info(logger, "El valor a almacenar requiere %i entradas", entradas_a_ocupar);
 
-	if(entradas_a_ocupar <= entradas_libres){
-		//Entonces, pregunto si hay entradas libres y contigüas.
+	if (entradas_a_ocupar <= entradas_libres) {
+		// Entonces, pregunto si hay entradas libres y contiguas.
 		log_info(logger, "Hay %d entradas libres para almacenar el valor", entradas_a_ocupar);
-		if (hayEntradasContiguas(entradas_a_ocupar) >= 0){
+		if (hayEntradasContiguas(entradas_a_ocupar) >= 0) {
 			log_info(logger, "Hay %d entradas contiguas", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
-			//compactarAlmacenamiento();
+			compactarAlmacenamiento();
 			log_info(logger, "Se ha compactado el almacenamiento");
 		}
 	} else {
-		//Devuelve la entrada a reemplazar
+		// Devuelve la entrada a reemplazar
 		log_info(logger, "No hay %d entradas para almacenar el valor, aplico algoritmo %s", entradas_a_ocupar, algoritmo_reemplazo);
 		entrada_a_reemplazar = algoritmoDeReemplazo(entradas_a_ocupar);
-		//Libero la entrada a reemplazar
-		//Entonces, pregunto si hay entradas libres y contiguas.
-		if(hayEntradasContiguas(entradas_a_ocupar) >= 0){
+		// Libero la entrada a reemplazar
+		// Entonces, pregunto si hay entradas libres y contiguas.
+		if (hayEntradasContiguas(entradas_a_ocupar) >= 0) {
 			log_info(logger, "Hay %d entradas libres y contiguas para almacenar el valor", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
@@ -358,7 +359,10 @@ void* dumpAutomatico() {
 }
 
 void escribirEntrada(t_entrada* entrada, char* valor) {
-	strncpy(bloque_instancia + entrada->entrada_asociada, valor, entrada->entradas_ocupadas * tam_entrada);
+	//strncpy(bloque_instancia + entrada->entrada_asociada, valor, entrada->entradas_ocupadas * tam_entrada);
+	for (int i = (entrada->entrada_asociada - 1) * tam_entrada; i < strlen(valor); i++) {
+		bloque_instancia[i] = valor[i];
+	}
 }
 
 t_entrada* crearEntradaDesdeArchivo(char* archivo) {
@@ -406,7 +410,7 @@ int iniciarDirectorio(){
 
 	archivos = string_new();
 
-	while ((dp = readdir(dirp)) != NULL){
+	while ((dp = readdir(dirp)) != NULL) {
 		if (dp->d_type == 8) { // Si es .txt
 			string_append(&archivos, "-");
 			string_append(&archivos, dp->d_name);
@@ -423,6 +427,7 @@ int iniciarDirectorio(){
 
 	int i = 0;
 	while(vector_archivos[i] != NULL){
+		log_debug(logger, "%s", vector_archivos[i]);
 		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
@@ -433,7 +438,7 @@ int iniciarDirectorio(){
 void llenarAlmacenamiento(t_entrada* entrada) {
 	int entradas_a_ocupar = obtenerEntradasAOcupar(entrada->mapa_archivo);
 
-	for (int i = 0; i < cant_entradas * tam_entrada; i = i + tam_entrada) {
+	for (int i = 0; i < cant_entradas * tam_entrada; i += tam_entrada) {
 		if (bloque_instancia[i] == '0') {
 			log_debug(logger, "mapa: %s", entrada->mapa_archivo);
 			strncpy(bloque_instancia + i, entrada->mapa_archivo, strlen(entrada->mapa_archivo));
@@ -457,7 +462,7 @@ int hayEntradasContiguas(int entradas_necesarias){
 				primer_entrada = i;
 			}
 			if(contador == entradas_necesarias){
-				return primer_entrada;
+				return (primer_entrada / tam_entrada) + 1;
 			}
 		} else {
 			contador = 0;
@@ -467,17 +472,17 @@ int hayEntradasContiguas(int entradas_necesarias){
 	return -1;
 }
 
-void liberarEntrada(t_entrada* entrada){
+void liberarEntrada(t_entrada* entrada) {
 	//strncpy(bloque_instancia+entrada->entrada_asociada, '0', entrada->entradas_ocupadas*tam_entrada);
-	memset(bloque_instancia + entrada->entrada_asociada, 0, entrada->entradas_ocupadas * tam_entrada);
+	memset(bloque_instancia + (entrada->entrada_asociada - 1) * tam_entrada, '0', entrada->entradas_ocupadas * tam_entrada);
 }
 
-void actualizarCantidadEntradasLibres(){
+void actualizarCantidadEntradasLibres() {
 	int cont = 0;
 
 	// Recorre el almacenamiento por cada entrada, preguntando si el primer valor en c/u es nulo.
-	for (int i = 0; i < tam_entrada * cant_entradas; i = i + tam_entrada){
-		if(bloque_instancia[i] == '0'){
+	for (int i = 0; i < tam_entrada * cant_entradas; i = i + tam_entrada) {
+		if (bloque_instancia[i] == '0') {
 			cont++;
 		}
 	}
