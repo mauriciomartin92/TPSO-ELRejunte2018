@@ -20,6 +20,8 @@ planificacionHRRN (bool desalojo)
 	}
   }
 
+  while(pausearPlanificacion){}
+
   log_info (logPlanificador, "Arraca HRRN");
 
 	bool finalizar = false;
@@ -35,6 +37,9 @@ planificacionHRRN (bool desalojo)
 	char * recursoPedido;
 
 	ESI* nuevoESI = queue_pop (colaListos);
+	log_info (logPlanificador, "clave actual ahora es : %d", nuevoESI->id);
+
+	claveActual = nuevoESI -> id;
 
   while (!finalizar && !bloquear && permiso && !desalojar && !matarESI)
 {
@@ -377,10 +382,7 @@ void armarCola(ESI * esi){
 
 	}
 
-	ESI * paraClave = queue_peek(colaListos);
-	log_info (logPlanificador, "clave actual ahora es : %d", paraClave->id);
 
-	claveActual = paraClave -> id;
 
 
 }

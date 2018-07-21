@@ -266,6 +266,7 @@ void armarColaListos(ESI * esi){
 
 	log_info(logPlanificador,"Se procede a meterlo en cola listos ");
 
+
 	if(queue_size(colaListos) == 0){
 
 		log_info(logPlanificador, "la cola estaba vacía! Entra directo");
@@ -274,91 +275,73 @@ void armarColaListos(ESI * esi){
 
 	} else if(queue_size(colaListos) > 0){
 
-		log_info(logPlanificador, " cola llena, procedo a meter el esi de forma ordenada ");
-		t_queue * colaAux; // Apunto a cola listos original para ir sacando de a uno de ahi
-		t_queue * final = queue_create(); // cola final ordenada
-		t_list * llenada = list_create();
 
-		while (0 < queue_size(colaListos)){
+		t_list * auxiliar = list_create();
 
-			log_info(logPlanificador, " entro a comparar los tiempos");
-			ESI * ESIMasRapido = queue_peek(colaListos); // Chusmeo de la cola listos
+		log_info(logPlanificador,"armando lista auxiliar");
+		while(queue_is_empty(colaListos)){
 
-			colaAux = colaListos;
-			int i = 0;
-			bool enLista = idEnLista(llenada,ESIMasRapido);
+			list_add(auxiliar, queue_pop(colaListos));
 
-			while (i < queue_size(colaAux) && !enLista){ //voy sacando de a uno
+		}
 
-				ESI * ESIAuxiliar = queue_pop(colaAux);
+		list_sort(auxiliar, (void *) ordenarESIS);
 
-				if(!idEnLista(llenada,ESIAuxiliar)){
+		int i = 0;
+		while(!list_is_empty(auxiliar)){
 
-					log_info (logPlanificador, "ESI original : %d contra ESI a comparar : %d", ESIMasRapido->estimacionSiguiente, ESIAuxiliar->estimacionSiguiente);
-
-					if (ESIMasRapido->estimacionSiguiente > ESIAuxiliar->estimacionSiguiente){
-
-						log_info(logPlanificador, " el esi a comparar fue se especula que será mas rapido");
-
-						ESIMasRapido = ESIAuxiliar;
-
-					} else if (ESIMasRapido->estimacionSiguiente == ESIAuxiliar->estimacionSiguiente) //Ante empate de estimaciones
-
-					{
-						log_info(logPlanificador, "hay empate de estimaciones");
-
-						if( !ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
-
-							log_info(logPlanificador, "gana esi nuevo por ser recien llegado");
-
-							ESIMasRapido = ESIAuxiliar;
-
-						} else if( !ESIAuxiliar->recienLlegado && !ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
-
-							log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
-
-							ESIMasRapido = ESIAuxiliar;
-
-						} else if ( ESIAuxiliar->recienLlegado && ESIMasRapido->recienLlegado && ESIAuxiliar->recienDesbloqueadoPorRecurso && !ESIMasRapido->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
-
-							log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
-
-							ESIMasRapido = ESIAuxiliar;
-
-						}
-
-					}
-				} log_info(logPlanificador, " el esi para comparar esta en lista, lo salteo ");
-
-				i++;
-			}
-
-			if(enLista){
-
-				log_info(logPlanificador, " el ESI que chusmeamos de la cola original estaba en la lista, lo sacamos");
-				ESIMasRapido = queue_pop(colaListos);
-
-			}else {
-
-				ESIMasRapido->bloqueadoPorUsuario = false;
-				log_info(logPlanificador,"ESI a entrar en la cola es de estimacion: %d",  ESIMasRapido->estimacionSiguiente);
-				list_add(llenada, ESIMasRapido);
-				queue_push(final, ESIMasRapido); // Meto el ESI mas rapido de los comparados a la cola final
-
-			}
+			ESI * hola = list_remove(auxiliar,i);
+			log_info(logPlanificador, "meto en cola ESI id : %d", hola->id);
+			queue_push(colaListos,hola);
+			i++;
 
 		}
 
 
-		log_info(logPlanificador,"cola armada ");
-		queue_destroy(colaListos);
-		list_destroy(llenada);
-		colaListos = final;
-
 	}
 
+	log_info(logPlanificador,"cola armada ");
 
 
 }
 
 
+bool ordenarESIS(ESI * e1, ESI * e2){
+
+
+	log_info (logPlanificador, "ESI  : %d contra ESI a comparar : %d", e1->estimacionSiguiente, e2->estimacionSiguiente);
+
+	if (e1->estimacionSiguiente > e2->estimacionSiguiente){
+
+		log_info(logPlanificador, " el esi a comparar fue se especula que será mas rapido");
+
+		return false;
+
+	} else if (e1->estimacionSiguiente == e2->estimacionSiguiente) //Ante empate de estimaciones
+
+	{
+		log_info(logPlanificador, "hay empate de estimaciones");
+
+		if( !e2->recienLlegado && e1->recienLlegado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
+
+			log_info(logPlanificador, "gana esi nuevo por ser recien llegado");
+
+			return false;
+
+		} else if( !e2->recienLlegado && !e1->recienLlegado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
+
+			log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
+
+			return false;
+
+		} else if ( e2->recienLlegado && e1->recienLlegado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
+
+			log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
+
+			return false;
+
+		} else return true;
+
+		} else return true;
+
+}

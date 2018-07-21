@@ -229,7 +229,7 @@ bool idEnLista(t_list * lista, ESI * esi){
 
 	int i = 0;
 	bool encontrado = false;
-	log_info(logPlanificador, " chequeo si clave esta en lista ");
+	log_info(logPlanificador, " chequeo si clave esta en lista para id: %d con tamaño de lista %d", esi->id, list_size(lista));
 	while( i < list_size (lista ) && !encontrado){
 
 		ESI *aux = list_get(lista,i);
@@ -238,6 +238,7 @@ bool idEnLista(t_list * lista, ESI * esi){
 
 		if(esi->id == aux ->id){
 
+			log_info(logPlanificador, "encontrado");
 			encontrado = true;
 
 		}
@@ -1024,8 +1025,11 @@ bool buscarYMatarEnCola(int clave){
 		log_info(logPlanificador, "Comparando %d con clave: %d", clave, hola->id);
 
 		if(hola -> id == clave){
+			log_info(logPlanificador, "encontrado");
+			log_info(logPlanificador, " liberando recursos ");
 			liberarRecursos(hola);
 			list_add(listaFinalizados,hola);
+			log_info (logPlanificador, "esi ID : %d en finalizados", hola->id);
 			encontrado = true;
 		} else queue_push(colaAuxiliar,hola);
 
