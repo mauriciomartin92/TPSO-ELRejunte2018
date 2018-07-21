@@ -20,6 +20,7 @@ void planificacionSJF(bool desalojo){
 		}
 	}
 
+	while(pausearPlanificacion){} ;
 
 	log_info(logPlanificador, "Comienza planificacion SJF");
 
@@ -33,7 +34,12 @@ void planificacionSJF(bool desalojo){
 
 	bool desalojar = false;
 
+
 	ESI * nuevo = queue_pop(colaListos);
+
+	claveActual = nuevo->id;
+
+	log_info (logPlanificador, "clave actual ahora es : %d", nuevo->id);
 
 	uint32_t operacion;
 	uint32_t tamanioRecurso;
@@ -351,10 +357,6 @@ void armarColaListos(ESI * esi){
 
 	}
 
-	ESI * paraClave = queue_peek(colaListos);
-	log_info (logPlanificador, "clave actual ahora es : %d", paraClave->id);
-
-	claveActual = paraClave -> id;
 
 
 }
