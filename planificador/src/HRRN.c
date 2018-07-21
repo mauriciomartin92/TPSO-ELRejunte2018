@@ -281,7 +281,10 @@ estimarYCalcularTiempos (ESI * nuevo)
 
 }
 
+
 void armarCola(ESI * esi){
+
+	/*
 
 	log_info(logPlanificador, "ESI de ID %d quiere entrar en cola de listos", esi->id);
 
@@ -459,9 +462,9 @@ armarCola ()
 
 	  log_info (logPlanificador, "cola armada \n");
 
+*/
 }
 
-*/
 
 float
 calcularTiempoEspera (float espera, int estimacionSiguiente)
