@@ -53,7 +53,7 @@ void llenarAlmacenamiento(t_entrada* entrada);
 t_entrada* crearEntradaDesdeArchivo(char* archivo);
 void compactarAlmacenamiento();
 void dumpMemoria();
-void dumpearClave(void* nodo);
+int dumpearClave(void* nodo);
 void imprimirTablaDeEntradas();
 t_instruccion* recibirInstruccion(int socketCoorinador);
 int obtenerEntradasAOcupar(char* valor);
