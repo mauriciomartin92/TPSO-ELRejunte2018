@@ -5,7 +5,6 @@ int main(void) {
 
 	logPlanificador = log_create("planificador.log", "Planificador" , true, LOG_LEVEL_INFO);
 	colaListos = queue_create();
-	listaListos = list_create();
 	listaFinalizados = list_create();
 	listaRecursos = list_create();
 

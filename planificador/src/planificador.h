@@ -90,7 +90,6 @@ int rafaga;
 t_config * archivoConfiguracion;
 t_log * logPlanificador;
 t_queue * colaListos;
-t_list * listaListos;
 t_list * listaFinalizados;
 t_list * listaRecursos;
 int puertoEscucha;
@@ -176,11 +175,11 @@ extern void limpiarRecienLlegados();
 extern ESI * buscarESI(int clave);
 extern void planificacionSJF(bool desalojo);
 extern void estimarTiempos();
-extern void armarColaListos();
+extern void armarColaListos(ESI * esi);
 extern void planificacionHRRN(bool desalojo);
-extern void estimarYCalcularTiempos();
+extern void estimarYCalcularTiempos(ESI * esi);
 extern float calcularTiempoEspera (float espera, int estimacionSiguiente);
-extern void armarCola ();
+extern void armarCola (ESI * esi);
 extern void sumarTiemposEspera ();
 extern void aumentarEspera();
 extern void listarBloqueados(char * clave);
@@ -191,6 +190,8 @@ extern void cargarValor(char * clave, char * valor);
 bool buscarEnBloqueados(int id);
 void chequearDependenciaDeClave(char * recurso1, char* recurso2, int esi, t_list * dl);
 t_recurso * traerRecurso(char * clave);
+bool buscarYMatarEnCola(int clave);
+bool idEnLista(t_list * lista, ESI * id);
 
 
 #endif /* PLANIFICADOR_H_ */
