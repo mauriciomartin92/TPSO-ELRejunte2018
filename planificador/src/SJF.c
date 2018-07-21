@@ -135,7 +135,7 @@ void planificacionSJF(bool desalojo){
 
 				uint32_t respuesta ;
 				int resp =recv(nuevo->id, &respuesta, sizeof(uint32_t),0);
-
+				log_info(logPlanificador, " recibo respuesta del ESI %d, resp: %d",nuevo->id, respuesta);
 				pthread_mutex_unlock(&mutexComunicacion);
 
 				if(resp <= 0){
