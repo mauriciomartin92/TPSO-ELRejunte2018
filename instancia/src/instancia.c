@@ -360,8 +360,9 @@ void* dumpAutomatico() {
 
 void escribirEntrada(t_entrada* entrada, char* valor) {
 	//strncpy(bloque_instancia + entrada->entrada_asociada, valor, entrada->entradas_ocupadas * tam_entrada);
-	for (int i = (entrada->entrada_asociada - 1) * tam_entrada; i < strlen(valor); i++) {
-		bloque_instancia[i] = valor[i];
+	int pos_inicial = (entrada->entrada_asociada - 1) * tam_entrada;
+	for (int i = pos_inicial; i < pos_inicial + strlen(valor); i++) {
+		bloque_instancia[i] = valor[i - pos_inicial];
 	}
 }
 
