@@ -224,33 +224,6 @@ void chequearDependenciaDeClave(char * recursoOriginal, char * recursoESI, int i
 
 // ----------------------------------- UTILIDADES Y PLANIFICACION --------------------------------- //
 
-
-bool idEnLista(t_list * lista, ESI * esi){
-
-	int i = 0;
-	bool encontrado = false;
-	log_info(logPlanificador, " chequeo si clave esta en lista para id: %d con tamaño de lista %d", esi->id, list_size(lista));
-	while( i < list_size (lista ) && !encontrado){
-
-		ESI *aux = list_get(lista,i);
-
-		log_info(logPlanificador,"comparo %d contra %d", esi->id, aux->id);
-
-		if(esi->id == aux ->id){
-
-			log_info(logPlanificador, "encontrado");
-			encontrado = true;
-
-		}
-
-		i++;
-
-	}
-
-	return encontrado;
-
-}
-
 ESI* estimarProximaRafaga(ESI * proceso ){
 
 
@@ -653,6 +626,7 @@ ESI * crearESI(uint32_t clave){
 	nuevoESI->recursoPedido = string_new();
 	nuevoESI->proximaOperacion = -1;
 	nuevoESI->recienLlegado = true;
+	nuevoESI->recienDesalojado = false;
 	nuevoESI->recienDesbloqueadoPorRecurso = false;
 
 	return nuevoESI;
@@ -1162,6 +1136,8 @@ void limpiarRecienLlegados(){
 		log_info(logPlanificador, "Actualizando un ESI...");
 
 		nuevo -> recienLlegado = false;
+		nuevo->recienDesbloqueadoPorRecurso = false;
+		nuevo->recienDesalojado = false;
 
 		queue_push(colaAuxiliar, nuevo);
 

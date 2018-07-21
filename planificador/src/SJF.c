@@ -164,7 +164,7 @@ void planificacionSJF(bool desalojo){
 
 					ESI* auxiliar = queue_peek(colaListos);
 
-					if(auxiliar->recienLlegado) //chequeo si el proximo en cola es un recien llegado
+					if(auxiliar->recienLlegado || auxiliar->recienDesbloqueadoPorRecurso) //chequeo si el proximo en cola es un recien llegado
 					{
 						if(auxiliar->estimacionSiguiente < (nuevo->estimacionSiguiente - nuevo->rafagasRealizadas)) // y si su estimacion siguiente es menor que la del que esta en ejecucion menos lo que ya hizo
 						{
@@ -244,7 +244,7 @@ void planificacionSJF(bool desalojo){
 			log_info(logPlanificador, " ESI de clave %d en bloqueados para recurso %s", nuevo->id, claveParaBloquearESI);
 
 		} else if (desalojar){
-
+			nuevo->recienDesalojado = true;
 			armarColaListos(nuevo); //aca no meto mutex porque si llega otro ESI que esté primero que el que genero el desalojo, lo desalojaria igual.
 			log_info(logPlanificador," ESI de clave %d desalojado", nuevo->id);
 
@@ -275,6 +275,7 @@ void armarColaListos(ESI * esi){
 
 	} else if(queue_size(colaListos) > 0){
 
+		queue_push(colaListos, esi);
 
 		t_list * auxiliar = list_create();
 
@@ -285,7 +286,7 @@ void armarColaListos(ESI * esi){
 
 		}
 
-		list_sort(auxiliar, (void *) ordenarESIS);
+		list_sort(auxiliar, ordenarESIS);
 
 		int i = 0;
 		while(!list_is_empty(auxiliar)){
@@ -306,7 +307,9 @@ void armarColaListos(ESI * esi){
 }
 
 
-bool ordenarESIS(ESI * e1, ESI * e2){
+bool ordenarESIS(void* nodo1, void* nodo2){
+	ESI* e1 = (ESI*) nodo1;
+	ESI* e2 = (ESI*) nodo2;
 
 
 	log_info (logPlanificador, "ESI  : %d contra ESI a comparar : %d", e1->estimacionSiguiente, e2->estimacionSiguiente);
@@ -322,19 +325,19 @@ bool ordenarESIS(ESI * e1, ESI * e2){
 	{
 		log_info(logPlanificador, "hay empate de estimaciones");
 
-		if( !e2->recienLlegado && e1->recienLlegado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
+		if( !e2->recienDesalojado && e1->recienDesalojado){ //si no es recien llegado, tiene prioridad porque ya estaba en disco
 
 			log_info(logPlanificador, "gana esi nuevo por ser recien llegado");
 
 			return false;
 
-		} else if( !e2->recienLlegado && !e1->recienLlegado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
+		} else if( !e2->recienDesalojado && !e1->recienDesalojado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ // si se da que ninguno de los dos recien fue creado, me fijo si alguno se desbloqueo recien de un recurso
 
 			log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
 
 			return false;
 
-		} else if ( e2->recienLlegado && e1->recienLlegado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
+		} else if ( e2->recienDesalojado && e1->recienDesalojado && e2->recienDesbloqueadoPorRecurso && !e1->recienDesbloqueadoPorRecurso ){ //si los dos recien llegan, me fijo si el auxiliar recien llego de desbloquearse
 
 			log_info(logPlanificador, "gana esi nuevo por ser recien desbloqueado por recurso");
 
