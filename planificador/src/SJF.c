@@ -275,18 +275,26 @@ void armarColaListos(ESI * esi){
 
 	} else if(queue_size(colaListos) > 0){
 
+
+		log_info(logPlanificador, "La cola tiene tamaño de %d", queue_size(colaListos));
 		queue_push(colaListos, esi);
 
 		t_list * auxiliar = list_create();
 
 		log_info(logPlanificador,"armando lista auxiliar");
-		while(queue_is_empty(colaListos)){
 
-			list_add(auxiliar, queue_pop(colaListos));
+		while(!queue_is_empty(colaListos)){
+			ESI * esi1 = queue_pop(colaListos);
+			list_add(auxiliar, esi1);
+			log_info(logPlanificador, " id : %d a lista", esi1->id);
 
 		}
+		log_info(logPlanificador, "la lista quedo de : %d", list_size(auxiliar));
+
 
 		list_sort(auxiliar, ordenarESIS);
+
+		log_info(logPlanificador, "la lista quedo de : %d", list_size(auxiliar));
 
 		int i = 0;
 		while(!list_is_empty(auxiliar)){
@@ -294,7 +302,6 @@ void armarColaListos(ESI * esi){
 			ESI * hola = list_remove(auxiliar,i);
 			log_info(logPlanificador, "meto en cola ESI id : %d", hola->id);
 			queue_push(colaListos,hola);
-			i++;
 
 		}
 
@@ -312,7 +319,7 @@ bool ordenarESIS(void* nodo1, void* nodo2){
 	ESI* e2 = (ESI*) nodo2;
 
 
-	log_info (logPlanificador, "ESI  : %d contra ESI a comparar : %d", e1->estimacionSiguiente, e2->estimacionSiguiente);
+	log_info (logPlanificador, "ESI CLAVE :%d y estimacion : %d contra ESI a comparar clave : %d y estimacion : %d", e1->id, e1->estimacionSiguiente, e2->id, e2->estimacionSiguiente);
 
 	if (e1->estimacionSiguiente > e2->estimacionSiguiente){
 
@@ -343,8 +350,16 @@ bool ordenarESIS(void* nodo1, void* nodo2){
 
 			return false;
 
-		} else return true;
+	} else {
 
-		} else return true;
+		log_info(logPlanificador, "queda primero %d", e1->id);
+		return true;
+	}
+
+		} else {
+
+			log_info(logPlanificador, "queda primero %d", e1->id);
+			return true;
+		}
 
 }
