@@ -192,6 +192,6 @@ void chequearDependenciaDeClave(char * recurso1, char* recurso2, int esi, t_list
 t_recurso * traerRecurso(char * clave);
 bool buscarYMatarEnCola(int clave);
 bool idEnLista(t_list * lista, ESI * id);
-
+bool ordenarESIS(ESI * e1, ESI * e2);
 
 #endif /* PLANIFICADOR_H_ */
