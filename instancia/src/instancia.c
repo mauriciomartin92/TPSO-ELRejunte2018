@@ -364,7 +364,7 @@ int dumpearClave(void* nodo) {
 	if (_fd < 0) { // Si el archivo no existia => lo crea, y crea el mapa
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if (_fd < 0) {
-			log_error(logger, "El archivo no se puede crear");
+			log_error(logger, "El archivo %s no se puede crear", _nombreArchivo);
 			return -1;
 		}
 		ftruncate(_fd, entrada->size_valor_almacenado);
@@ -422,9 +422,9 @@ void* dumpAutomatico() {
 	while(1){
 		sleep(intervalo_dump);
 		pthread_mutex_lock(&mutexDumpeo);
-		printf("\n...EJECUTANDO DUMP AUTOMATICO...\n");
+		log_info("\n...EJECUTANDO DUMP AUTOMATICO...");
 		list_iterate(tabla_entradas, dumpearClave);
-		printf("...FIN DUMP AUTOMATICO...\n\n");
+		log_info("...FIN DUMP AUTOMATICO...\n");
 		pthread_mutex_unlock(&mutexDumpeo);
 	}
 	return NULL;
@@ -611,7 +611,7 @@ int procesar(t_instruccion* instruccion) {
 t_instruccion* recibirInstruccion(int socketCoordinador) {
 	// Recibo linea de script parseada
 	uint32_t tam_paquete;
-	recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
+	if (recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0) < 0) return NULL;; // Recibo el header
 
 	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
 	recv(socketCoordinador, paquete, tam_paquete, 0);
@@ -661,10 +661,8 @@ void finalizar() {
 	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	list_destroy(tabla_entradas);
 	log_destroy(logger);
-	//munmap(mapa_archivo, sizeof(mapa_archivo));
 	close(fd);
 	free(bloque_instancia);
-	free(tabla_entradas);
 }
 
 int main() {
@@ -705,7 +703,7 @@ int main() {
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
-	//pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
+	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
 
 	actualizarCantidadEntradasLibres();
 
@@ -715,6 +713,11 @@ int main() {
 		if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
+		if (!instruccion) {
+			log_error(logger, "Se ha roto la conexion con el Coordinador");
+			break;
+		}
+
 		if (validarArgumentosInstruccion(instruccion) > 0) {
 
 			referencia_actual++;
