@@ -18,9 +18,9 @@
 
 
 typedef enum {
-	CIRC = 0,
-	LRU = 1,
-	BSU = 3
+	CIRC,
+	LRU,
+	BSU
 } t_reemplazo;
 
 t_log* logger;
@@ -37,6 +37,7 @@ t_list* lista_claves;
 //char* mapa_archivo;
 char* bloque_instancia;
 int puntero_circular;
+int pos_a_pisar;
 t_instruccion* instruccion; // es la instruccion actual
 int referencia_actual = 0;
 pthread_mutex_t mutexDumpeo = PTHREAD_MUTEX_INITIALIZER;
@@ -62,10 +63,6 @@ int obtenerEntradasAOcupar(char* valor) {
 }
 
 int operacion_STORE(char* clave) {
-	char* _nombreArchivo;
-	char* _valor;
-	int _archivoClave;
-
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
 	bool comparadorDeClaves(void* estructura) {
 		t_entrada* entrada = (t_entrada*) estructura;
@@ -83,7 +80,11 @@ int operacion_STORE(char* clave) {
 		return -1;
 	}
 
-	/*_valor = malloc(sizeof(char) * tam_entrada);
+	/*char* _nombreArchivo;
+	char* _valor;
+	int _archivoClave;
+
+	_valor = malloc(sizeof(char) * tam_entrada);
 	strncpy(_valor, bloque_instancia+entrada->entrada_asociada, entrada->size_valor_almacenado);
 	//_valor[entrada->size_valor_almacenado] = '\0';
 	_nombreArchivo = string_new();
@@ -184,32 +185,50 @@ t_entrada* algoritmoLRU() {
 	return list_get(tabla_entradas, 0);
 }
 
-t_entrada* algoritmoCircular() {
-	bool buscadorEntradaConPuntero(void* nodo) {
-		t_entrada* entrada = (t_entrada*) nodo;
-		return (puntero_circular == entrada->entrada_asociada);
-	}
-
-	return list_find(tabla_entradas, buscadorEntradaConPuntero);
+bool buscadorEntradaConPuntero(void* nodo) {
+	t_entrada* entrada = (t_entrada*) nodo;
+	return (puntero_circular == entrada->entrada_asociada);
 }
 
-t_entrada* algoritmoDeReemplazo() {
+bool valorEsAtomico(void* nodo) {
+	t_entrada* entrada = (t_entrada*) nodo;
+	return entrada->entradas_ocupadas == 1;
+}
+
+t_entrada* algoritmoCircular() {
+	t_entrada* entrada_apuntada = NULL;
+	t_list* tabla_entradas_atomicas = list_filter(tabla_entradas, valorEsAtomico);
+	while (!entrada_apuntada) {
+		entrada_apuntada = list_find(tabla_entradas_atomicas, buscadorEntradaConPuntero);
+		puntero_circular++;
+	}
+	return entrada_apuntada;
+}
+
+void algoritmoDeReemplazo() {
+	t_entrada* entrada_a_reemplazar;
+
 	switch (protocolo_reemplazo) {
 	case LRU:
-		return algoritmoLRU();
+		entrada_a_reemplazar = algoritmoLRU();
+		break;
 
 	case BSU:
-		return algoritmoBSU();
+		entrada_a_reemplazar = algoritmoBSU();
+		break;
 
 	default: // Circular
-		return algoritmoCircular();
+		entrada_a_reemplazar = algoritmoCircular();
 	}
+
+	liberarEntrada(entrada_a_reemplazar);
+	actualizarCantidadEntradasLibres();
+	log_info(logger, "Se ha liberado la entrada %d de clave %s", entrada_a_reemplazar->entrada_asociada, entrada_a_reemplazar->clave);
 }
 
 int operacion_SET(t_instruccion* instruccion) {
 	int entradas_a_ocupar = obtenerEntradasAOcupar(instruccion->valor);
 
-	t_entrada* entrada_a_reemplazar = NULL;
 	log_info(logger, "El valor a almacenar requiere %i entradas", entradas_a_ocupar);
 
 	if (entradas_a_ocupar <= entradas_libres) {
@@ -220,42 +239,36 @@ int operacion_SET(t_instruccion* instruccion) {
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
 			compactarAlmacenamiento();
-			log_info(logger, "Se ha compactado el almacenamiento");
 		}
 	} else {
 		// Devuelve la entrada a reemplazar
-		log_info(logger, "No hay %d entradas para almacenar el valor, aplico algoritmo %s", entradas_a_ocupar, algoritmo_reemplazo);
-		entrada_a_reemplazar = algoritmoDeReemplazo(entradas_a_ocupar);
-		// Libero la entrada a reemplazar
-		// Entonces, pregunto si hay entradas libres y contiguas.
+		log_info(logger, "No hay %d entradas para almacenar el valor, aplico algoritmo de reemplazo %s", entradas_a_ocupar, algoritmo_reemplazo);
+
+		while (entradas_a_ocupar > entradas_libres) algoritmoDeReemplazo();
+		log_info(logger, "Hay %d entradas libres para almacenar el valor", entradas_a_ocupar);
+		// Entonces, pregunto si hay contiguas.
 		if (hayEntradasContiguas(entradas_a_ocupar) >= 0) {
-			log_info(logger, "Hay %d entradas libres y contiguas para almacenar el valor", entradas_a_ocupar);
+			log_info(logger, "Hay %d entradas contiguas", entradas_a_ocupar);
 		} else {
 			log_info(logger, "No hay %d entradas contiguas para almacenar el valor", entradas_a_ocupar);
 			compactarAlmacenamiento();
-			log_info(logger, "Se ha compactado el almacenamiento");
 		}
 	}
 
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 	entrada->clave = string_new();
 	string_append(&(entrada->clave), instruccion->clave);
-
 	entrada->size_valor_almacenado = strlen(instruccion->valor);
 	entrada->entradas_ocupadas = entradas_a_ocupar;
 	entrada->ultima_referencia = referencia_actual;
+	entrada->entrada_asociada = hayEntradasContiguas(entradas_a_ocupar);
 
-	if (!entrada_a_reemplazar) {
-		entrada->entrada_asociada = hayEntradasContiguas(entradas_a_ocupar);
-	} else {
-		liberarEntrada(entrada_a_reemplazar);
-		entrada->entrada_asociada = entrada_a_reemplazar->entrada_asociada;
-	}
 	escribirEntrada(entrada, instruccion->valor);
 	actualizarCantidadEntradasLibres();
-	puntero_circular = entrada->entrada_asociada;
+
 	list_add(tabla_entradas, entrada);
 	log_info(logger, "Se ha escrito la entrada");
+
 	return 1;
 }
 
@@ -290,43 +303,52 @@ int validarArgumentosInstruccion(t_instruccion* instruccion) {
 	return 1;
 }
 
+void actualizarEntradaAsociada(void* nodo) {
+	t_entrada* entrada = (t_entrada*) nodo;
+	if ((entrada->entrada_asociada * tam_entrada) > pos_a_pisar) {
+		entrada->entrada_asociada--;
+	}
+}
+
 void compactarAlmacenamiento() {
-	log_debug(logger, "Se inicia la compactacion");
-	for(int x = 0; x < cant_entradas * tam_entrada; x += tam_entrada) {
+	log_info(logger, "Se inicia la compactacion del almacenamiento");
+
+	for (int x = 0; x < cant_entradas * tam_entrada; x += tam_entrada) {
 		if (bloque_instancia[x] == '0') {
-			for(int y = x + tam_entrada; x < cant_entradas * tam_entrada; y += tam_entrada) {
+			for (int y = x + tam_entrada; x < cant_entradas * tam_entrada; y += tam_entrada) {
 				if (bloque_instancia[y] != '0') {
-					log_debug(logger, "Encontre %d entradas libres", y - x);
-					log_debug(logger, "Corro todos los valores posteriores hacia atras");
-					int pos_reemplazo = x;
 					char* porcion = string_new();
-					for(int z = y; z < cant_entradas * tam_entrada; z++) {
+					for (int z = y; z < cant_entradas * tam_entrada; z++) {
 						string_append_with_format(&porcion, "%c", bloque_instancia[z]);
 					}
-					strncpy(bloque_instancia + pos_reemplazo, porcion, strlen(porcion));
+					while ((x + strlen(porcion)) < strlen(bloque_instancia)) {
+						string_append_with_format(&porcion, "%c", '0'); // Se agregan los '0' al final ya que strncpy no lo hace
+					}
+					strncpy(bloque_instancia + x, porcion, strlen(porcion)); // Pisa la entrada vacia con el bloque posterior
+					pos_a_pisar = x; // Posicion respecto a la que se deben actualizar las entradas asociadas
+
+					list_map(tabla_entradas, actualizarEntradaAsociada); // Se actualizan las entradas asociadas si corresponde
+
+					break;
 				}
 			}
 		}
 	}
-	log_debug(logger, "Se corrieron todas las entradas");
+	log_info(logger, "Se compactaron todas las entradas");
 }
 
 int dumpearClave(void* nodo) {
-	struct stat sb;
-
 	t_entrada* entrada = (t_entrada*) nodo;
 	char* _nombreArchivo = string_new();
 	string_append(&_nombreArchivo, ruta_directorio);
 	string_append(&_nombreArchivo, entrada->clave);
 	string_append(&_nombreArchivo, ".txt");
-	printf("nombre archivo es: %s\n", _nombreArchivo);
 
 	int _fd = open(_nombreArchivo, O_RDWR, S_IRUSR | S_IWUSR);
 	if (_fd < 0) { // Si el archivo no existia => lo crea, y crea el mapa
-		log_debug(logger, "El archivo %s no existia", _nombreArchivo);
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if (_fd < 0) {
-			log_error(logger, "EL archivo no se puede crear");
+			log_error(logger, "El archivo no se puede crear");
 			return -1;
 		}
 		ftruncate(_fd, entrada->size_valor_almacenado);
@@ -337,16 +359,12 @@ int dumpearClave(void* nodo) {
 		for (int i = pos_inicial; i < pos_inicial + entrada->size_valor_almacenado; i++) {
 			entrada->mapa_archivo[i - pos_inicial] = bloque_instancia[i];
 		}
-
-		log_info(logger, "MAPA ARCHIVO: %s", entrada->mapa_archivo);
 		//msync(NULL, entrada->size_valor_almacenado, MS_SYNC);
 	} else {
 		if (entrada->size_valor_almacenado <= strlen(entrada->mapa_archivo)) {
-			printf("tamaño nuevo valor es menor o igual que el almacenado\n");
 			memset(entrada->mapa_archivo, '0', strlen(entrada->mapa_archivo));
 			strncpy(entrada->mapa_archivo, bloque_instancia + ((entrada->entrada_asociada - 1) * tam_entrada), strlen(entrada->mapa_archivo));
 		} else {
-			printf("tamaño nuevo valor es mayor que el almacenado\n");
 			ftruncate(entrada->fd, entrada->size_valor_almacenado);
 			munmap(entrada->mapa_archivo, strlen(entrada->mapa_archivo));
 			entrada->mapa_archivo = string_new();
@@ -384,17 +402,12 @@ int dumpearClave(void* nodo) {
 	return 1;
 }
 
-void dumpMemoria() {
-	// Busco la clave en la tabla usando la funcion magica
-	list_iterate(tabla_entradas, dumpearClave);
-}
-
 void* dumpAutomatico() {
 	while(1){
 		sleep(intervalo_dump);
 		pthread_mutex_lock(&mutexDumpeo);
 		printf("\n...EJECUTANDO DUMP AUTOMATICO...\n");
-		dumpMemoria();
+		list_iterate(tabla_entradas, dumpearClave);
 		printf("...FIN DUMP AUTOMATICO...\n\n");
 		pthread_mutex_unlock(&mutexDumpeo);
 	}
@@ -597,12 +610,13 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 
 // Protocolo numerico de ALGORITMO_DISTRIBUCION
 void establecerProtocoloReemplazo() {
-	if (strcmp(algoritmo_reemplazo, "LRU")) {
+	if (strcmp(algoritmo_reemplazo, "LRU") == 0) {
 		protocolo_reemplazo = LRU;
-	} else if (strcmp(algoritmo_reemplazo, "BSU")) {
+	} else if (strcmp(algoritmo_reemplazo, "BSU") == 0) {
 		protocolo_reemplazo = BSU;
 	} else {
 		protocolo_reemplazo = CIRC;
+		puntero_circular = 1;
 	}
 }
 
@@ -673,13 +687,14 @@ int main() {
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
-	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
+	//pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
 
 	actualizarCantidadEntradasLibres();
 
 	while (1) {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
 		log_debug(logger, "%s", bloque_instancia);
+		log_debug(logger, "TAMAÑO BLOQUE: %d", strlen(bloque_instancia));
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (validarArgumentosInstruccion(instruccion) > 0) {
@@ -703,6 +718,9 @@ int main() {
 				log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");
 				send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 			}
+
+			if (instruccion->operacion == 2) printf("\x1b[34m	INSTRUCCION:%d %s %s\x1b[0m\n", instruccion->operacion, instruccion->clave, instruccion->valor);
+			if (instruccion->operacion == 3) printf("\x1b[34m	INSTRUCCION:%d %s\x1b[0m\n", instruccion->operacion, instruccion->clave);
 		}
 	}
 	finalizar();
