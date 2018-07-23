@@ -417,7 +417,7 @@ int dumpearClave(void* nodo) {
 
 void* dumpAutomatico() {
 	while(1){
-		sleep(intervalo_dump);
+		sleep(intervalo_dump * 0.001);
 		pthread_mutex_lock(&mutexDumpeo);
 		log_info(logger, "...EJECUTANDO DUMP AUTOMATICO...");
 		list_iterate(tabla_entradas, dumpearClave);
