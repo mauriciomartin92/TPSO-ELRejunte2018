@@ -192,10 +192,26 @@ void planificacionSJF(bool desalojo){
 
 
 			} else {
-				log_info(logPlanificador, " El esi no tiene permiso de ejecucion y se bloquea ");
 
-				pthread_mutex_unlock(&mutexComunicacion);
-				bloquearESI(nuevo->recursoPedido, nuevo);
+				if(nuevo->proximaOperacion == 1){ //Caso GET
+
+					log_info(logPlanificador, " El esi no tiene permiso de ejecucion y se bloquea ");
+					bloquearESI(nuevo->recursoPedido, nuevo);
+					uint32_t aviso = 0;
+					send(socketCoordinador, &aviso,  sizeof(aviso), 0);
+					pthread_mutex_unlock(&mutexComunicacion);
+
+				} else if( nuevo -> proximaOperacion > 1){
+
+					log_info(logPlanificador, " El esi no tiene permiso de ejecucion y se aborta (quiso hacer SET o STORE de recurso no tomado ");
+					liberarRecursos(nuevo);
+					list_add(listaFinalizados, nuevo);
+					uint32_t aviso = -2;
+					send(socketCoordinador, &aviso,  sizeof(aviso), 0);
+					pthread_mutex_unlock(&mutexComunicacion);
+				}
+
+
 
 			}
 
@@ -209,7 +225,8 @@ void planificacionSJF(bool desalojo){
 			pthread_mutex_lock(&mutexComunicacion);
 			log_info(logPlanificador, "le aviso al esi");
 
-			send(nuevo->id,&FINALIZAR,sizeof(uint32_t),0);
+			uint32_t abortar = -2;
+			send(nuevo->id,&abortar,sizeof(uint32_t),0);
 			pthread_mutex_unlock(&mutexComunicacion);
 			log_info(logPlanificador, "comunicacion terminada");
 
@@ -268,7 +285,6 @@ void armarColaListos(ESI * esi){
 
 
 	if(queue_size(colaListos) == 0){
-
 		log_info(logPlanificador, "la cola estaba vacía! Entra directo");
 		queue_push(colaListos, esi);
 		log_info(logPlanificador, "adentro!");
