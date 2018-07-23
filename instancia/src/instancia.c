@@ -28,29 +28,30 @@ bool error_config;
 char* ip_coordinador;
 char* port_coordinador;
 char* algoritmo_reemplazo;
-t_reemplazo protocolo_reemplazo;
+char* nombre_instancia;
 uint32_t id_instancia;
+char* montaje;
+t_reemplazo protocolo_reemplazo;
 int socketCoordinador, intervalo_dump, fd;
 uint32_t cant_entradas, tam_entrada, entradas_libres;
 t_list* tabla_entradas;
 t_list* lista_claves;
-//char* mapa_archivo;
 char* bloque_instancia;
 int puntero_circular;
 int pos_a_pisar;
+t_entrada* entrada_a_reemplazar;
 t_instruccion* instruccion; // es la instruccion actual
 int referencia_actual = 0;
 pthread_mutex_t mutexDumpeo = PTHREAD_MUTEX_INITIALIZER;
 
-const char* ruta_directorio = "/home/utnso/workspace/tp-2018-1c-El-Rejunte/instancia/dump/";
 const uint32_t PAQUETE_OK = 1;
 const int32_t PAQUETE_ERROR = -1;
 
-void imprimirTablaDeEntradas() {
+void imprimirTablaDeEntradas(t_list* tabla) {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
-	for(int i = 0; i < list_size(tabla_entradas); i++) {
-		t_entrada* entrada = list_get(tabla_entradas, i);
-		printf("%s - %d - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado);
+	for(int i = 0; i < list_size(tabla); i++) {
+		t_entrada* entrada = list_get(tabla, i);
+		printf("%s - %d (%d) - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado, entrada->ultima_referencia);
 	}
 	printf("\n");
 }
@@ -64,13 +65,13 @@ int obtenerEntradasAOcupar(char* valor) {
 
 int operacion_STORE(char* clave) {
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
-	bool comparadorDeClaves(void* estructura) {
-		t_entrada* entrada = (t_entrada*) estructura;
+	bool comparadorClaveActual(void* nodo) {
+		t_entrada* entrada = (t_entrada*) nodo;
 		return (strcmp(clave, entrada->clave) == 0);
 	}
 
 	// Busco la clave en la tabla usando la funcion magica
-	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
+	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorClaveActual);
 
 	if (dumpearClave(entrada) > 0) {
 		log_info(logger, "Se persistió la clave-valor");
@@ -163,26 +164,30 @@ int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	//Actualizamos el diccionario con el nuevo valor para la clave.
 }
 
-t_entrada* algoritmoBSU() {
+t_entrada* algoritmoBSU(t_list* tabla_entradas_atomicas) {
 	bool mayorValorAlmacenado(void* nodo1, void* nodo2) {
 		t_entrada* entrada1 = (t_entrada*) nodo1;
 		t_entrada* entrada2 = (t_entrada*) nodo2;
 		return entrada1->size_valor_almacenado > entrada2->size_valor_almacenado;
 	}
 
-	list_sort(tabla_entradas, mayorValorAlmacenado);
-	return list_get(tabla_entradas, 0);
+	list_sort(tabla_entradas_atomicas, mayorValorAlmacenado);
+	return list_get(tabla_entradas_atomicas, 0);
 }
 
-t_entrada* algoritmoLRU() {
+t_entrada* algoritmoLRU(t_list* tabla_entradas_atomicas) {
 	bool masTiempoReferenciada(void* nodo1, void* nodo2) {
 		t_entrada* entrada1 = (t_entrada*) nodo1;
 		t_entrada* entrada2 = (t_entrada*) nodo2;
-		return entrada1->ultima_referencia > entrada2->ultima_referencia;
+		return entrada1->ultima_referencia < entrada2->ultima_referencia;
 	}
 
-	list_sort(tabla_entradas, masTiempoReferenciada);
-	return list_get(tabla_entradas, 0);
+	list_sort(tabla_entradas_atomicas, masTiempoReferenciada);
+
+	printf("\n--------- TABLA DE ENTRADAS ATOMICAS ORDENADA POR ULTIMA REFERENCIA ---------");
+	imprimirTablaDeEntradas(tabla_entradas_atomicas);
+
+	return list_get(tabla_entradas_atomicas, 0);
 }
 
 bool buscadorEntradaConPuntero(void* nodo) {
@@ -190,40 +195,51 @@ bool buscadorEntradaConPuntero(void* nodo) {
 	return (puntero_circular == entrada->entrada_asociada);
 }
 
-bool valorEsAtomico(void* nodo) {
-	t_entrada* entrada = (t_entrada*) nodo;
-	return entrada->entradas_ocupadas == 1;
-}
-
-t_entrada* algoritmoCircular() {
+t_entrada* algoritmoCircular(t_list* tabla_entradas_atomicas) {
 	t_entrada* entrada_apuntada = NULL;
-	t_list* tabla_entradas_atomicas = list_filter(tabla_entradas, valorEsAtomico);
 	while (!entrada_apuntada) {
-		entrada_apuntada = list_find(tabla_entradas_atomicas, buscadorEntradaConPuntero);
+		entrada_apuntada = list_get(tabla_entradas_atomicas, buscadorEntradaConPuntero);
 		puntero_circular++;
 	}
 	return entrada_apuntada;
 }
 
+void quitarEntrada(t_entrada* entrada) {
+	bool comparadorClaveReemplazo(void* nodo) {
+		t_entrada* entrada = (t_entrada*) nodo;
+		return (strcmp(entrada->clave, entrada_a_reemplazar->clave) == 0);
+	}
+
+	list_remove_by_condition(tabla_entradas, comparadorClaveReemplazo);
+}
+
+bool valorEsAtomico(void* nodo) {
+	t_entrada* entrada = (t_entrada*) nodo;
+	return entrada->entradas_ocupadas == 1;
+}
+
 void algoritmoDeReemplazo() {
-	t_entrada* entrada_a_reemplazar;
+	t_list* tabla_entradas_atomicas = list_filter(tabla_entradas, valorEsAtomico); // Solo evaluo los valores atomicos
+	printf("\n--------- TABLA DE ENTRADAS ATOMICAS ---------");
+	imprimirTablaDeEntradas(tabla_entradas_atomicas);
 
 	switch (protocolo_reemplazo) {
 	case LRU:
-		entrada_a_reemplazar = algoritmoLRU();
+		entrada_a_reemplazar = algoritmoLRU(tabla_entradas_atomicas);
 		break;
 
 	case BSU:
-		entrada_a_reemplazar = algoritmoBSU();
+		entrada_a_reemplazar = algoritmoBSU(tabla_entradas_atomicas);
 		break;
 
 	default: // Circular
-		entrada_a_reemplazar = algoritmoCircular();
+		entrada_a_reemplazar = algoritmoCircular(tabla_entradas_atomicas);
 	}
 
 	liberarEntrada(entrada_a_reemplazar);
 	actualizarCantidadEntradasLibres();
-	log_info(logger, "Se ha liberado la entrada %d de clave %s", entrada_a_reemplazar->entrada_asociada, entrada_a_reemplazar->clave);
+	log_warning(logger, "Se ha liberado la entrada %d de clave %s", entrada_a_reemplazar->entrada_asociada, entrada_a_reemplazar->clave);
+	quitarEntrada(entrada_a_reemplazar);
 }
 
 int operacion_SET(t_instruccion* instruccion) {
@@ -340,7 +356,7 @@ void compactarAlmacenamiento() {
 int dumpearClave(void* nodo) {
 	t_entrada* entrada = (t_entrada*) nodo;
 	char* _nombreArchivo = string_new();
-	string_append(&_nombreArchivo, ruta_directorio);
+	string_append(&_nombreArchivo, montaje);
 	string_append(&_nombreArchivo, entrada->clave);
 	string_append(&_nombreArchivo, ".txt");
 
@@ -432,7 +448,7 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	string_append(&(entrada->clave), vector_clave[0]);
 
 	entrada->path = string_new();
-	string_append(&entrada->path, ruta_directorio);
+	string_append(&entrada->path, montaje);
 	string_append(&entrada->path, archivo);
 	log_debug(logger, "%s", entrada->path);
 
@@ -459,7 +475,7 @@ int iniciarDirectorio(){
 
 	tabla_entradas = list_create();
 
-	dirp = opendir(ruta_directorio);
+	dirp = opendir(montaje);
 	if (!dirp) {
 		log_error(logger, "No se encontro el directorio de valores persistidos, se aborta la Instancia");
 		return -1;
@@ -557,13 +573,13 @@ int procesar(t_instruccion* instruccion) {
 	log_info(logger, "Procesando instruccion...");
 
 	// Funcion magica para comparar si esta la clave que quiero en la tabla de entradas
-	bool comparadorDeClaves(void* estructura) {
-		t_entrada* entrada = (t_entrada*) estructura;
+	bool comparadorClaveInstruccion(void* nodo) {
+		t_entrada* entrada = (t_entrada*) nodo;
 		return (strcmp(instruccion->clave, entrada->clave) == 0);
 	}
 
 	// Busco la clave en la tabla usando la funcion magica
-	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorDeClaves);
+	t_entrada* entrada = (t_entrada*) list_find(tabla_entradas, comparadorClaveInstruccion);
 
 	// Evaluo como procesar segun las condiciones
 	if (!entrada) { // la entrada no estaba
@@ -626,8 +642,9 @@ t_control_configuracion cargarConfiguracion() {
 
 	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
+	nombre_instancia = obtenerCampoString(logger, config, "NOMBRE", &error_config);
+	montaje = obtenerCampoString(logger, config, "MONTAJE", &error_config);
 	algoritmo_reemplazo = obtenerCampoString(logger, config, "ALGORITMO_REEMPLAZO", &error_config);
-	id_instancia = obtenerCampoInt(logger, config, "ID_INSTANCIA", &error_config);
 	intervalo_dump = obtenerCampoInt(logger, config, "INTERVALO_DUMP", &error_config);
 
 	establecerProtocoloReemplazo();
@@ -668,6 +685,7 @@ int main() {
 	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
 
 	// Le aviso cual es mi ID
+	id_instancia = atoi(string_substring_from(nombre_instancia, strlen("Inst"))); // Agarro lo que viene despues de "Inst"
 	send(socketCoordinador, &id_instancia, sizeof(uint32_t), 0);
 
 	recv(socketCoordinador, &cant_entradas, sizeof(uint32_t), 0);
@@ -683,7 +701,7 @@ int main() {
 		finalizar();
 		return EXIT_FAILURE;
 	}
-	if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas();
+	if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
@@ -694,7 +712,7 @@ int main() {
 	while (1) {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
 		log_debug(logger, "%s", bloque_instancia);
-		log_debug(logger, "TAMAÑO BLOQUE: %d", strlen(bloque_instancia));
+		if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (validarArgumentosInstruccion(instruccion) > 0) {
