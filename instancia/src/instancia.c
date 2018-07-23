@@ -439,7 +439,6 @@ void escribirEntrada(t_entrada* entrada, char* valor) {
 }
 
 t_entrada* crearEntradaDesdeArchivo(char* archivo) {
-	log_debug(logger, "%s", archivo);
 	struct stat sb;
 	t_entrada* entrada = (t_entrada*) malloc(sizeof(t_entrada));
 
@@ -450,7 +449,6 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	entrada->path = string_new();
 	string_append(&entrada->path, montaje);
 	string_append(&entrada->path, archivo);
-	log_debug(logger, "%s", entrada->path);
 
 	entrada->fd = open(entrada->path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 	fstat(entrada->fd, &sb);
@@ -476,10 +474,8 @@ int iniciarDirectorio(){
 	tabla_entradas = list_create();
 
 	dirp = opendir(montaje);
-	if (!dirp) {
-		log_error(logger, "No se encontro el directorio de valores persistidos, se aborta la Instancia");
-		return -1;
-	}
+	// TODO: Chequear los permisos del mkdir
+	if (!dirp) return mkdir(montaje, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Si no existe creo el directorio
 
 	archivos = string_new();
 
@@ -500,7 +496,6 @@ int iniciarDirectorio(){
 
 	int i = 0;
 	while(vector_archivos[i] != NULL){
-		log_debug(logger, "%s", vector_archivos[i]);
 		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
@@ -513,11 +508,9 @@ void llenarAlmacenamiento(t_entrada* entrada) {
 
 	for (int i = 0; i < cant_entradas * tam_entrada; i += tam_entrada) {
 		if (bloque_instancia[i] == '0') {
-			log_debug(logger, "mapa: %s", entrada->mapa_archivo);
 			strncpy(bloque_instancia + i, entrada->mapa_archivo, strlen(entrada->mapa_archivo));
 			entrada->entrada_asociada = (i / tam_entrada) + 1;
 			entrada->entradas_ocupadas = entradas_a_ocupar;
-			log_debug(logger, "%s", bloque_instancia);
 			break;
 		}
 	}
@@ -696,10 +689,10 @@ int main() {
 
 	inicializarBloqueInstancia();
 	if (iniciarDirectorio() < 0) {
+		log_error(logger, "El directorio %s no es valido", montaje);
 		finalizar();
 		return EXIT_FAILURE;
 	}
-	if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
@@ -709,7 +702,7 @@ int main() {
 
 	while (1) {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
-		log_debug(logger, "%s", bloque_instancia);
+		log_debug(logger, "BLOQUE DE MEMORIA: %s", bloque_instancia);
 		if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
