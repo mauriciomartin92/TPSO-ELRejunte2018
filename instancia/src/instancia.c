@@ -118,9 +118,6 @@ int operacion_STORE(char* clave) {
 int operacion_SET_reemplazo(t_entrada* entrada, char* valor) {
 	int entradas_a_ocupar = obtenerEntradasAOcupar(valor);
 
-	log_debug(logger, "strlen valor: %d - tam entrada: %d", strlen(valor), tam_entrada);
-	log_debug(logger, "entradas a ocupar: %d - entradas ocupadas: %d", entradas_a_ocupar, entrada->entradas_ocupadas);
-
 	//Verificamos el tamaño del nuevo valor.
 	if (entradas_a_ocupar <= entrada->entradas_ocupadas) {
 		//Ocupa lo mismo que el valor anterior.
