@@ -121,6 +121,7 @@ void configurar(){
 	while (clavesBloqueadas[i] != NULL)
 	{
 		t_recurso * recurso = crearRecurso(clavesBloqueadas[i]);
+		recurso->estado = 1;
 		list_add(listaRecursos, recurso);
 		i++;
 
