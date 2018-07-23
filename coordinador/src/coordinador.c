@@ -430,9 +430,9 @@ void establecerConexion(void* socketCliente) {
 
 // Protocolo numerico de ALGORITMO_DISTRIBUCION
 void establecerProtocoloDistribucion() {
-	if (strcmp(algoritmo_distribucion, "LSU")) {
+	if (strcmp(algoritmo_distribucion, "LSU") == 0) {
 		protocolo_distribucion = LSU;
-	} else if (strcmp(algoritmo_distribucion, "KE")) {
+	} else if (strcmp(algoritmo_distribucion, "KE") == 0) {
 		protocolo_distribucion = KE;
 	} else {
 		protocolo_distribucion = EL;

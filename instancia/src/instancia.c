@@ -53,7 +53,7 @@ void imprimirTablaDeEntradas(t_list* tabla) {
 		t_entrada* entrada = list_get(tabla, i);
 		printf("%s - %d (%d) - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado, entrada->ultima_referencia);
 	}
-	printf("\n");
+	printf("CANTIDAD DE CLAVES: %d\n", list_size(tabla));
 }
 
 int obtenerEntradasAOcupar(char* valor) {
