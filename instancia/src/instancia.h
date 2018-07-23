@@ -68,7 +68,7 @@ int operacion_STORE(char* clave);
 bool comparadorClaveActual(void* nodo);
 void algoritmoDeReemplazo();
 bool valorEsAtomico(void* nodo);
-void quitarEntrada(entrada_a_reemplazar);
+void quitarEntrada(t_entrada* entrada_a_reemplazar);
 bool comparadorClaveReemplazo(void* nodo);
 t_entrada* algoritmoCircular(t_list* tabla_entradas_atomicas);
 bool buscadorEntradaConPuntero();

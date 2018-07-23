@@ -195,7 +195,7 @@ bool buscadorEntradaConPuntero(void* nodo) {
 t_entrada* algoritmoCircular(t_list* tabla_entradas_atomicas) {
 	t_entrada* entrada_apuntada = NULL;
 	while (!entrada_apuntada) {
-		entrada_apuntada = list_get(tabla_entradas_atomicas, buscadorEntradaConPuntero);
+		entrada_apuntada = list_find(tabla_entradas_atomicas, buscadorEntradaConPuntero);
 		puntero_circular++;
 	}
 	return entrada_apuntada;
@@ -340,7 +340,7 @@ void compactarAlmacenamiento() {
 					strncpy(bloque_instancia + x, porcion, strlen(porcion)); // Pisa la entrada vacia con el bloque posterior
 					pos_a_pisar = x; // Posicion respecto a la que se deben actualizar las entradas asociadas
 
-					list_map(tabla_entradas, actualizarEntradaAsociada); // Se actualizan las entradas asociadas si corresponde
+					list_iterate(tabla_entradas, actualizarEntradaAsociada); // Se actualizan las entradas asociadas si corresponde
 
 					break;
 				}
