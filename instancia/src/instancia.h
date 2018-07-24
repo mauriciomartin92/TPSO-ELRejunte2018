@@ -49,7 +49,6 @@ t_control_configuracion cargarConfiguracion();
 void establecerProtocoloReemplazo();
 void inicializarBloqueInstancia();
 int iniciarDirectorio();
-void cargarClaveDirectorio(char* clave);
 void llenarAlmacenamiento(t_entrada* entrada);
 t_entrada* crearEntradaDesdeArchivo(char* archivo);
 void compactarAlmacenamiento();
