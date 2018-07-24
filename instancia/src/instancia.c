@@ -669,6 +669,12 @@ int main() {
 
 	// Me conecto con el Servidor y le mando mensajes
 	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
+	if (socketCoordinador < 0) {
+		log_error(logger, "Error de Comunicacion: no me pude conectar con el Coordinador, me aborto");
+		finalizar();
+		return EXIT_FAILURE;
+	}
+
 	uint32_t handshake = INSTANCIA;
 	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
 
@@ -704,8 +710,9 @@ int main() {
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (!instruccion) {
-			log_error(logger, "Se ha roto la conexion con el Coordinador");
-			break;
+			log_error(logger, "Error de Comunicacion: se ha roto la conexion con el Coordinador, me aborto");
+			finalizar();
+			return EXIT_FAILURE;
 		}
 
 		if (validarArgumentosInstruccion(instruccion) > 0) {

@@ -30,6 +30,7 @@ uint32_t respuesta;
 
 /* INFORMES AL PLANIFICADOR */
 const uint32_t ABORTA_ESI = -2;
+const uint32_t BLOQUEA_ESI = -1;
 const uint32_t TERMINA_ESI = 0;
 const uint32_t PAQUETE_OK = 1;
 
@@ -96,12 +97,23 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 	}
 
 	log_info(logger, "Me conecto como cliente al Coordinador y al Planificador");
-	// Me conecto como cliente al Coordinador y al Planificador
 	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
+	if (socketCoordinador < 0) {
+		log_error(logger, "Error de Comunicacion: no me pude conectar con el Coordinador, me aborto");
+		finalizar();
+		return EXIT_FAILURE;
+	}
+
 	uint32_t handshake = ESI;
 	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
 
 	socketPlanificador = conectarComoCliente(logger, ip_planificador, port_planificador);
+	if (socketPlanificador < 0) {
+		log_error(logger, "Error de Comunicacion: no me pude conectar con el Planificador, me aborto");
+		finalizar();
+		return EXIT_FAILURE;
+	}
+
 	// El planificador me asigna mi ID
 	recv(socketPlanificador, &miID, sizeof(uint32_t), 0);
 	log_info(logger, "El Planificador me asigno mi ID: %d", miID);
@@ -116,7 +128,11 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 
 	while(!feof(fp)) {
 		log_info(logger, "Espero a que el Planificador me ordene parsear una instruccion");
-		recv(socketPlanificador, &orden, sizeof(uint32_t), 0);
+		if (recv(socketPlanificador, &orden, sizeof(uint32_t), 0) < 0) {
+			log_error(logger, "Error de Comunicacion: se ha roto la conexion con el Planificador, me aborto");
+			finalizar();
+			return EXIT_FAILURE;
+		}
 
 		if (orden == SIGUIENTE_INSTRUCCION) {
 			log_info(logger, "El planificador me pide que parsee la siguiente instruccion:");
@@ -135,7 +151,11 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
 			if (respuesta == PAQUETE_OK) log_info(logger, "El Coordinador informa que el paquete llego correctamente");
 
-			recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0);
+			if (recv(socketCoordinador, &respuesta, sizeof(uint32_t), 0) < 0) {
+				log_error(logger, "Error de Comunicacion: se ha roto la conexion con el Coordinador, me aborto");
+				finalizar();
+				return EXIT_FAILURE;
+			}
 
 			if (respuesta == PAQUETE_OK) {
 				log_info(logger, "El Coordinador informa que la instruccion se proceso satisfactoriamente");
@@ -149,10 +169,13 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 
 				log_info(logger, "Le aviso al Planificador que la instruccion pudo ser procesada");
 				send(socketPlanificador, &PAQUETE_OK, sizeof(uint32_t), 0);
+			} else if (respuesta == BLOQUEA_ESI) {
+				log_warning(logger, "El Coordinador informa que la instruccion no se pudo procesar");
+				log_warning(logger, "Se bloquea el ESI");
 			} else {
 				log_error(logger, "El Coordinador informa que la instruccion no se pudo procesar");
 				log_error(logger, "Se aborta el ESI");
-				send(socketPlanificador, &ABORTA_ESI, sizeof(uint32_t), 0);
+				send(socketPlanificador, &ABORTA_ESI, sizeof(uint32_t), MSG_DONTWAIT);
 				finalizar();
 				return EXIT_FAILURE;
 			}

@@ -44,6 +44,7 @@ uint32_t instancia_ID;
 pthread_mutex_t mutexNuevaInstancia = PTHREAD_MUTEX_INITIALIZER;
 
 const uint32_t ABORTA_ESI = -2;
+const uint32_t BLOQUEA_ESI = -1;
 const uint32_t PAQUETE_OK = 1;
 const uint32_t PAQUETE_ERROR = -1;
 const int TAM_MAXIMO_CLAVE = 40;
@@ -341,11 +342,14 @@ void atenderESI(int socketESI) {
 				send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
 				break;
 			}
-
 			log_info(logger, "Le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
 			send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
-		} else {
+		} else if (respuesta == SE_BLOQUEA_ESI) {
 			log_warning(logger, "El Planificador me informa que el ESI %d no tiene permisos", esi_ID);
+			send(socketESI, &BLOQUEA_ESI, sizeof(uint32_t), 0);
+		} else {
+			log_error(logger, "El Planificador me informa que el ESI %d se aborta", esi_ID);
+			send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
 		}
 
 		destruirPaquete(paquete);
@@ -364,6 +368,20 @@ bool existeInstanciaID(void* nodo) {
 }
 
 void atenderInstancia(int socketInstancia) {
+
+	/*
+	 * TODO: cuando una Instancia INACTIVA se conecta, necesita saber cuales claves tenia asignadas
+	 * Si lee su archivo montaje, seguramente se va a encontrar con claves que ya habian sido reemplazadas
+	 * Entonces, el Coordinador debe informarle a la Instancia ACTIVADA cuáles claves tenía!
+	 * Cada vez que la Instancia termina de ejecutar deberá enviar al Coordinador aviso sobre si hubo
+	 * o no reemplazo de una clave, y si es asi cual clave se reemplazo.
+	 * Con este dato, el Coordinador podra mantener actualizado en la Tabla de Entradas las claves actuales
+	 * y su cantidad para cada Instancia :) :) :) :)
+	 * PREGUNTA: si al Coordinador le llega un GET de una clave que ya había sido asignada, pero se reemplazo,
+	 * entonces se asigna nuevamente a la Instancia que mande el algoritmo de distribucion o se debe reasignar
+	 * a la Instancia original?
+	 */
+
 	// Recibo la ID
 	pthread_mutex_lock(&mutexNuevaInstancia);
 
