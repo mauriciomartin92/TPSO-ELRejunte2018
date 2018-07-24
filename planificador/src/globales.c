@@ -448,6 +448,7 @@ void lanzarConsola(){
 		printf("Kill_ESI \n");
 		printf("Status_ESI \n");
 		printf("Comprobar_Deadlock \n");
+		printf("Listar finalizados \n");
 		printf("Salir \n");
 		printf("Ingrese el nombre de la opcion, incluyendo el guion bajo \n");
 		linea = readline(">");
@@ -496,7 +497,7 @@ void lanzarConsola(){
 				}
 
 				log_info(logPlanificador, "bloqueado");
-				printf("bloqueado");
+				printf("bloqueado \n");
 				bloquearESIActual = false;
 
 			} else {
@@ -509,7 +510,7 @@ void lanzarConsola(){
 
 					log_info(logPlanificador, "la clave ingresada no existe");
 
-					printf("se introdujo una id erronea o la misma ya se encuentra bloqueada : %d", clave);
+					printf("se introdujo una id erronea o la misma ya se encuentra bloqueada : %d \n", clave);
 
 				} else {
 					log_info(logPlanificador, "mandando a bloquear esi");
@@ -561,9 +562,22 @@ void lanzarConsola(){
 
 				pthread_mutex_unlock(&mutexAsesino);
 
-				printf("esperando a que el ESI pueda ser matado");
+				printf("esperando a que el ESI pueda ser matado \n");
 
-			} else {
+			} else if ( string_equals_ignore_case(linea, "listar_finalizados")){
+
+				int i = 0;
+				while(i< list_size(listaFinalizados)){
+
+					ESI * esi = list_get (listaFinalizados, i);
+
+					printf("el ESI numero %d es de clave %d \n", i, esi->id);
+					i++;
+				}
+
+				free(linea);
+
+			}else {
 
 				log_info(logPlanificador, "la clave a matar no es igual a la que se esta ejecutando. Buscando... ");
 				claveMatar = clave;
@@ -773,11 +787,18 @@ bool validarPedido (char * recurso, ESI * ESIValidar){
 
 		if ( encontrado == false){ // caso recurso nuevo
 
-			log_info(logPlanificador,"Se crea recurso nuevo porque no fue encontrada la clave pedida. Tiene permiso");
-			t_recurso * nuevoRecurso = crearRecurso(recurso);
-			nuevoRecurso -> operacion =  0;
-			list_add(listaRecursos,nuevoRecurso);
-			retorno = true;
+			if (ESIValidar -> proximaOperacion == 1){
+
+				log_info(logPlanificador,"Se crea recurso nuevo porque no fue encontrada la clave pedida. Tiene permiso");
+				t_recurso * nuevoRecurso = crearRecurso(recurso);
+				nuevoRecurso -> operacion =  0;
+				list_add(listaRecursos,nuevoRecurso);
+				retorno = true;
+			} else if (ESIValidar-> proximaOperacion > 1){
+				log_info (logPlanificador, " se pide set o store de una clave no existente, abortando esi ");
+				retorno = false;
+
+			}
 
 		}
 

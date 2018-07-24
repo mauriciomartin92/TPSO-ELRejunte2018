@@ -195,12 +195,28 @@ planificacionHRRN (bool desalojo)
 
   } else {
 
-	  pthread_mutex_unlock(&mutexComunicacion);
+	  if(nuevoESI-> proximaOperacion == 1){
 
-	  log_info(logPlanificador, "El ESI no tiene permiso de ejecucion");
+		  log_info(logPlanificador, "El ESI no tiene permiso de ejecucion, se bloquea");
 
+		  uint32_t aviso = 0;
+		  send(socketCoordinador, &aviso,  sizeof(aviso), 0);
 
-	  bloquearESI(nuevoESI->recursoPedido, nuevoESI);
+		  bloquearESI(nuevoESI->recursoPedido, nuevoESI);
+		  pthread_mutex_unlock(&mutexComunicacion);
+	  } else if (nuevoESI-> proximaOperacion > 1){
+
+		  log_info(logPlanificador, " El esi no tiene permiso de ejecucion y se aborta (quiso hacer SET o STORE de recurso no tomado ");
+		  log_info(logPlanificador, "se procede a liberar sus recursos");
+		  liberarRecursos(nuevoESI);
+		  list_add(listaFinalizados, nuevoESI);
+		  log_info(logPlanificador, "ESI de clave % d en finalizados", nuevoESI->id);
+		  uint32_t aviso = -2;
+		  send(socketCoordinador, &aviso,  sizeof(aviso), 0);
+		  pthread_mutex_unlock(&mutexComunicacion);
+
+	  }
+
 
   }
 
@@ -213,7 +229,8 @@ planificacionHRRN (bool desalojo)
     	  log_info(logPlanificador, "ESI de clave %d fue matado por consola", nuevoESI->id);
 		  log_info(logPlanificador, "le comunico al coordinador");
     	  pthread_mutex_lock(&mutexComunicacion);
-    	  send(socketCoordinador,&FINALIZAR,sizeof(uint32_t),0);
+    	  uint32_t abortar = -2;
+    	  send(socketCoordinador,&abortar,sizeof(uint32_t),0);
     	  send(socketCoordinador,&claveActual,sizeof(claveActual),0);
     	  pthread_mutex_unlock(&mutexComunicacion);
 		  log_info(logPlanificador, "terminada comunicacion");
