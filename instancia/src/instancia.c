@@ -578,7 +578,7 @@ int procesar(t_instruccion* instruccion) {
 			log_debug(logger, "Operacion SET de clave nueva");
 			return operacion_SET(instruccion);
 		case opSTORE: // STORE de clave ausente
-			log_error(logger, "Intento de STORE para una clave inexistente");
+			log_error(logger, "Intento de STORE para una clave que no tiene valor cargado");
 			return 1;
 		}
 	} else { // la entrada si estaba
