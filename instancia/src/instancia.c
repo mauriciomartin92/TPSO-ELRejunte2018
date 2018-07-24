@@ -419,9 +419,7 @@ void* dumpAutomatico() {
 	while(1){
 		sleep(intervalo_dump * 0.001);
 		pthread_mutex_lock(&mutexDumpeo);
-		log_info(logger, "...EJECUTANDO DUMP AUTOMATICO...");
 		list_iterate(tabla_entradas, dumpearClave);
-		log_info(logger, "...FIN DUMP AUTOMATICO...");
 		pthread_mutex_unlock(&mutexDumpeo);
 	}
 	return NULL;
