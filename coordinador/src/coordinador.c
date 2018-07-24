@@ -236,16 +236,27 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 			send(instancia->socket, paquete, tam_paquete, 0);
 
 			// La Instancia me devuelve la cantidad de entradas libres que tiene
-			uint32_t respuesta;
-			recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
+			uint32_t respuesta1;
+			recv(instancia->socket, &respuesta1, sizeof(uint32_t), 0);
 
-			if (respuesta == PAQUETE_ERROR) {
+			if (respuesta1 == PAQUETE_ERROR) {
 				log_error(logger, "La Instancia me avisa que no pudo procesar la instruccion");
 				return -1;
 			}
 
-			instancia->entradas_libres = respuesta;
-			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
+			instancia->entradas_libres = respuesta1;
+			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta1);
+
+			// La Instancia me informa si reemplazo una clave
+			uint32_t tam_respuesta2;
+			recv(instancia->socket, &respuesta1, sizeof(uint32_t), 0);
+			if (tam_respuesta2 > 0) { // Si se reemplazo una clave, me devuelve la que se quito:
+				char* clave_reemplazada = (char*) malloc(sizeof(char) * tam_paquete);
+				recv(instancia->socket, clave_reemplazada, tam_paquete, 0);
+				clave_actual = clave_reemplazada;
+				list_remove(instancia->claves_asignadas, claveEsLaActual);
+				log_info(logger, "Se actualiza la lista de claves asignadas para la Instancia %d", instancia->id);
+			}
 		} else {
 			log_error(logger, "Error de Clave no Identificada");
 			return -1;
@@ -388,14 +399,32 @@ void atenderInstancia(int socketInstancia) {
 	recv(socketInstancia, &instancia_ID, sizeof(uint32_t), 0);
 	log_info(logger, "Es la Instancia %d", instancia_ID);
 
+	log_info(logger, "Envio a la Instancia su cantidad de entradas");
+	send(socketInstancia, &cant_entradas, sizeof(uint32_t), 0);
+
+	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
+	send(socketInstancia, &tam_entradas, sizeof(uint32_t), 0);
+
 	log_info(logger, "Busco si ya fue creada en la Tabla de Instancias");
 	t_instancia* instancia = list_find(tabla_instancias, existeInstanciaID);
 
 	pthread_mutex_unlock(&mutexNuevaInstancia);
 
+	uint32_t cant_entradas_asignadas;
 	if (instancia) {
 		log_info(logger, "La Instancia %d ya existia, la pongo ACTIVA", instancia_ID);
 		instancia->estado = ACTIVA;
+
+		cant_entradas_asignadas = list_size(instancia->claves_asignadas);
+		send(instancia->socket, &cant_entradas_asignadas, sizeof(uint32_t), 0);
+
+		for (int i = 0; i < cant_entradas_asignadas; i++) {
+			char* clave_a_enviar = list_get(instancia->claves_asignadas, i);
+			uint32_t tam_clave = strlen(clave_a_enviar) + 1;
+			send(instancia->socket, &tam_clave, sizeof(uint32_t), 0);
+			send(instancia->socket, clave_a_enviar, tam_clave, 0);
+		}
+
 	} else {
 		// Guarda el struct de la Instancia en mi lista
 		instancia = (t_instancia*) malloc(sizeof(t_instancia));
@@ -405,15 +434,12 @@ void atenderInstancia(int socketInstancia) {
 		instancia->estado = ACTIVA;
 		instancia->claves_asignadas = list_create();
 
+		cant_entradas_asignadas = 0;
+		send(instancia->socket, &cant_entradas_asignadas, sizeof(uint32_t), 0);
+
 		list_add(tabla_instancias, instancia);
 		log_info(logger, "Instancia %d agregada a la Tabla de Instancias", instancia_ID);
 	}
-
-	log_info(logger, "Envio a la Instancia su cantidad de entradas");
-	send(socketInstancia, &cant_entradas, sizeof(uint32_t), 0);
-
-	log_info(logger, "Envio a la Instancia el tamaño de las entradas");
-	send(socketInstancia, &tam_entradas, sizeof(uint32_t), 0);
 
 	log_debug(logger, "La cantidad de instancias actual es %d", list_count_satisfying(tabla_instancias, instanciaEstaActiva));
 }

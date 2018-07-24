@@ -32,14 +32,17 @@ char* nombre_instancia;
 uint32_t id_instancia;
 char* montaje;
 t_reemplazo protocolo_reemplazo;
-int socketCoordinador, intervalo_dump, fd;
+int socketCoordinador, intervalo_dump;
 uint32_t cant_entradas, tam_entrada, entradas_libres;
+DIR* dirp;
+char** vector_archivos;
 t_list* tabla_entradas;
 t_list* lista_claves;
 char* bloque_instancia;
 int puntero_circular;
 int pos_a_pisar;
 t_entrada* entrada_a_reemplazar;
+bool hubo_reemplazo;
 t_instruccion* instruccion; // es la instruccion actual
 int referencia_actual = 0;
 pthread_mutex_t mutexDumpeo = PTHREAD_MUTEX_INITIALIZER;
@@ -236,7 +239,7 @@ void algoritmoDeReemplazo() {
 	liberarEntrada(entrada_a_reemplazar);
 	actualizarCantidadEntradasLibres();
 	log_warning(logger, "Se ha liberado la entrada %d de clave %s", entrada_a_reemplazar->entrada_asociada, entrada_a_reemplazar->clave);
-	quitarEntrada(entrada_a_reemplazar);
+	hubo_reemplazo = true;
 }
 
 int operacion_SET(t_instruccion* instruccion) {
@@ -361,7 +364,7 @@ int dumpearClave(void* nodo) {
 	if (_fd < 0) { // Si el archivo no existia => lo crea, y crea el mapa
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if (_fd < 0) {
-			log_error(logger, "El archivo %s no se puede crear", _nombreArchivo);
+			//log_error(logger, "El archivo %s no se puede crear", _nombreArchivo);
 			return -1;
 		}
 		ftruncate(_fd, entrada->size_valor_almacenado);
@@ -385,6 +388,8 @@ int dumpearClave(void* nodo) {
 			//entrada->mapa_archivo = mremap(NULL, strlen(entrada->mapa_archivo), entrada->size_valor_almacenado, 0);
 		}
 	}
+	close(_fd);
+	return 1;
 
 	/*if (_fd < 0) {
 		log_error(logger, "Error al abrir archivo para DUMP");
@@ -412,16 +417,13 @@ int dumpearClave(void* nodo) {
 		}
 		close(_fd);
 	}*/
-	return 1;
 }
 
 void* dumpAutomatico() {
 	while(1){
 		sleep(intervalo_dump * 0.001);
 		pthread_mutex_lock(&mutexDumpeo);
-		log_info(logger, "...EJECUTANDO DUMP AUTOMATICO...");
 		list_iterate(tabla_entradas, dumpearClave);
-		log_info(logger, "...FIN DUMP AUTOMATICO...");
 		pthread_mutex_unlock(&mutexDumpeo);
 	}
 	return NULL;
@@ -462,11 +464,19 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	return entrada;
 }
 
-int iniciarDirectorio(){
-	DIR* dirp;
+void cargarClaveDirectorio(char* clave_asignada) {
+	int i = 0;
+	while (vector_archivos[i] != NULL) {
+		if (strcmp(vector_archivos[i], clave_asignada) == 0) {
+			list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
+		}
+		i++;
+	}
+}
+
+int iniciarDirectorio() {
 	struct dirent *dp;
 	char* archivos;
-	char** vector_archivos;
 
 	tabla_entradas = list_create();
 
@@ -491,12 +501,6 @@ int iniciarDirectorio(){
 	archivos = string_substring_from(archivos, 1);
 	vector_archivos = string_split(archivos, "-");
 
-	int i = 0;
-	while(vector_archivos[i] != NULL){
-		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
-		i++;
-	}
-	closedir(dirp);
 	return 1;
 }
 
@@ -650,8 +654,8 @@ t_control_configuracion cargarConfiguracion() {
 void finalizar() {
 	if (socketCoordinador > 0) finalizarSocket(socketCoordinador);
 	list_destroy(tabla_entradas);
+	closedir(dirp);
 	log_destroy(logger);
-	close(fd);
 	free(bloque_instancia);
 }
 
@@ -697,6 +701,18 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
+	uint32_t cant_claves_asignadas; // Si ya tenia claves asignadas las cargo
+	recv(socketCoordinador, &cant_claves_asignadas, sizeof(uint32_t), 0);
+	if (cant_claves_asignadas > 0) {
+		for (int i = 0; i < cant_claves_asignadas; i++) {
+			uint32_t tam_clave;
+			recv(socketCoordinador, &tam_clave, sizeof(uint32_t), 0);
+			char* clave_asignada = malloc(sizeof(char) * tam_clave);
+			recv(socketCoordinador, clave_asignada, tam_clave, 0);
+			cargarClaveDirectorio(clave_asignada);
+		}
+	}
+
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
 	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
@@ -707,6 +723,7 @@ int main() {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
 		log_debug(logger, "BLOQUE DE MEMORIA: %s", bloque_instancia);
 		if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
+		hubo_reemplazo = false;
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (!instruccion) {
@@ -732,6 +749,19 @@ int main() {
 					i++;
 				}*/
 				send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
+
+				uint32_t tam_clave_reemplazada;
+				if (!hubo_reemplazo) {
+					tam_clave_reemplazada = 0;
+					send(socketCoordinador, &tam_clave_reemplazada, sizeof(uint32_t), 0);
+				} else {
+					tam_clave_reemplazada = strlen(entrada_a_reemplazar->clave) + 1;
+					send(socketCoordinador, &tam_clave_reemplazada, sizeof(uint32_t), 0);
+					send(socketCoordinador, entrada_a_reemplazar->clave, tam_clave_reemplazada, 0);
+				}
+
+				quitarEntrada(entrada_a_reemplazar);
+
 			} else {
 				log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");
 				send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
