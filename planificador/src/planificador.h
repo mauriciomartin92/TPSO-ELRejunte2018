@@ -65,7 +65,7 @@ extern char* BLOQUEAR_ESI ;
 extern char* DESBLOQUEAR_ESI ;
 extern char* LISTAR_POR_RECURSO ;
 extern char* KILL_ESI ;
-extern char* STATUS_ESI ;
+extern char* STATUS_CLAVE ;
 extern char* COMPROBAR_DEADLOCK;
 
 
