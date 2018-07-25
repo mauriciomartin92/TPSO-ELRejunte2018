@@ -514,7 +514,7 @@ void lanzarConsola(){
 
 				} else {
 					log_info(logPlanificador, "mandando a bloquear esi");
-
+					nuevoESI->bloqueadoPorConsola = true;
 					bloquearESI(linea, nuevoESI);
 				}
 			}
@@ -632,6 +632,7 @@ ESI * crearESI(uint32_t clave){
 	nuevoESI->id = clave;
 	nuevoESI->estimacionAnterior= estimacionInicial;
 	nuevoESI-> bloqueadoPorClave = false;
+	nuevoESI->bloqueadoPorConsola = false;
 	nuevoESI-> rafagaAnterior = 0;
 	nuevoESI-> estimacionSiguiente = 0;
 	nuevoESI->rafagasRealizadas =0;
