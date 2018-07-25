@@ -631,7 +631,7 @@ ESI * crearESI(uint32_t clave){
 	ESI * nuevoESI = malloc(sizeof(ESI));
 	nuevoESI->id = clave;
 	nuevoESI->estimacionAnterior= estimacionInicial;
-	nuevoESI-> bloqueadoPorUsuario = false;
+	nuevoESI-> bloqueadoPorClave = false;
 	nuevoESI-> rafagaAnterior = 0;
 	nuevoESI-> estimacionSiguiente = 0;
 	nuevoESI->rafagasRealizadas =0;
@@ -901,6 +901,8 @@ void bloquearESI(char * claveRecurso, ESI * esi){
 
 		t_recurso * recursoAuxiliar = list_get(listaRecursos, i);
 		if(string_equals_ignore_case(recursoAuxiliar->clave,claveRecurso)){
+			log_info(logPlanificador, "inficando que el ESI fue bloqueado por una clave");
+			esi->bloqueadoPorClave = true;
 			queue_push(recursoAuxiliar->ESIEncolados,esi);
 			encontrado = true;
 			log_info(logPlanificador, "esi de clave %d en cola de recurso clave : %s", esi->id, recursoAuxiliar->clave);

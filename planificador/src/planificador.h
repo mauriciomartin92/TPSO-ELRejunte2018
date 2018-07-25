@@ -127,7 +127,7 @@ typedef struct{
 	int estimacionAnterior;
 	int estimacionSiguiente;
 	int tiempoEspera;
-	bool bloqueadoPorUsuario;
+	bool bloqueadoPorClave;
 	bool recienDesbloqueadoPorRecurso;
 	bool recienDesalojado;
 	t_list * recursosAsignado;
