@@ -51,6 +51,7 @@ const uint32_t PAQUETE_OK = 1;
 const uint32_t PAQUETE_ERROR = -1;
 const int TAM_MAXIMO_CLAVE = 40;
 const uint32_t PETICION_ESPECIAL = 4;
+const uint32_t DESBLOQUEA_ESI = 3;
 const uint32_t TERMINA_ESI = 0;
 
 bool comparadorEntradasLibres(void* nodo1, void* nodo2) {
@@ -335,6 +336,7 @@ void atenderESI(int socketESI) {
 	send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
 
 	while(1) {
+		bool recien_desbloqueado = false;
 		uint32_t tam_paquete;
 		recv(socketESI, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
@@ -342,11 +344,15 @@ void atenderESI(int socketESI) {
 		if (tam_paquete == PETICION_ESPECIAL) {
 			atenderPeticionEspecial();
 			break;
+		} else if (tam_paquete == DESBLOQUEA_ESI) {
+			log_warning(logger, "El ESI %d se ha desbloqueado", esi_ID);
+			recien_desbloqueado = true;
 		} else if (tam_paquete == TERMINA_ESI) {
 			log_warning(logger, "El ESI %d ha finalizado", esi_ID);
 			break;
 		}
 
+		if (recien_desbloqueado) recv(socketESI, &tam_paquete, sizeof(uint32_t), 0);
 		char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
 		recv(socketESI, paquete, tam_paquete, 0);
 		log_info(logger, "El ESI %d me envia un paquete", esi_ID);
@@ -363,26 +369,31 @@ void atenderESI(int socketESI) {
 
 		t_instruccion* instruccion = desempaquetarInstruccion(paquete, logger);
 
-		log_info(logger, "Le consulto al Planificador si ESI %d puede hacer uso del recurso", esi_ID);
-		uint32_t operacion = instruccion->operacion;
-		send(socketPlanificador, &operacion, sizeof(uint32_t), 0);
-		string_append(&(instruccion->clave), "\0");
-		uint32_t tam_clave = strlen(instruccion->clave) + 1;
-		send(socketPlanificador, &tam_clave, sizeof(uint32_t), 0);
-		send(socketPlanificador, instruccion->clave, tam_clave, 0);
+		uint32_t respuesta_permiso;
+		if (!recien_desbloqueado) {
+			log_info(logger, "Le consulto al Planificador si ESI %d puede hacer uso del recurso", esi_ID);
+			uint32_t operacion = instruccion->operacion;
+			send(socketPlanificador, &operacion, sizeof(uint32_t), 0);
+			string_append(&(instruccion->clave), "\0");
+			uint32_t tam_clave = strlen(instruccion->clave) + 1;
+			send(socketPlanificador, &tam_clave, sizeof(uint32_t), 0);
+			send(socketPlanificador, instruccion->clave, tam_clave, 0);
 
-		if (operacion == opSET) {
-			string_append(&(instruccion->valor), "\0");
-			uint32_t tam_valor = strlen(instruccion->valor) + 1;
-			send(socketPlanificador, &tam_valor, sizeof(uint32_t), 0);
-			send(socketPlanificador, instruccion->valor, tam_valor, 0);
+			if (operacion == opSET) {
+				string_append(&(instruccion->valor), "\0");
+				uint32_t tam_valor = strlen(instruccion->valor) + 1;
+				send(socketPlanificador, &tam_valor, sizeof(uint32_t), 0);
+				send(socketPlanificador, instruccion->valor, tam_valor, 0);
+			}
+
+
+			recv(socketPlanificador, &respuesta_permiso, sizeof(uint32_t), 0);
+		} else {
+			respuesta_permiso = SE_EJECUTA_ESI;
 		}
 
-		uint32_t respuesta;
-		recv(socketPlanificador, &respuesta, sizeof(uint32_t), 0);
-
-		if (respuesta == SE_EJECUTA_ESI) {
-			log_info(logger, "El Planificador me informa que el ESI %d puede utilizar el recurso", esi_ID);
+		if (respuesta_permiso == SE_EJECUTA_ESI) {
+			log_info(logger, "El Planificador me autoriza a que el ESI %d pueda utilizar el recurso", esi_ID);
 			if (procesarPaquete(paquete, instruccion, esi_ID) == -1) { // Hay que abortar el ESI
 				log_error(logger, "Se aborta el ESI %d", esi_ID);
 				send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
@@ -390,12 +401,13 @@ void atenderESI(int socketESI) {
 			}
 			log_info(logger, "Le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
 			send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
-		} else if (respuesta == SE_BLOQUEA_ESI) {
+		} else if (respuesta_permiso == SE_BLOQUEA_ESI) {
 			log_warning(logger, "El Planificador me informa que el ESI %d no tiene permisos y se bloquea", esi_ID);
 			send(socketESI, &BLOQUEA_ESI, sizeof(uint32_t), 0);
 		} else {
 			log_error(logger, "El Planificador me informa que el ESI %d se aborta", esi_ID);
 			send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
+			finalizarSocket(socketESI);
 		}
 
 		destruirPaquete(paquete);

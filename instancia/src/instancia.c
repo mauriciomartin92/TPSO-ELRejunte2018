@@ -468,7 +468,6 @@ int iniciarDirectorio(){
 	// TODO: Chequear los permisos del mkdir
 	if (!dirp) return mkdir(montaje, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Si no existe creo el directorio
 
-	/*
 	char* archivos = string_new();
 
 	struct dirent *dp;
@@ -492,7 +491,6 @@ int iniciarDirectorio(){
 		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
-	*/
 
 	closedir(dirp);
 	return 1;
@@ -601,7 +599,7 @@ t_instruccion* recibirInstruccion(int socketCoordinador) {
 	if (recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0) < 0) return NULL;; // Recibo el header
 
 	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
-	recv(socketCoordinador, paquete, tam_paquete, 0);
+	if (recv(socketCoordinador, paquete, tam_paquete, 0) < 1) return NULL;
 	log_info(logger, "Recibi un paquete que me envia el Coordinador");
 	log_debug(logger, "%s", paquete);
 
