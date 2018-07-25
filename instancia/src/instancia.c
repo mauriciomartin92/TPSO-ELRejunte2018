@@ -197,6 +197,7 @@ t_entrada* algoritmoCircular(t_list* tabla_entradas_atomicas) {
 	while (!entrada_apuntada) {
 		entrada_apuntada = list_find(tabla_entradas_atomicas, buscadorEntradaConPuntero);
 		puntero_circular++;
+		if (puntero_circular == list_size(tabla_entradas)) puntero_circular = 1;
 	}
 	return entrada_apuntada;
 }
@@ -704,6 +705,7 @@ int main() {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
 		log_debug(logger, "BLOQUE DE MEMORIA: %s", bloque_instancia);
 		//if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
+		entrada_a_reemplazar = NULL;
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (!instruccion) {
@@ -728,6 +730,18 @@ int main() {
 					printf("%s\n", para_imprimir[i]);
 					i++;
 				}*/
+
+				if (entrada_a_reemplazar != NULL) { // Le informo al Coordinador que clave fue reemplazada
+					uint32_t tam_clave_reemplazada = strlen(entrada_a_reemplazar->clave) + 1;
+					send(socketCoordinador, &tam_clave_reemplazada, sizeof(uint32_t), 0);
+					char* clave_reemplazada = string_new();
+					string_append(&clave_reemplazada, entrada_a_reemplazar->clave);
+					send(socketCoordinador, clave_reemplazada, tam_clave_reemplazada, 0);
+				} else {
+					uint32_t sin_reemplazo = 0;
+					send(socketCoordinador, &sin_reemplazo, sizeof(uint32_t), 0);
+				}
+
 				send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
 			} else {
 				log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");

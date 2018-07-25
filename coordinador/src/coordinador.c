@@ -40,6 +40,7 @@ t_list* tabla_instancias;
 int socketDeEscucha;
 int socketPlanificador;
 char* clave_actual;
+char* clave_reemplazada;
 uint32_t instancia_ID;
 pthread_mutex_t mutexNuevaInstancia = PTHREAD_MUTEX_INITIALIZER;
 
@@ -172,6 +173,11 @@ void loguearOperacion(uint32_t esi_ID, t_instruccion* instruccion) {
 	log_info(logger_operaciones, cadena_log_operaciones);
 }
 
+bool claveEsLaReemplazada(void* nodo) {
+	char* clave = (char*) nodo;
+	return strcmp(clave, clave_reemplazada) == 0;
+}
+
 bool claveEsLaActual(void* nodo) {
 	char* clave = (char*) nodo;
 	return strcmp(clave, clave_actual) == 0;
@@ -239,17 +245,33 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 				return -1;
 			}
 
-			// La Instancia me devuelve la cantidad de entradas libres que tiene
-			uint32_t respuesta;
-			recv(instancia->socket, &respuesta, sizeof(uint32_t), 0);
+			uint32_t tam_clave_reemplazada;
+			recv(instancia->socket, &tam_clave_reemplazada, sizeof(uint32_t), 0);
+			if (tam_clave_reemplazada > 0) {
+				clave_reemplazada = malloc(sizeof(char) * tam_clave_reemplazada);
+				recv(instancia->socket, clave_reemplazada, tam_clave_reemplazada, 0);
+				for (int i = 0; i < list_size(instancia->claves_asignadas); i++) {
+					printf("%s\n", (char*) list_get(instancia->claves_asignadas, i));
+				}
+				log_warning(logger, "Se informa reemplazo de la clave: %s", clave_reemplazada);
+				list_remove_by_condition(instancia->claves_asignadas, claveEsLaReemplazada);
+				for (int i = 0; i < list_size(instancia->claves_asignadas); i++) {
+					printf("%s\n", (char*) list_get(instancia->claves_asignadas, i));
+				}
+				free(clave_reemplazada);
+			}
 
-			if (respuesta == PAQUETE_ERROR) {
+			// La Instancia me devuelve la cantidad de entradas libres que tiene
+			uint32_t entradas_libres;
+			recv(instancia->socket, &entradas_libres, sizeof(uint32_t), 0);
+
+			if (entradas_libres == PAQUETE_ERROR) {
 				log_error(logger, "La Instancia me avisa que no pudo procesar la instruccion");
 				return -1;
 			}
 
-			instancia->entradas_libres = respuesta;
-			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, respuesta);
+			instancia->entradas_libres = entradas_libres;
+			log_info(logger, "La Instancia %d me informa que le quedan %d entradas libres", instancia->id, entradas_libres);
 		} else {
 			log_error(logger, "Error de Clave no Identificada");
 			return -1;
