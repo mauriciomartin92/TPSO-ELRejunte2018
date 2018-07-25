@@ -462,19 +462,16 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 }
 
 int iniciarDirectorio(){
-	DIR* dirp;
-	struct dirent *dp;
-	char* archivos;
-	char** vector_archivos;
-
 	tabla_entradas = list_create();
 
-	dirp = opendir(montaje);
+	DIR* dirp = opendir(montaje);
 	// TODO: Chequear los permisos del mkdir
 	if (!dirp) return mkdir(montaje, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Si no existe creo el directorio
 
-	archivos = string_new();
+	/*
+	char* archivos = string_new();
 
+	struct dirent *dp;
 	while ((dp = readdir(dirp)) != NULL) {
 		if (dp->d_type == 8) { // Si es .txt
 			string_append(&archivos, "-");
@@ -488,13 +485,15 @@ int iniciarDirectorio(){
 	}
 
 	archivos = string_substring_from(archivos, 1);
-	vector_archivos = string_split(archivos, "-");
+	char** vector_archivos = string_split(archivos, "-");
 
 	int i = 0;
 	while(vector_archivos[i] != NULL){
 		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
+	*/
+
 	closedir(dirp);
 	return 1;
 }
@@ -697,7 +696,7 @@ int main() {
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
-	//pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
+	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
 
 	actualizarCantidadEntradasLibres();
 
