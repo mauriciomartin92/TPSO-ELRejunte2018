@@ -41,6 +41,7 @@ int socketDeEscucha;
 int socketPlanificador;
 char* clave_actual;
 char* clave_reemplazada;
+char* clave_inaccesible;
 uint32_t instancia_ID;
 pthread_mutex_t mutexNuevaInstancia = PTHREAD_MUTEX_INITIALIZER;
 
@@ -116,6 +117,10 @@ t_instancia* algoritmoEL() {
 	do {
 		instancia = list_remove(tabla_instancias, 0);
 		list_add_in_index(tabla_instancias, list_size(tabla_instancias), instancia);
+		/*int res = recv(instancia->socket, NULL, 0, MSG_DONTWAIT);
+		if (res < 1) { // Si se desconecto me manda basura
+			instancia->estado = INACTIVA;
+		}*/
 	} while (instancia->estado == INACTIVA);
 	return instancia;
 }
@@ -173,6 +178,11 @@ void loguearOperacion(uint32_t esi_ID, t_instruccion* instruccion) {
 	log_info(logger_operaciones, cadena_log_operaciones);
 }
 
+bool claveEsLaInaccesible(void* nodo) {
+	char* clave = (char*) nodo;
+	return strcmp(clave, clave_inaccesible) == 0;
+}
+
 bool claveEsLaReemplazada(void* nodo) {
 	char* clave = (char*) nodo;
 	return strcmp(clave, clave_reemplazada) == 0;
@@ -205,11 +215,6 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 		log_info(logger, "La clave %s no esta en ninguna Instancia", instruccion->clave);
 	} else {
 		log_info(logger, "La clave %s esta asignada a Instancia %d", instruccion->clave, instancia->id);
-
-		if (instancia->estado == INACTIVA) {
-			log_error(logger, "Error de Clave Inaccesible");
-			return -1;
-		}
 	}
 
 	if (instruccion->operacion == opGET) {
@@ -240,7 +245,22 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 			uint32_t tam_paquete = strlen(paquete) + 1;
 			send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
 			if (send(instancia->socket, paquete, tam_paquete, MSG_NOSIGNAL) < 1) {
+
+				/*
+				 * Durante la ejecución del Sistema, existe la posibilidad de que una o más Instancias dejen de estar
+				 * disponibles para el Coordinador de Re Distinto. Ante éstas situaciones, el Coordinador deberá ajustar
+				 * su distribución de forma acorde a la cantidad de Instancias disponibles. No se deberá eliminar una
+				 * clave de las tablas del coordinador si la instancia de desconectó; solo se elimina cuando un ESI
+				 * intenta acceder a ella; de tal forma, si la instancia se reincorpora previo al uso de la clave;
+				 * la desconexión sera transparente para el/los ESI que deseen operar con dicha clave.
+				 */
+
 				instancia->estado = INACTIVA;
+				clave_inaccesible = string_new();
+				string_append(&clave_inaccesible, instruccion->clave);
+				list_remove_by_condition(instancia->claves_asignadas, claveEsLaInaccesible);
+				free(clave_inaccesible);
+
 				log_error(logger, "Error de Clave Inaccesible");
 				return -1;
 			}
@@ -371,7 +391,7 @@ void atenderESI(int socketESI) {
 			log_info(logger, "Le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
 			send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
 		} else if (respuesta == SE_BLOQUEA_ESI) {
-			log_warning(logger, "El Planificador me informa que el ESI %d no tiene permisos", esi_ID);
+			log_warning(logger, "El Planificador me informa que el ESI %d no tiene permisos y se bloquea", esi_ID);
 			send(socketESI, &BLOQUEA_ESI, sizeof(uint32_t), 0);
 		} else {
 			log_error(logger, "El Planificador me informa que el ESI %d se aborta", esi_ID);
@@ -405,7 +425,7 @@ void atenderInstancia(int socketInstancia) {
 	 * y su cantidad para cada Instancia :) :) :) :)
 	 * PREGUNTA: si al Coordinador le llega un GET de una clave que ya había sido asignada, pero se reemplazo,
 	 * entonces se asigna nuevamente a la Instancia que mande el algoritmo de distribucion o se debe reasignar
-	 * a la Instancia original?
+	 * a la Instancia original? RTA: ALGORITMO DE DISTRIBUCION OTRA VEZ!
 	 */
 
 	// Recibo la ID
@@ -420,7 +440,13 @@ void atenderInstancia(int socketInstancia) {
 	pthread_mutex_unlock(&mutexNuevaInstancia);
 
 	if (instancia) {
+		if (instancia->estado == ACTIVA) {
+			log_error(logger, "No puede estar iniciada 2 veces la misma Instancia, se aborta la ultima");
+			finalizarSocket(socketInstancia);
+			return;
+		}
 		log_info(logger, "La Instancia %d ya existia, la pongo ACTIVA", instancia_ID);
+		instancia->socket = socketInstancia;
 		instancia->estado = ACTIVA;
 	} else {
 		// Guarda el struct de la Instancia en mi lista

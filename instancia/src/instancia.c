@@ -443,8 +443,8 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	string_append(&(entrada->clave), vector_clave[0]);
 
 	entrada->path = string_new();
-	string_append(&entrada->path, montaje);
-	string_append(&entrada->path, archivo);
+	string_append(&(entrada->path), montaje);
+	string_append(&(entrada->path), archivo);
 
 	entrada->fd = open(entrada->path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 	fstat(entrada->fd, &sb);
@@ -630,6 +630,7 @@ t_control_configuracion cargarConfiguracion() {
 	ip_coordinador = obtenerCampoString(logger, config, "IP_COORDINADOR", &error_config);
 	port_coordinador = obtenerCampoString(logger, config, "PORT_COORDINADOR", &error_config);
 	nombre_instancia = obtenerCampoString(logger, config, "NOMBRE", &error_config);
+	log_info(logger, "Soy %s", nombre_instancia);
 	montaje = obtenerCampoString(logger, config, "MONTAJE", &error_config);
 	algoritmo_reemplazo = obtenerCampoString(logger, config, "ALGORITMO_REEMPLAZO", &error_config);
 	intervalo_dump = obtenerCampoInt(logger, config, "INTERVALO_DUMP", &error_config);
@@ -664,7 +665,6 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	// Me conecto con el Servidor y le mando mensajes
 	socketCoordinador = conectarComoCliente(logger, ip_coordinador, port_coordinador);
 	if (socketCoordinador < 0) {
 		log_error(logger, "Error de Comunicacion: no me pude conectar con el Coordinador, me aborto");
@@ -682,10 +682,10 @@ int main() {
 	recv(socketCoordinador, &cant_entradas, sizeof(uint32_t), 0);
 	recv(socketCoordinador, &tam_entrada, sizeof(uint32_t), 0);
 
-	log_debug(logger, "cant entradas: %d\n", cant_entradas);
-	log_debug(logger, "tam entrada: %d\n", tam_entrada);
-
 	log_info(logger, "Se recibio la cantidad y tamaño de las entradas correctamente");
+
+	log_debug(logger, "Cantitdad de entradas: %d\n", cant_entradas);
+	log_debug(logger, "Tamaño de cada entrada: %d\n", tam_entrada);
 
 	inicializarBloqueInstancia();
 	if (iniciarDirectorio() < 0) {
@@ -696,7 +696,7 @@ int main() {
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
-	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
+	//pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
 
 	actualizarCantidadEntradasLibres();
 
