@@ -54,7 +54,6 @@ void planificacionSJF(bool desalojo){
 
 			if(nuevo->bloqueadoPorClave){
 				log_info (logPlanificador, "entra un ESI recien desbloqueado de la clave");
-				nuevo->bloqueadoPorClave = false;
 				permiso = true;
 			} else {
 				log_info(logPlanificador, "empieza comunicacion");
@@ -137,7 +136,16 @@ void planificacionSJF(bool desalojo){
 
 				pthread_mutex_lock(&mutexComunicacion);
 
-				send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
+				if( !nuevo->bloqueadoPorClave ){
+					log_info(logPlanificador, " le aviso al coordinador de que el ESI tiene permiso");
+					send(socketCoordinador, &CONTINUAR, sizeof(uint32_t),0);
+				} else {
+					log_info(logPlanificador, " el ESI sabe que estaba bloqueado, le aviso a el");
+					send(nuevo->id, &CONTINUAR, sizeof(uint32_t),0);
+					nuevo->bloqueadoPorClave = false;
+					log_info(logPlanificador, " El esi se entero de que puede continuar");
+				}
+
 
 				log_info(logPlanificador, " ejecuta una sentencia ");
 
