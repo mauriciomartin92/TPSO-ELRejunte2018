@@ -181,8 +181,8 @@ t_entrada* algoritmoLRU(t_list* tabla_entradas_atomicas) {
 
 	list_sort(tabla_entradas_atomicas, masTiempoReferenciada);
 
-	printf("\n--------- TABLA DE ENTRADAS ATOMICAS ORDENADA POR ULTIMA REFERENCIA ---------");
-	imprimirTablaDeEntradas(tabla_entradas_atomicas);
+	//printf("\n--------- TABLA DE ENTRADAS ATOMICAS ORDENADA POR ULTIMA REFERENCIA ---------");
+	//imprimirTablaDeEntradas(tabla_entradas_atomicas);
 
 	return list_get(tabla_entradas_atomicas, 0);
 }
@@ -217,8 +217,8 @@ bool valorEsAtomico(void* nodo) {
 
 void algoritmoDeReemplazo() {
 	t_list* tabla_entradas_atomicas = list_filter(tabla_entradas, valorEsAtomico); // Solo evaluo los valores atomicos
-	printf("\n--------- TABLA DE ENTRADAS ATOMICAS ---------");
-	imprimirTablaDeEntradas(tabla_entradas_atomicas);
+	//printf("\n--------- TABLA DE ENTRADAS ATOMICAS ---------");
+	//imprimirTablaDeEntradas(tabla_entradas_atomicas);
 
 	switch (protocolo_reemplazo) {
 	case LRU:
@@ -311,8 +311,6 @@ int validarArgumentosInstruccion(t_instruccion* instruccion) {
 		return -1;
 	}
 
-	log_info(logger, "Le informo al Coordinador que el paquete llego correctamente");
-	send(socketCoordinador, &PAQUETE_OK, sizeof(uint32_t), 0);
 	return 1;
 }
 
@@ -362,6 +360,7 @@ int dumpearClave(void* nodo) {
 		_fd = open(_nombreArchivo, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 		if (_fd < 0) {
 			log_error(logger, "El archivo %s no se puede crear", _nombreArchivo);
+			perror("Error");
 			return -1;
 		}
 		ftruncate(_fd, entrada->size_valor_almacenado);
@@ -385,6 +384,8 @@ int dumpearClave(void* nodo) {
 			//entrada->mapa_archivo = mremap(NULL, strlen(entrada->mapa_archivo), entrada->size_valor_almacenado, 0);
 		}
 	}
+	close(_fd);
+	return 1;
 
 	/*if (_fd < 0) {
 		log_error(logger, "Error al abrir archivo para DUMP");
@@ -412,11 +413,10 @@ int dumpearClave(void* nodo) {
 		}
 		close(_fd);
 	}*/
-	return 1;
 }
 
 void* dumpAutomatico() {
-	while(1){
+	while(1) {
 		sleep(intervalo_dump * 0.001);
 		pthread_mutex_lock(&mutexDumpeo);
 		list_iterate(tabla_entradas, dumpearClave);
@@ -547,7 +547,6 @@ void actualizarCantidadEntradasLibres() {
 			cont++;
 		}
 	}
-
 	entradas_libres = cont;
 }
 
@@ -697,14 +696,14 @@ int main() {
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
-	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
+	//pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
 
 	actualizarCantidadEntradasLibres();
 
 	while (1) {
 		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
 		log_debug(logger, "BLOQUE DE MEMORIA: %s", bloque_instancia);
-		if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
+		//if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
 		if (!instruccion) {
@@ -729,6 +728,7 @@ int main() {
 					printf("%s\n", para_imprimir[i]);
 					i++;
 				}*/
+				log_warning(logger, "ENTRADAS LIBRES: %d", entradas_libres);
 				send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
 			} else {
 				log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");
