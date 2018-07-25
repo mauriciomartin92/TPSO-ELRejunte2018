@@ -51,32 +51,39 @@ void planificacionSJF(bool desalojo){
 
 
 			pthread_mutex_lock(&mutexComunicacion);
-			log_info(logPlanificador, "empieza comunicacion");
-			send(nuevo->id,&CONTINUAR,sizeof(uint32_t),0);
 
-			int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
-			int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
-			recursoPedido = malloc(sizeof(char)*tamanioRecurso);
-			int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
-
-			log_info(logPlanificador, "recibo los datos suficientes para corroborar ejecucion");
-
-
-			if(respuesta1 <= 0 || respuesta2 <= 0 || respuesta3 <= 0){
-				log_info(logPlanificador, "conexion con el coordinador rota");
-				liberarGlobales();
-				exit(-1);
+			if(nuevo->bloqueadoPorClave){
+				log_info (logPlanificador, "entra un ESI recien desbloqueado de la clave");
+				nuevo->bloqueadoPorClave = false;
+				permiso = true;
 			} else {
-				log_info(logPlanificador, "las respuestas llegaron satisfactoriamente");
-				free(nuevo->recursoPedido);
-				nuevo->recursoPedido= string_new();
-				string_append(&(nuevo->recursoPedido), recursoPedido);
-				nuevo->proximaOperacion = operacion;
+				log_info(logPlanificador, "empieza comunicacion");
+				send(nuevo->id,&CONTINUAR,sizeof(uint32_t),0);
 
+				int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
+				int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
+				recursoPedido = malloc(sizeof(char)*tamanioRecurso);
+				int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
+
+				log_info(logPlanificador, "recibo los datos suficientes para corroborar ejecucion");
+
+
+				if(respuesta1 <= 0 || respuesta2 <= 0 || respuesta3 <= 0){
+					log_info(logPlanificador, "conexion con el coordinador rota");
+					liberarGlobales();
+					exit(-1);
+				} else {
+					log_info(logPlanificador, "las respuestas llegaron satisfactoriamente");
+					free(nuevo->recursoPedido);
+					nuevo->recursoPedido= string_new();
+					string_append(&(nuevo->recursoPedido), recursoPedido);
+					nuevo->proximaOperacion = operacion;
+
+				}
+
+
+				permiso = validarPedido(nuevo->recursoPedido,nuevo);
 			}
-
-
-			permiso = validarPedido(nuevo->recursoPedido,nuevo);
 
 			if(permiso){
 
@@ -253,8 +260,6 @@ void planificacionSJF(bool desalojo){
 		} else if( bloquear ){ // este caso sería para bloqueados por usuario. No se libera clave acá
 
 			log_info(logPlanificador, "bloqueando esi..");
-
-			nuevo->bloqueadoPorUsuario = true;
 			bloquearRecurso(claveParaBloquearRecurso);
 			bloquearESI(claveParaBloquearRecurso,nuevo);
 			bloquearESIActual = false;

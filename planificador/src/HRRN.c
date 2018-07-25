@@ -48,31 +48,39 @@ planificacionHRRN (bool desalojo)
 
   pthread_mutex_lock(&mutexComunicacion);
 
-	log_info(logPlanificador, "empieza comunicacion");
+  if(nuevoESI->bloqueadoPorClave){
 
-
-  send(nuevoESI->id,&CONTINUAR,sizeof(uint32_t),0);
-  int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
-  int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
-  recursoPedido = malloc(sizeof(char)*tamanioRecurso);
-  int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
-
-	log_info(logPlanificador, "recibo datos suficientes para corroborar permiso");
-
-
-  if(respuesta1 <= 0 || respuesta2 <= 0 || respuesta3 <= 0){
-	  log_info(logPlanificador, "conexion con el coordinador rota");
-	  liberarGlobales();
-	  exit(-1);
+	  log_info(logPlanificador, " entra un esi recien desbloqueado de la clave ");
+	  nuevoESI-> bloqueadoPorClave = false;
+	  permiso = true;
   } else {
-	  free(nuevoESI->recursoPedido);
-	  log_info(logPlanificador, "se carga recurso pedido : %s", recursoPedido);
-	  nuevoESI->recursoPedido = string_new();
-	  string_append(&nuevoESI->recursoPedido, recursoPedido);
-	  nuevoESI->proximaOperacion = operacion;
-  }
 
-  permiso = validarPedido(nuevoESI->recursoPedido,nuevoESI);
+		log_info(logPlanificador, "empieza comunicacion");
+
+
+	  send(nuevoESI->id,&CONTINUAR,sizeof(uint32_t),0);
+	  int respuesta1 = recv(socketCoordinador, &operacion, sizeof(operacion), 0);
+	  int respuesta2 = recv(socketCoordinador, &tamanioRecurso, sizeof(uint32_t), 0);
+	  recursoPedido = malloc(sizeof(char)*tamanioRecurso);
+	  int respuesta3 = recv(socketCoordinador, recursoPedido, sizeof(char)*tamanioRecurso,0);
+
+		log_info(logPlanificador, "recibo datos suficientes para corroborar permiso");
+
+
+	  if(respuesta1 <= 0 || respuesta2 <= 0 || respuesta3 <= 0){
+		  log_info(logPlanificador, "conexion con el coordinador rota");
+		  liberarGlobales();
+		  exit(-1);
+	  } else {
+		  free(nuevoESI->recursoPedido);
+		  log_info(logPlanificador, "se carga recurso pedido : %s", recursoPedido);
+		  nuevoESI->recursoPedido = string_new();
+		  string_append(&nuevoESI->recursoPedido, recursoPedido);
+		  nuevoESI->proximaOperacion = operacion;
+	  }
+
+	  permiso = validarPedido(nuevoESI->recursoPedido,nuevoESI);
+  }
 
   if(permiso){
 
@@ -258,7 +266,6 @@ planificacionHRRN (bool desalojo)
       else if (bloquear)
 	{			// acá bloqueo usuario
 
-    	  nuevoESI->bloqueadoPorUsuario = true;
     	  bloquearRecurso(claveParaBloquearRecurso);
     	  bloquearESI(claveParaBloquearRecurso,nuevoESI);
     	  bloquearESIActual = false;
