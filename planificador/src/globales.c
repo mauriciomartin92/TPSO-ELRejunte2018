@@ -49,7 +49,7 @@ char* BLOQUEAR_ESI = "bloquear_esi";
 char* DESBLOQUEAR_ESI = "desbloquear_esi";
 char* LISTAR_POR_RECURSO = "listar_por_recurso";
 char* KILL_ESI = "kill_esi";
-char* STATUS_ESI = "status_esi";
+char* STATUS_CLAVE = "status_clave";
 char* COMPROBAR_DEADLOCK = "comprobar_deadlock";
 
 
@@ -440,32 +440,32 @@ void lanzarConsola(){
 	while(1){
 
 		printf("¿Que operacion desea hacer?\n");
-		printf("Pausear_planificacion \n");
-		printf("Reanudar_planificacion \n");
-		printf("Bloquear_ESI \n");
-		printf("Desbloquear_ESI \n");
-		printf("Listar_por_recurso \n");
-		printf("Kill_ESI \n");
-		printf("Status_ESI \n");
-		printf("Comprobar_Deadlock \n");
-		printf("Listar finalizados \n");
-		printf("Salir \n");
-		printf("Ingrese el nombre de la opcion, incluyendo el guion bajo \n");
+		printf("1. Pausear_planificacion \n");
+		printf("2. Reanudar_planificacion \n");
+		printf("3. Bloquear_ESI \n");
+		printf("4. Desbloquear_ESI \n");
+		printf("5. Listar_por_recurso \n");
+		printf("6. Kill_ESI \n");
+		printf("7. Status_clave \n");
+		printf("8. Comprobar_Deadlock \n");
+		printf("9. Listar finalizados \n");
+		printf("10. Salir \n");
+		printf("Ingrese el numero o el nombre de la opcion, incluyendo el guion bajo \n");
 		linea = readline(">");
 
-		if (string_equals_ignore_case(linea, PAUSEAR_PLANIFICACION))  //Hermosa cadena de if que se viene
+		if (string_equals_ignore_case(linea, PAUSEAR_PLANIFICACION) || string_equals_ignore_case(linea, "1"))  //Hermosa cadena de if que se viene
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 			pausearPlanificacion = true;
 			free(linea);
 		}
-		else if (string_equals_ignore_case(linea,REANUDAR_PLANIFICACION))
+		else if (string_equals_ignore_case(linea,REANUDAR_PLANIFICACION)  || string_equals_ignore_case(linea, "2"))
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 			pausearPlanificacion= false;
 			free(linea);
 		}
-		else if (string_equals_ignore_case(linea, BLOQUEAR_ESI))
+		else if (string_equals_ignore_case(linea, BLOQUEAR_ESI)  || string_equals_ignore_case(linea, "3"))
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 			linea = readline("CLAVE ESI:");
@@ -521,7 +521,7 @@ void lanzarConsola(){
 			free(linea);
 
 		}
-		else if (string_equals_ignore_case(linea,DESBLOQUEAR_ESI))
+		else if (string_equals_ignore_case(linea,DESBLOQUEAR_ESI)  || string_equals_ignore_case(linea, "4"))
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 
@@ -534,7 +534,7 @@ void lanzarConsola(){
 
 
 		}
-		else if (string_equals_ignore_case(linea, LISTAR_POR_RECURSO)){
+		else if (string_equals_ignore_case(linea, LISTAR_POR_RECURSO)  || string_equals_ignore_case(linea, "5")){
 
 			log_info(logPlanificador, "comando ingresado por consola : %s", linea);
 			linea = readline("RECURSO:");
@@ -543,7 +543,7 @@ void lanzarConsola(){
 			listarBloqueados(linea);
 			free(linea);
 		}
-		else if (string_equals_ignore_case(linea, KILL_ESI))
+		else if (string_equals_ignore_case(linea, KILL_ESI)  || string_equals_ignore_case(linea, "6"))
 		{
 			log_info(logPlanificador, "comando ingresado por consola : %s", linea);
 			linea = readline("CLAVE ESI:");
@@ -564,7 +564,7 @@ void lanzarConsola(){
 
 				printf("esperando a que el ESI pueda ser matado \n");
 
-			} else if ( string_equals_ignore_case(linea, "listar_finalizados")){
+			} else if ( string_equals_ignore_case(linea, "listar_finalizados")  || string_equals_ignore_case(linea, "9")){
 
 				int i = 0;
 				while(i< list_size(listaFinalizados)){
@@ -586,7 +586,7 @@ void lanzarConsola(){
 			free(linea);
 
 		}
-		else if (string_equals_ignore_case(linea, STATUS_ESI))
+		else if (string_equals_ignore_case(linea, STATUS_CLAVE)  || string_equals_ignore_case(linea, "7"))
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 			linea = readline("CLAVE:");
@@ -595,13 +595,13 @@ void lanzarConsola(){
 			free(linea);
 
 		}
-		else if (string_equals_ignore_case(linea, COMPROBAR_DEADLOCK))
+		else if (string_equals_ignore_case(linea, COMPROBAR_DEADLOCK)  || string_equals_ignore_case(linea, "9"))
 		{
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s", linea);
 			comprobarDeadlock(); // hace printf en la funcion
 			free(linea);
 		}
-		else if (string_equals_ignore_case(linea, "salir"))
+		else if (string_equals_ignore_case(linea, "salir")  || string_equals_ignore_case(linea, "10"))
 		{
 			printf("cerrando planificador");
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s", linea);
@@ -1098,8 +1098,7 @@ void statusClave(char * clave){
 		if (resp <= 0 || resp2 <= 0){
 
 			log_info(logPlanificador, " fallo conexion");
-			liberarGlobales();
-			exit (-1);
+			printf("el coordinador no pudo definir la instancia a ocupar \n");
 
 		} else {
 			log_info(logPlanificador, "instancia de clave %s",instancia);
