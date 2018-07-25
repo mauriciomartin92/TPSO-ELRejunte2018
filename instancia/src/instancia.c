@@ -728,7 +728,6 @@ int main() {
 					printf("%s\n", para_imprimir[i]);
 					i++;
 				}*/
-				log_warning(logger, "ENTRADAS LIBRES: %d", entradas_libres);
 				send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
 			} else {
 				log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");

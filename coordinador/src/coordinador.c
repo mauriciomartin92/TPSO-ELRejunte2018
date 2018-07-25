@@ -233,7 +233,11 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 			log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
 			uint32_t tam_paquete = strlen(paquete) + 1;
 			send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
-			send(instancia->socket, paquete, tam_paquete, 0);
+			if (send(instancia->socket, paquete, tam_paquete, MSG_NOSIGNAL) < 1) {
+				instancia->estado = INACTIVA;
+				log_error(logger, "Error de Clave Inaccesible");
+				return -1;
+			}
 
 			// La Instancia me devuelve la cantidad de entradas libres que tiene
 			uint32_t respuesta;
