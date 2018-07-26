@@ -119,7 +119,7 @@ void planificacionSJF(bool desalojo){
 
 				if(!recursoEnLista(nuevo)){
 
-					list_add(nuevo->recursosAsignado, recursoPedido );
+					list_add(nuevo->recursosAsignado, nuevo->recursoPedido );
 					log_info(logPlanificador, "El recurso se añadio a los recursos asignados del esi");
 
 				}

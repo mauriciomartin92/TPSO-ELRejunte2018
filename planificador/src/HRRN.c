@@ -119,7 +119,7 @@ planificacionHRRN (bool desalojo)
 	  if(nuevoESI->proximaOperacion == 1 && !recursoEnLista(nuevoESI)){
 
 		  log_info(logPlanificador, "el recurso se añade a asignados");
-		  list_add(nuevoESI->recursosAsignado, recursoPedido);
+		  list_add(nuevoESI->recursosAsignado, nuevoESI->recursoPedido);
 
 	  }
 
