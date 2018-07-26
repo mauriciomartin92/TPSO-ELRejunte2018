@@ -42,6 +42,7 @@ typedef struct {
 
 t_control_configuracion cargarConfiguracion();
 void establecerProtocoloDistribucion();
+void atenderConsola();
 void establecerConexion(void* parametros);
 void atenderInstancia(int socketInstancia);
 bool existeInstanciaID(void* nodo);
@@ -51,7 +52,6 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID);
 bool instanciaTieneLaClave(void* nodo);
 bool claveEsLaActual(void* nodo);
 void loguearOperacion(uint32_t esi_ID, t_instruccion* instruccion);
-void atenderPeticionEspecial();
 t_instancia* algoritmoDeDistribucion();
 t_instancia* algoritmoEL();
 t_instancia* algoritmoLSU();

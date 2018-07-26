@@ -33,7 +33,6 @@ const uint32_t TERMINA_ESI = 0;
 
 /* PEDIDOS DEL PLANIFICADOR */
 const uint32_t SIGUIENTE_INSTRUCCION = 1;
-const uint32_t PETICION_ESPECIAL = -4;
 const uint32_t DESBLOQUEA_ESI = -3;
 
 /* RESULTADOS DEL COORDINADOR */
@@ -239,13 +238,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			}
 			destruirPaquete(paquete);
 
-		} else if (orden == PETICION_ESPECIAL) {
-			/*
-			 * El planificador me avisa que el Planificador necesita hablar directamente
-			 * con el oordinador, entonces le aviso al Coordinador que lo escuche =)
-			 */
-			send(socketCoordinador, &PETICION_ESPECIAL, sizeof(uint32_t), 0);
-		} else if (orden == ABORTA_ESI) {
+		} else {
 			log_error(logger, "El Planificador me informa que debo abortar");
 			break;
 		}

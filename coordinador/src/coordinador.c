@@ -31,7 +31,9 @@ t_log* logger_operaciones;
 t_config* config;
 bool error_config;
 char* ip;
+char* ip_planificador;
 char* port;
+char* port_planificador;
 char* algoritmo_distribucion;
 t_distribucion protocolo_distribucion;
 bool simulacion_activada;
@@ -311,42 +313,6 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 	return 1;
 }
 
-void atenderPeticionEspecial() {
-	uint32_t operacion;
-	recv(socketPlanificador, &operacion, sizeof(uint32_t), 0);
-	log_info(logger, "Me llega una peticion especial del Planificador");
-
-	if (operacion == 4) { // STATUS CLAVE
-		/*
-		 * Instancia actual en la cual se encuentra la clave. (En caso de que la clave no se encuentre en una instancia,
-		 * no se debe mostrar este valor)
-		 * Instancia en la cual se guardaría actualmente la clave (Calcular este valor mediante el algoritmo de distribución,
-		 * pero sin afectar la distribución actual de las claves).
-		 */
-		uint32_t tam_clave;
-		recv(socketPlanificador, &tam_clave, sizeof(uint32_t), 0);
-		char* clave_solicitada = malloc(sizeof(char) * tam_clave);
-		recv(socketPlanificador, &clave_solicitada, tam_clave, 0);
-		log_debug(logger, "STATUS CLAVE %s", clave_solicitada);
-
-		t_instancia* instancia_posta = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave); // Instancia actual
-		if (!instancia_posta) {
-			log_info(logger, "La clave %s no tiene una Instancia asignada", clave_solicitada);
-			send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
-		} else {
-			log_info(logger, "La clave corresponde a la Instancia %d", clave_solicitada, instancia_posta->id);
-			send(socketPlanificador, &(instancia_posta->id), sizeof(uint32_t), 0);
-		}
-		simulacion_activada = true;
-		t_instancia* instancia_simulada = algoritmoDeDistribucion(); // Instancia simulada
-		simulacion_activada = false;
-		send(socketPlanificador, &(instancia_simulada->id), sizeof(uint32_t), 0);
-	} else {
-		send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
-		log_error(logger, "No se comprende el pedido, sigue la ejecucion normalmente");
-	}
-}
-
 void atenderESI(int socketESI) {
 	// ---------- COORDINADOR - ESI ----------
 	// ANALIZAR CONCURRENCIA CON SEMAFOROS MUTEX
@@ -361,11 +327,7 @@ void atenderESI(int socketESI) {
 		uint32_t tam_paquete;
 		recv(socketESI, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
 
-		// Si me llama el Planificador por un pedido de Consola el ESI me avisa
-		if (tam_paquete == PETICION_ESPECIAL) {
-			atenderPeticionEspecial();
-			break;
-		} else if (tam_paquete == DESBLOQUEA_ESI) {
+		if (tam_paquete == DESBLOQUEA_ESI) {
 			log_warning(logger, "El ESI %d se ha desbloqueado", esi_ID);
 			recien_desbloqueado = true;
 		} else if (tam_paquete == TERMINA_ESI) {
@@ -532,6 +494,39 @@ void establecerConexion(void* socketCliente) {
 	}
 }
 
+void atenderConsola() {
+	int socketConsola = conectarComoCliente(logger, ip_planificador, port_planificador);
+
+	uint32_t operacion;
+	recv(socketConsola, &operacion, sizeof(uint32_t), 0);
+	log_info(logger, "Me llega una peticion especial del Planificador");
+
+	/*
+	 * Instancia actual en la cual se encuentra la clave. (En caso de que la clave no se encuentre en una instancia,
+	 * no se debe mostrar este valor)
+	 * Instancia en la cual se guardaría actualmente la clave (Calcular este valor mediante el algoritmo de distribución,
+	 * pero sin afectar la distribución actual de las claves).
+	 */
+	uint32_t tam_clave;
+	recv(socketConsola, &tam_clave, sizeof(uint32_t), 0);
+	char* clave_solicitada = malloc(sizeof(char) * tam_clave);
+	recv(socketConsola, &clave_solicitada, tam_clave, 0);
+	log_debug(logger, "STATUS CLAVE %s", clave_solicitada);
+
+	t_instancia* instancia_posta = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave); // Instancia actual
+	if (!instancia_posta) {
+		log_info(logger, "La clave %s no tiene una Instancia asignada", clave_solicitada);
+		send(socketConsola, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+	} else {
+		log_info(logger, "La clave corresponde a la Instancia %d", clave_solicitada, instancia_posta->id);
+		send(socketConsola, &(instancia_posta->id), sizeof(uint32_t), 0);
+	}
+	simulacion_activada = true;
+	t_instancia* instancia_simulada = algoritmoDeDistribucion(); // Instancia simulada
+	simulacion_activada = false;
+	send(socketConsola, &(instancia_simulada->id), sizeof(uint32_t), 0);
+}
+
 // Protocolo numerico de ALGORITMO_DISTRIBUCION
 void establecerProtocoloDistribucion() {
 	if (strcmp(algoritmo_distribucion, "LSU") == 0) {
@@ -561,6 +556,8 @@ t_control_configuracion cargarConfiguracion() {
 	cant_entradas = obtenerCampoInt(logger, config, "CANT_ENTRADAS", &error_config);
 	tam_entradas = obtenerCampoInt(logger, config, "TAM_ENTRADAS", &error_config);
 	retardo = obtenerCampoInt(logger, config, "RETARDO", &error_config);
+	ip_planificador = obtenerCampoString(logger, config, "IP_PLANIFICADOR", &error_config);
+	port_planificador = obtenerCampoString(logger, config, "PORT_PLANIFICADOR", &error_config);
 
 	establecerProtocoloDistribucion();
 
@@ -600,6 +597,9 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	tabla_instancias = list_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port);
+
+	pthread_t hiloConsola;
+	pthread_create(&hiloConsola, NULL, (void*) atenderConsola, NULL);
 
 	while (1) { // Infinitamente escucha a la espera de que se conecte alguien
 		int socketCliente = escucharCliente(logger, socketDeEscucha);

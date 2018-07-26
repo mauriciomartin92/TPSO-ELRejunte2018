@@ -468,7 +468,6 @@ int iniciarDirectorio(){
 	// TODO: Chequear los permisos del mkdir
 	if (!dirp) return mkdir(montaje, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Si no existe creo el directorio
 
-	/*
 	char* archivos = string_new();
 
 	struct dirent *dp;
@@ -492,7 +491,6 @@ int iniciarDirectorio(){
 		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
-	*/
 
 	closedir(dirp);
 	return 1;
@@ -679,8 +677,12 @@ int main() {
 	id_instancia = atoi(string_substring_from(nombre_instancia, strlen("Inst"))); // Agarro lo que viene despues de "Inst"
 	send(socketCoordinador, &id_instancia, sizeof(uint32_t), 0);
 
-	recv(socketCoordinador, &cant_entradas, sizeof(uint32_t), 0);
-	recv(socketCoordinador, &tam_entrada, sizeof(uint32_t), 0);
+	int resp1 = recv(socketCoordinador, &cant_entradas, sizeof(uint32_t), 0);
+	int resp2 = recv(socketCoordinador, &tam_entrada, sizeof(uint32_t), 0);
+	if (resp1 < 1 || resp2 < 1) {
+		log_error(logger, "El Coordinador no me permite conectarme");
+		return EXIT_FAILURE;
+	}
 
 	log_info(logger, "Se recibio la cantidad y tamaño de las entradas correctamente");
 
