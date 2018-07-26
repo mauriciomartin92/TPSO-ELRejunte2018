@@ -564,19 +564,6 @@ void lanzarConsola(){
 
 				printf("esperando a que el ESI pueda ser matado \n");
 
-			} else if ( string_equals_ignore_case(linea, "listar_finalizados")  || string_equals_ignore_case(linea, "9")){
-
-				int i = 0;
-				while(i< list_size(listaFinalizados)){
-
-					ESI * esi = list_get (listaFinalizados, i);
-
-					printf("el ESI numero %d es de clave %d \n", i, esi->id);
-					i++;
-				}
-
-				free(linea);
-
 			}else {
 
 				log_info(logPlanificador, "la clave a matar no es igual a la que se esta ejecutando. Buscando... ");
@@ -585,8 +572,7 @@ void lanzarConsola(){
 			}
 			free(linea);
 
-		}
-		else if (string_equals_ignore_case(linea, STATUS_CLAVE)  || string_equals_ignore_case(linea, "7"))
+		}else if (string_equals_ignore_case(linea, STATUS_CLAVE)  || string_equals_ignore_case(linea, "7"))
 		{
 			log_info(logPlanificador, "Comando ingresado por consola : %s", linea);
 			linea = readline("CLAVE:");
@@ -594,12 +580,25 @@ void lanzarConsola(){
 			statusClave(linea);
 			free(linea);
 
-		}
-		else if (string_equals_ignore_case(linea, COMPROBAR_DEADLOCK)  || string_equals_ignore_case(linea, "9"))
+		}	else if (string_equals_ignore_case(linea, COMPROBAR_DEADLOCK)  || string_equals_ignore_case(linea, "8"))
 		{
 			log_info(logPlanificador, "Clave recurso ingresada por consola : %s", linea);
 			comprobarDeadlock(); // hace printf en la funcion
 			free(linea);
+
+		} else if ( string_equals_ignore_case(linea, "listar_finalizados")  || string_equals_ignore_case(linea, "9")){
+
+			int i = 0;
+			while(i< list_size(listaFinalizados)){
+
+				ESI * esi = list_get (listaFinalizados, i);
+
+				printf("el ESI numero %d es de clave %d \n", i, esi->id);
+				i++;
+			}
+
+			free(linea);
+
 		}
 		else if (string_equals_ignore_case(linea, "salir")  || string_equals_ignore_case(linea, "10"))
 		{
@@ -690,8 +689,6 @@ void recursoDestroy(t_recurso * recurso)
 void escucharNuevosESIS(){
 
 	log_info(logPlanificador, "inicio hilo de escucha de ESIS");
-
-	socketDeEscucha = conectarComoServidor(logPlanificador, ipPropia, puertoPropio);
 
 	while(1){
 
@@ -1082,36 +1079,19 @@ void statusClave(char * clave){
 				printf ("valor : %s \n", recurso->valor);
 			}
 
-			pthread_mutex_lock(&mutexComunicacion);
-
-			/*
-			 * STATUS CLAVE: El Planificador no tiene dialogo directo con el Coordinador, solo se comunica una vez que
-			 * un ESI transmitio una instruccion. Entonces, si no hay un ESI de por medio, Coordinador y Planificador
-			 * no se hablan. Por lo tanto, una peticion especial (peticion de consola) se haria asi:
-			 * 1. Envio al ESI que toque ejecutar en el send, en lugar de lo que sería la "orden de siguiente instruccion"
-			 * que le asignamos un 1, un protocolo de "peticion especial", a la cual le asigne un -4. Le puse un numero
-			 * negativo porque luego el ESI utiliza ese -4 para avisarle al Coordinador que el Planificador lo llama
-			 * (si ponia un numero positivo se podia confundir con el tamaño del paquete). Una vez que el Coordinador
-			 * recibe un -4, entonces hace un recv del Planificador, donde se le indica que tipo de instruccion se desea
-			 * ejecutar, por ejemplo un 4 para STATUS CLAVE.
-			 */
-
-			// --------> ¡¡¡ ME FALTA EL SEND DE PETICION ESPECIAL AL ESI !!! <-------- \\
 
 			log_info(logPlanificador, "Pidiendo instancia de clave");
-			uint32_t traemeLaClaveCoordi = 4;
-			send(claveActual, &traemeLaClaveCoordi, sizeof(uint32_t),0);
+
 			uint32_t tam_clave = strlen(clave) + 1;
-			send(claveActual, &tam_clave, sizeof(uint32_t), 0);
-			send(claveActual, clave, tam_clave,0);
+			send(socketClienteCoordinador, &tam_clave, sizeof(uint32_t), 0);
+			send(socketClienteCoordinador, clave, tam_clave,0);
 
 			uint32_t instanciaPosta_ID; // Si no esta asignada a ninguna devuelve <=0
 			uint32_t instanciaSimulada_ID; // Siempre es un valor >0
 
-			int resp = recv(socketCoordinador,&instanciaPosta_ID, sizeof(uint32_t), 0);
-			int resp2= recv(socketCoordinador, &instanciaSimulada_ID, sizeof(uint32_t),0);
+			int resp = recv(socketClienteCoordinador,&instanciaPosta_ID, sizeof(uint32_t), 0);
+			int resp2= recv(socketClienteCoordinador, &instanciaSimulada_ID, sizeof(uint32_t),0);
 
-			pthread_mutex_unlock(&mutexComunicacion);
 
 			if (resp <= 0 || resp2 <= 0){
 
@@ -1121,10 +1101,13 @@ void statusClave(char * clave){
 			} else {
 				if (instanciaPosta_ID <= 0) {
 					log_info(logPlanificador, "La clave no esta asignada a ninguna Instancia");
+					printf("la clave ingresada no se encuentra en ninguna instancia \n");
 				} else {
 					log_info(logPlanificador, "La clave esta asignada a la Instancia %d", instanciaPosta_ID);
+					printf("La clave esta asignada a la Instancia %d \n", instanciaPosta_ID);
 				}
-				log_info(logPlanificador, "Si la clave se asignara nuevamente se haria en la Instancia %d", instanciaSimulada_ID);
+				log_info(logPlanificador, "Si la clave se asignara nuevamente se haria en la Instancia %d ", instanciaSimulada_ID);
+				printf("Si la clave se asignara nuevamente se haria en la Instancia %d ", instanciaSimulada_ID);
 			}
 
 			listarBloqueados(clave);

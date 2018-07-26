@@ -12,8 +12,18 @@ int main(void) {
 	configurar();
 
 	socketCoordinador = conectarComoCliente(logPlanificador, ipCoordinador, puertoCoordinador);
+	socketDeEscucha = conectarComoServidor(logPlanificador, ipPropia, puertoPropio);
 
 	if(socketCoordinador == -1)
+	{
+		log_info(logPlanificador, "se rompio todo wacho");
+		liberarGlobales();
+		exit(-1);
+	}
+
+	socketClienteCoordinador = escucharCliente(logPlanificador, socketDeEscucha);
+
+	if(socketClienteCoordinador == -1)
 	{
 		log_info(logPlanificador, "se rompio todo wacho");
 		liberarGlobales();

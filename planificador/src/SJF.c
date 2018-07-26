@@ -1,6 +1,5 @@
 #include "planificador.h"
 
-int socketDeEscucha;
 bool planificacionSJFTerminada;
 
 void planificacionSJF(bool desalojo) {
