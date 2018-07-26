@@ -317,8 +317,9 @@ void atenderPeticionEspecial() {
 			send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 			log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> No hay Instancia asignada", clave_solicitada);
 			return;
+		} else {
+			send(socketPlanificador, &(instancia->id), sizeof(uint32_t), 0);
 		}
-		send(socketPlanificador, &(instancia->id), sizeof(uint32_t), 0);
 		log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> Instancia %d", clave_solicitada, instancia->id);
 	} else {
 		send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
@@ -397,6 +398,7 @@ void atenderESI(int socketESI) {
 			if (procesarPaquete(paquete, instruccion, esi_ID) == -1) { // Hay que abortar el ESI
 				log_error(logger, "Se aborta el ESI %d", esi_ID);
 				send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
+				finalizarSocket(socketESI);
 				break;
 			}
 			log_info(logger, "Le aviso al ESI %d que la instruccion se ejecuto satisfactoriamente", esi_ID);
@@ -408,6 +410,7 @@ void atenderESI(int socketESI) {
 			log_error(logger, "El Planificador me informa que el ESI %d se aborta", esi_ID);
 			send(socketESI, &ABORTA_ESI, sizeof(uint32_t), 0);
 			finalizarSocket(socketESI);
+			break;
 		}
 
 		destruirPaquete(paquete);
