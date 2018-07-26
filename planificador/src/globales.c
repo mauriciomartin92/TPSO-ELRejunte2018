@@ -1077,40 +1077,58 @@ void statusClave(char * clave){
 				log_info(logPlanificador, "sin valor");
 				printf("valor : NO TIENE \n");
 
-		} else {
-			log_info(logPlanificador, "valor : %s ", recurso->valor);
-			printf ("valor : %s \n", recurso->valor);
-		}
+			} else {
+				log_info(logPlanificador, "valor : %s ", recurso->valor);
+				printf ("valor : %s \n", recurso->valor);
+			}
 
-		pthread_mutex_lock(&mutexComunicacion);
+			pthread_mutex_lock(&mutexComunicacion);
 
-		log_info(logPlanificador, "Pidiendo instancia de clave");
-		uint32_t traemeLaClaveCoordi = 4;
-		send(claveActual, &traemeLaClaveCoordi, sizeof(uint32_t),0);
-		send(claveActual, clave, sizeof(clave),0);
+			/*
+			 * STATUS CLAVE: El Planificador no tiene dialogo directo con el Coordinador, solo se comunica una vez que
+			 * un ESI transmitio una instruccion. Entonces, si no hay un ESI de por medio, Coordinador y Planificador
+			 * no se hablan. Por lo tanto, una peticion especial (peticion de consola) se haria asi:
+			 * 1. Envio al ESI que toque ejecutar en el send, en lugar de lo que sería la "orden de siguiente instruccion"
+			 * que le asignamos un 1, un protocolo de "peticion especial", a la cual le asigne un -4. Le puse un numero
+			 * negativo porque luego el ESI utiliza ese -4 para avisarle al Coordinador que el Planificador lo llama
+			 * (si ponia un numero positivo se podia confundir con el tamaño del paquete). Una vez que el Coordinador
+			 * recibe un -4, entonces hace un recv del Planificador, donde se le indica que tipo de instruccion se desea
+			 * ejecutar, por ejemplo un 4 para STATUS CLAVE.
+			 */
 
-		uint32_t tam;
-		char * instancia;
+			// --------> ¡¡¡ ME FALTA EL SEND DE PETICION ESPECIAL AL ESI !!! <-------- \\
 
-		int resp = recv(socketCoordinador,&tam, sizeof(uint32_t), 0);
-		instancia = malloc(sizeof(char)*tam);
-		int resp2= recv(socketCoordinador, instancia, sizeof(char)*tam,0);
+			log_info(logPlanificador, "Pidiendo instancia de clave");
+			uint32_t traemeLaClaveCoordi = 4;
+			send(claveActual, &traemeLaClaveCoordi, sizeof(uint32_t),0);
+			uint32_t tam_clave = strlen(clave) + 1;
+			send(claveActual, &tam_clave, sizeof(uint32_t), 0);
+			send(claveActual, clave, tam_clave,0);
 
-		pthread_mutex_unlock(&mutexComunicacion);
+			uint32_t instanciaPosta_ID; // Si no esta asignada a ninguna devuelve <=0
+			uint32_t instanciaSimulada_ID; // Siempre es un valor >0
 
-		if (resp <= 0 || resp2 <= 0){
+			int resp = recv(socketCoordinador,&instanciaPosta_ID, sizeof(uint32_t), 0);
+			int resp2= recv(socketCoordinador, &instanciaSimulada_ID, sizeof(uint32_t),0);
 
-			log_info(logPlanificador, " fallo conexion");
-			printf("el coordinador no pudo definir la instancia a ocupar \n");
+			pthread_mutex_unlock(&mutexComunicacion);
 
-		} else {
-			log_info(logPlanificador, "instancia de clave %s",instancia);
-			printf(" instancia : %s \n", instancia);
-		}
+			if (resp <= 0 || resp2 <= 0){
 
-		free(instancia);
-		listarBloqueados(clave);
-		encontrado = true;
+				log_info(logPlanificador, " fallo conexion");
+				printf("el coordinador no pudo definir la instancia a ocupar \n");
+
+			} else {
+				if (instanciaPosta_ID <= 0) {
+					log_info(logPlanificador, "La clave no esta asignada a ninguna Instancia");
+				} else {
+					log_info(logPlanificador, "La clave esta asignada a la Instancia %d", instanciaPosta_ID);
+				}
+				log_info(logPlanificador, "Si la clave se asignara nuevamente se haria en la Instancia %d", instanciaSimulada_ID);
+			}
+
+			listarBloqueados(clave);
+			encontrado = true;
 
 		} else i++;
 

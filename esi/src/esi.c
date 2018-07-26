@@ -28,17 +28,19 @@ int socketCoordinador, socketPlanificador;
 FILE *fp;
 uint32_t respuesta;
 
-/* INFORMES AL PLANIFICADOR */
-const uint32_t ABORTA_ESI = -2;
-const uint32_t BLOQUEA_ESI = -1;
+/* INFORMES AL PLANIFICADOR Y COORDINADOR */
 const uint32_t TERMINA_ESI = 0;
-const uint32_t PAQUETE_OK = 1;
 
 /* PEDIDOS DEL PLANIFICADOR */
 const uint32_t SIGUIENTE_INSTRUCCION = 1;
-const uint32_t PETICION_ESPECIAL = 4;
+const uint32_t PETICION_ESPECIAL = -4;
+const uint32_t DESBLOQUEA_ESI = -3;
 
-const uint32_t DESBLOQUEA_ESI = 3;
+/* RESULTADOS DEL COORDINADOR */
+const uint32_t PAQUETE_OK = 1;
+const uint32_t BLOQUEA_ESI = -1;
+const uint32_t ABORTA_ESI = -2;
+
 
 t_esi_operacion parsearLineaScript(FILE* fp) {
 	char * line = NULL;
@@ -136,7 +138,13 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 			return EXIT_FAILURE;
 		}
 
+		/*
+		 * ATIENDO PEDIDO DEL PLANIFICADOR
+		 */
 		if (orden == SIGUIENTE_INSTRUCCION) {
+			/*
+			 * ENVIO PROXIMA INSTRUCCION
+			 */
 			log_info(logger, "El planificador me pide que parsee la siguiente instruccion:");
 			// Se parsea la instruccion que se le enviara al coordinador
 			t_esi_operacion instruccion = parsearLineaScript(fp);
@@ -171,6 +179,9 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 				log_info(logger, "Le aviso al Planificador que la instruccion pudo ser procesada");
 				send(socketPlanificador, &PAQUETE_OK, sizeof(uint32_t), 0);
 			} else if (respuesta == BLOQUEA_ESI) {
+				/*
+				 * ESTOY BLOQUEADO
+				 */
 				log_warning(logger, "El Coordinador informa que la instruccion no se pudo procesar");
 				log_warning(logger, "Se bloquea el ESI");
 
@@ -180,6 +191,9 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 					return EXIT_FAILURE;
 				}
 				if (orden == SIGUIENTE_INSTRUCCION) {
+					/*
+					 * ESTOY DESBLOQUEADO => ENVIO NUEVAMENTE LA INSTRUCCION
+					 */
 					log_info(logger, "El Planificador me informa que vuelva a enviar la instruccion");
 					send(socketCoordinador, &DESBLOQUEA_ESI, sizeof(uint32_t), 0);
 					send(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0); // Envio el header
@@ -216,7 +230,6 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 					log_error(logger, "El Planificador me informa que debo abortar");
 					break;
 				}
-
 			} else {
 				log_error(logger, "El Coordinador informa que la instruccion no se pudo procesar");
 				log_error(logger, "Se aborta el ESI");

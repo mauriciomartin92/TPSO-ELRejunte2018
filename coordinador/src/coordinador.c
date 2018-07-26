@@ -34,6 +34,7 @@ char* ip;
 char* port;
 char* algoritmo_distribucion;
 t_distribucion protocolo_distribucion;
+bool simulacion_activada;
 int retardo;
 uint32_t cant_entradas, tam_entradas;
 t_list* tabla_instancias;
@@ -45,13 +46,14 @@ char* clave_inaccesible;
 uint32_t instancia_ID;
 pthread_mutex_t mutexNuevaInstancia = PTHREAD_MUTEX_INITIALIZER;
 
+const int TAM_MAXIMO_CLAVE = 40;
+
 const uint32_t ABORTA_ESI = -2;
 const uint32_t BLOQUEA_ESI = -1;
 const uint32_t PAQUETE_OK = 1;
 const uint32_t PAQUETE_ERROR = -1;
-const int TAM_MAXIMO_CLAVE = 40;
-const uint32_t PETICION_ESPECIAL = 4;
-const uint32_t DESBLOQUEA_ESI = 3;
+const uint32_t PETICION_ESPECIAL = -4;
+const uint32_t DESBLOQUEA_ESI = -3;
 const uint32_t TERMINA_ESI = 0;
 
 bool comparadorEntradasLibres(void* nodo1, void* nodo2) {
@@ -71,6 +73,7 @@ t_instancia* algoritmoLSU() {
 	int i = 0;
 	do {
 		instancia = list_get(tabla_instancias, i);
+		i++;
 	} while (instancia->estado == INACTIVA);
 	return instancia;
 }
@@ -115,9 +118,15 @@ t_instancia* algoritmoKE() {
 
 t_instancia* algoritmoEL() {
 	t_instancia* instancia;
+	int i = 0;
 	do {
-		instancia = list_remove(tabla_instancias, 0);
-		list_add_in_index(tabla_instancias, list_size(tabla_instancias), instancia);
+		if (simulacion_activada) {
+			instancia = list_get(tabla_instancias, 0); // Si es simulacion por STATUS CLAVE no corro la Instancia de lugar
+			i++;
+		} else {
+			instancia = list_remove(tabla_instancias, 0);
+			list_add_in_index(tabla_instancias, list_size(tabla_instancias), instancia);
+		}
 		/*int res = recv(instancia->socket, NULL, 0, MSG_DONTWAIT);
 		if (res < 1) { // Si se desconecto me manda basura
 			instancia->estado = INACTIVA;
@@ -307,20 +316,31 @@ void atenderPeticionEspecial() {
 	recv(socketPlanificador, &operacion, sizeof(uint32_t), 0);
 	log_info(logger, "Me llega una peticion especial del Planificador");
 
-	if (operacion == 4) {
+	if (operacion == 4) { // STATUS CLAVE
+		/*
+		 * Instancia actual en la cual se encuentra la clave. (En caso de que la clave no se encuentre en una instancia,
+		 * no se debe mostrar este valor)
+		 * Instancia en la cual se guardaría actualmente la clave (Calcular este valor mediante el algoritmo de distribución,
+		 * pero sin afectar la distribución actual de las claves).
+		 */
 		uint32_t tam_clave;
 		recv(socketPlanificador, &tam_clave, sizeof(uint32_t), 0);
 		char* clave_solicitada = malloc(sizeof(char) * tam_clave);
 		recv(socketPlanificador, &clave_solicitada, tam_clave, 0);
-		t_instancia* instancia = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave);
-		if (!instancia) {
+		log_debug(logger, "STATUS CLAVE %s", clave_solicitada);
+
+		t_instancia* instancia_posta = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave); // Instancia actual
+		if (!instancia_posta) {
+			log_info(logger, "La clave %s no tiene una Instancia asignada", clave_solicitada);
 			send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
-			log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> No hay Instancia asignada", clave_solicitada);
-			return;
 		} else {
-			send(socketPlanificador, &(instancia->id), sizeof(uint32_t), 0);
+			log_info(logger, "La clave corresponde a la Instancia %d", clave_solicitada, instancia_posta->id);
+			send(socketPlanificador, &(instancia_posta->id), sizeof(uint32_t), 0);
 		}
-		log_info(logger, "Se quiere saber a que Instancia corresponde la clave %s -> Instancia %d", clave_solicitada, instancia->id);
+		simulacion_activada = true;
+		t_instancia* instancia_simulada = algoritmoDeDistribucion(); // Instancia simulada
+		simulacion_activada = false;
+		send(socketPlanificador, &(instancia_simulada->id), sizeof(uint32_t), 0);
 	} else {
 		send(socketPlanificador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 		log_error(logger, "No se comprende el pedido, sigue la ejecucion normalmente");
@@ -386,7 +406,6 @@ void atenderESI(int socketESI) {
 				send(socketPlanificador, &tam_valor, sizeof(uint32_t), 0);
 				send(socketPlanificador, instruccion->valor, tam_valor, 0);
 			}
-
 
 			recv(socketPlanificador, &respuesta_permiso, sizeof(uint32_t), 0);
 		} else {
@@ -562,6 +581,7 @@ void finalizar() {
 
 int main() { // ip y puerto son char* porque en la biblioteca se los necesita de ese tipo
 	error_config = false;
+	simulacion_activada = false;
 
 	/*
 	 * Se crea el logger, es una estructura a la cual se le da forma con la biblioca "log.h", me sirve para
