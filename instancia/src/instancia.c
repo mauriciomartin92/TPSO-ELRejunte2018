@@ -468,6 +468,7 @@ int iniciarDirectorio(){
 	// TODO: Chequear los permisos del mkdir
 	if (!dirp) return mkdir(montaje, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Si no existe creo el directorio
 
+	/*
 	char* archivos = string_new();
 
 	struct dirent *dp;
@@ -491,6 +492,7 @@ int iniciarDirectorio(){
 		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
+	*/
 
 	closedir(dirp);
 	return 1;
@@ -694,7 +696,7 @@ int main() {
 
 	//Generamos temporizador
 	pthread_t hiloTemporizador;
-	//pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
+	pthread_create(&hiloTemporizador, NULL, dumpAutomatico, NULL);
 
 	actualizarCantidadEntradasLibres();
 
