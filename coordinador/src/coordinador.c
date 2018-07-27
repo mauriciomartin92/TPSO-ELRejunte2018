@@ -57,6 +57,15 @@ const uint32_t PAQUETE_ERROR = -1;
 const uint32_t PETICION_ESPECIAL = -4;
 const uint32_t DESBLOQUEA_ESI = -3;
 const uint32_t TERMINA_ESI = 0;
+const uint32_t CHEQUEO_INSTANCIA_ACTIVA = 0;
+
+int chequearEstadoInstancia(t_instancia* instancia) {
+	if (send(instancia->socket, &CHEQUEO_INSTANCIA_ACTIVA, sizeof(uint32_t), MSG_NOSIGNAL) < 1) {
+		return INACTIVA;
+	} else {
+		return ACTIVA;
+	}
+}
 
 bool comparadorEntradasLibres(void* nodo1, void* nodo2) {
 	t_instancia* instancia1 = (t_instancia*) nodo1;
@@ -75,6 +84,7 @@ t_instancia* algoritmoLSU() {
 	int i = 0;
 	do {
 		instancia = list_get(tabla_instancias, i);
+		instancia->estado = chequearEstadoInstancia(instancia);
 		i++;
 	} while (instancia->estado == INACTIVA);
 	return instancia;
@@ -114,7 +124,12 @@ t_instancia* algoritmoKE() {
 	instancia->rango_fin = letra_fin;
 
 	// Busco la instancia correspondiente
-	return list_find(tabla_instancias, buscadorDeRango);
+	t_instancia* instanciaAsignada;
+	do {
+		instanciaAsignada = list_find(tabla_instancias, buscadorDeRango);
+		instancia->estado = chequearEstadoInstancia(instanciaAsignada);
+	} while (instancia->estado == INACTIVA);
+	return instanciaAsignada;
 }
 
 
@@ -123,7 +138,7 @@ t_instancia* algoritmoEL() {
 	int i = 0;
 	do {
 		if (simulacion_activada) {
-			instancia = list_get(tabla_instancias, 0); // Si es simulacion por STATUS CLAVE no corro la Instancia de lugar
+			instancia = list_get(tabla_instancias, i); // Si es simulacion por STATUS CLAVE no corro la Instancia de lugar
 			i++;
 		} else {
 			instancia = list_remove(tabla_instancias, 0);
@@ -133,15 +148,21 @@ t_instancia* algoritmoEL() {
 		if (res < 1) { // Si se desconecto me manda basura
 			instancia->estado = INACTIVA;
 		}*/
+		instancia->estado = chequearEstadoInstancia(instancia);
 	} while (instancia->estado == INACTIVA);
 	return instancia;
 }
 
 t_instancia* algoritmoDeDistribucion() {
-	log_info(logger, "Aguarde mientras se busca una Instancia");
+	if (simulacion_activada) {
+		log_info(logger, "Aguarde mientras se simula la asignacion de una Instancia");
+	} else {
+		log_info(logger, "Aguarde mientras se busca una Instancia");
+	}
 	while (list_is_empty(tabla_instancias)) {
+		if (simulacion_activada) return NULL;
+		log_warning(logger, "No hay Instancias disponibles. Reintentando...");
 		sleep(4); // Lo pongo para que la espera activa no sea tan densa
-		log_warning(logger, "No hay instancias disponibles. Reintentando...");
 	}
 
 	switch (protocolo_distribucion) {
@@ -227,6 +248,25 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 		log_info(logger, "La clave %s no esta en ninguna Instancia", instruccion->clave);
 	} else {
 		log_info(logger, "La clave %s esta asignada a Instancia %d", instruccion->clave, instancia->id);
+		instancia->estado = chequearEstadoInstancia(instancia);
+		if (instancia->estado == INACTIVA) {
+			/*
+			 * Durante la ejecución del Sistema, existe la posibilidad de que una o más Instancias dejen de estar
+			 * disponibles para el Coordinador de Re Distinto. Ante éstas situaciones, el Coordinador deberá ajustar
+			 * su distribución de forma acorde a la cantidad de Instancias disponibles. No se deberá eliminar una
+			 * clave de las tablas del coordinador si la instancia de desconectó; solo se elimina cuando un ESI
+			 * intenta acceder a ella; de tal forma, si la instancia se reincorpora previo al uso de la clave;
+			 * la desconexión sera transparente para el/los ESI que deseen operar con dicha clave.
+			 */
+
+			clave_inaccesible = string_new();
+			string_append(&clave_inaccesible, instruccion->clave);
+			list_remove_by_condition(instancia->claves_asignadas, claveEsLaInaccesible);
+			free(clave_inaccesible);
+
+			log_error(logger, "Error de Clave Inaccesible");
+			return -1;
+		}
 	}
 
 	if (instruccion->operacion == opGET) {
@@ -256,26 +296,7 @@ int procesarPaquete(char* paquete, t_instruccion* instruccion, uint32_t esi_ID) 
 			log_info(logger, "Le envio a Instancia %d el paquete", instancia->id);
 			uint32_t tam_paquete = strlen(paquete) + 1;
 			send(instancia->socket, &tam_paquete, sizeof(uint32_t), 0);
-			if (send(instancia->socket, paquete, tam_paquete, MSG_NOSIGNAL) < 1) {
-
-				/*
-				 * Durante la ejecución del Sistema, existe la posibilidad de que una o más Instancias dejen de estar
-				 * disponibles para el Coordinador de Re Distinto. Ante éstas situaciones, el Coordinador deberá ajustar
-				 * su distribución de forma acorde a la cantidad de Instancias disponibles. No se deberá eliminar una
-				 * clave de las tablas del coordinador si la instancia de desconectó; solo se elimina cuando un ESI
-				 * intenta acceder a ella; de tal forma, si la instancia se reincorpora previo al uso de la clave;
-				 * la desconexión sera transparente para el/los ESI que deseen operar con dicha clave.
-				 */
-
-				instancia->estado = INACTIVA;
-				clave_inaccesible = string_new();
-				string_append(&clave_inaccesible, instruccion->clave);
-				list_remove_by_condition(instancia->claves_asignadas, claveEsLaInaccesible);
-				free(clave_inaccesible);
-
-				log_error(logger, "Error de Clave Inaccesible");
-				return -1;
-			}
+			send(instancia->socket, paquete, tam_paquete, MSG_NOSIGNAL);
 
 			uint32_t tam_clave_reemplazada;
 			recv(instancia->socket, &tam_clave_reemplazada, sizeof(uint32_t), 0);
@@ -322,7 +343,7 @@ void atenderESI(int socketESI) {
 	log_info(logger, "Se ha conectado un ESI con ID: %d", esi_ID);
 	send(socketESI, &PAQUETE_OK, sizeof(uint32_t), 0);
 
-	while(1) {
+	while (1) {
 		bool recien_desbloqueado = false;
 		uint32_t tam_paquete;
 		recv(socketESI, &tam_paquete, sizeof(uint32_t), 0); // Recibo el header
@@ -489,6 +510,10 @@ void establecerConexion(void* socketCliente) {
 		log_info(logger, "El cliente es el Planificador");
 		socketPlanificador = *(int*) socketCliente;
 		send(socketPlanificador, &PAQUETE_OK, sizeof(uint32_t), 0);
+
+		// Me conecto como cliente al Planificador para las peticiones de consola
+		pthread_t hiloConsola;
+		pthread_create(&hiloConsola, NULL, (void*) atenderConsola, NULL);
 	} else {
 		log_error(logger, "No se pudo reconocer al cliente");
 	}
@@ -496,11 +521,6 @@ void establecerConexion(void* socketCliente) {
 
 void atenderConsola() {
 	int socketConsola = conectarComoCliente(logger, ip_planificador, port_planificador);
-
-	uint32_t operacion;
-	recv(socketConsola, &operacion, sizeof(uint32_t), 0);
-	log_info(logger, "Me llega una peticion especial del Planificador");
-
 	/*
 	 * Instancia actual en la cual se encuentra la clave. (En caso de que la clave no se encuentre en una instancia,
 	 * no se debe mostrar este valor)
@@ -509,8 +529,9 @@ void atenderConsola() {
 	 */
 	uint32_t tam_clave;
 	recv(socketConsola, &tam_clave, sizeof(uint32_t), 0);
+	log_error(logger, "TAMANO: %d", tam_clave);
 	char* clave_solicitada = malloc(sizeof(char) * tam_clave);
-	recv(socketConsola, &clave_solicitada, tam_clave, 0);
+	recv(socketConsola, clave_solicitada, sizeof(char) * tam_clave, 0);
 	log_debug(logger, "STATUS CLAVE %s", clave_solicitada);
 
 	t_instancia* instancia_posta = (t_instancia*) list_find(tabla_instancias, instanciaTieneLaClave); // Instancia actual
@@ -523,6 +544,13 @@ void atenderConsola() {
 	}
 	simulacion_activada = true;
 	t_instancia* instancia_simulada = algoritmoDeDistribucion(); // Instancia simulada
+	if (!instancia_posta) {
+		log_warning(logger, "No hay Instancias conectadas");
+		send(socketConsola, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+	} else {
+		log_info(logger, "Si se simula el algoritmo %s, la clave %s seria asignada a la Instancia %d", algoritmo_distribucion, clave_solicitada, instancia_posta->id);
+		send(socketConsola, &(instancia_posta->id), sizeof(uint32_t), 0);
+	}
 	simulacion_activada = false;
 	send(socketConsola, &(instancia_simulada->id), sizeof(uint32_t), 0);
 }
@@ -597,9 +625,6 @@ int main() { // ip y puerto son char* porque en la biblioteca se los necesita de
 	tabla_instancias = list_create();
 
 	socketDeEscucha = conectarComoServidor(logger, ip, port);
-
-	pthread_t hiloConsola;
-	pthread_create(&hiloConsola, NULL, (void*) atenderConsola, NULL);
 
 	while (1) { // Infinitamente escucha a la espera de que se conecte alguien
 		int socketCliente = escucharCliente(logger, socketDeEscucha);

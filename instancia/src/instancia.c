@@ -45,11 +45,12 @@ int referencia_actual = 0;
 pthread_mutex_t mutexDumpeo = PTHREAD_MUTEX_INITIALIZER;
 
 const uint32_t PAQUETE_OK = 1;
-const int32_t PAQUETE_ERROR = -1;
+const uint32_t PAQUETE_ERROR = -1;
+const uint32_t CHEQUEO_INSTANCIA_ACTIVA = 0;
 
 void imprimirTablaDeEntradas(t_list* tabla) {
 	printf("\n_______TABLA DE ENTRADAS_______\n");
-	for(int i = 0; i < list_size(tabla); i++) {
+	for (int i = 0; i < list_size(tabla); i++) {
 		t_entrada* entrada = list_get(tabla, i);
 		printf("%s - %d (%d) - %d\n", entrada->clave, entrada->entrada_asociada, entrada->size_valor_almacenado, entrada->ultima_referencia);
 	}
@@ -165,10 +166,11 @@ t_entrada* algoritmoBSU(t_list* tabla_entradas_atomicas) {
 	bool mayorValorAlmacenado(void* nodo1, void* nodo2) {
 		t_entrada* entrada1 = (t_entrada*) nodo1;
 		t_entrada* entrada2 = (t_entrada*) nodo2;
+		log_trace(logger, "comparacion valores: %d > %d", entrada1->size_valor_almacenado, entrada2->size_valor_almacenado);
 		return entrada1->size_valor_almacenado > entrada2->size_valor_almacenado;
 	}
-
-	list_sort(tabla_entradas_atomicas, mayorValorAlmacenado);
+	log_trace(logger, "tam lista: %d", list_size(tabla_entradas_atomicas));
+	list_sort(tabla_entradas_atomicas, mayorValorAlmacenado); // TODO: CHEQUEAR SI SON TODOS NO ATOMICAS
 	return list_get(tabla_entradas_atomicas, 0);
 }
 
@@ -218,6 +220,10 @@ bool valorEsAtomico(void* nodo) {
 
 void algoritmoDeReemplazo() {
 	t_list* tabla_entradas_atomicas = list_filter(tabla_entradas, valorEsAtomico); // Solo evaluo los valores atomicos
+	if (list_size(tabla_entradas_atomicas) == 0) {
+		entrada_a_reemplazar = NULL;
+		return;
+	}
 	//printf("\n--------- TABLA DE ENTRADAS ATOMICAS ---------");
 	//imprimirTablaDeEntradas(tabla_entradas_atomicas);
 
@@ -228,6 +234,7 @@ void algoritmoDeReemplazo() {
 
 	case BSU:
 		entrada_a_reemplazar = algoritmoBSU(tabla_entradas_atomicas);
+		log_trace(logger, "entrada a reemplazar: %s", entrada_a_reemplazar->clave);
 		break;
 
 	default: // Circular
@@ -258,7 +265,13 @@ int operacion_SET(t_instruccion* instruccion) {
 		// Devuelve la entrada a reemplazar
 		log_info(logger, "No hay %d entradas para almacenar el valor, aplico algoritmo de reemplazo %s", entradas_a_ocupar, algoritmo_reemplazo);
 
-		while (entradas_a_ocupar > entradas_libres) algoritmoDeReemplazo();
+		while (entradas_a_ocupar > entradas_libres) {
+			algoritmoDeReemplazo();
+			if (!entrada_a_reemplazar) {
+				log_error(logger, "No hay ninguna entrada atomica para reemplazar");
+				return -1;
+			}
+		}
 		log_info(logger, "Hay %d entradas libres para almacenar el valor", entradas_a_ocupar);
 		// Entonces, pregunto si hay contiguas.
 		if (hayEntradasContiguas(entradas_a_ocupar) >= 0) {
@@ -323,7 +336,7 @@ void actualizarEntradaAsociada(void* nodo) {
 }
 
 void compactarAlmacenamiento() {
-	log_info(logger, "Se inicia la compactacion del almacenamiento");
+	log_error(logger, "Se inicia la compactacion del almacenamiento");
 
 	for (int x = 0; x < cant_entradas * tam_entrada; x += tam_entrada) {
 		if (bloque_instancia[x] == '0') {
@@ -417,7 +430,7 @@ int dumpearClave(void* nodo) {
 }
 
 void* dumpAutomatico() {
-	while(1) {
+	while (1) {
 		sleep(intervalo_dump * 0.001);
 		pthread_mutex_lock(&mutexDumpeo);
 		list_iterate(tabla_entradas, dumpearClave);
@@ -461,7 +474,7 @@ t_entrada* crearEntradaDesdeArchivo(char* archivo) {
 	return entrada;
 }
 
-int iniciarDirectorio(){
+int iniciarDirectorio() {
 	tabla_entradas = list_create();
 
 	DIR* dirp = opendir(montaje);
@@ -487,7 +500,7 @@ int iniciarDirectorio(){
 	char** vector_archivos = string_split(archivos, "-");
 
 	int i = 0;
-	while(vector_archivos[i] != NULL){
+	while (vector_archivos[i] != NULL) {
 		list_add(tabla_entradas, crearEntradaDesdeArchivo(vector_archivos[i]));
 		i++;
 	}
@@ -510,17 +523,17 @@ void llenarAlmacenamiento(t_entrada* entrada) {
 	bloque_instancia[cant_entradas * tam_entrada] = '\0';
 }
 
-int hayEntradasContiguas(int entradas_necesarias){
+int hayEntradasContiguas(int entradas_necesarias) {
 	int contador = 0;
 	int primer_entrada;
 
-	for (int i = 0; i < tam_entrada * cant_entradas; i = i + tam_entrada){
-		if(bloque_instancia[i] == '0'){
+	for (int i = 0; i < tam_entrada * cant_entradas; i = i + tam_entrada) {
+		if(bloque_instancia[i] == '0') {
 			contador++;
-			if(contador == 1){
+			if (contador == 1) {
 				primer_entrada = i;
 			}
-			if(contador == entradas_necesarias){
+			if (contador == entradas_necesarias) {
 				return (primer_entrada / tam_entrada) + 1;
 			}
 		} else {
@@ -581,7 +594,7 @@ int procesar(t_instruccion* instruccion) {
 	} else { // la entrada si estaba
 		log_warning(logger, "La clave esta registrada en la Tabla de Entradas");
 
-		switch (instruccion->operacion){
+		switch (instruccion->operacion) {
 		case opSET: // SET de clave presente.
 			log_debug(logger, "Operacion SET con reemplazo");
 			return operacion_SET_reemplazo(entrada, instruccion->valor);
@@ -596,10 +609,16 @@ int procesar(t_instruccion* instruccion) {
 t_instruccion* recibirInstruccion(int socketCoordinador) {
 	// Recibo linea de script parseada
 	uint32_t tam_paquete;
-	if (recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0) < 0) return NULL;; // Recibo el header
+	if (recv(socketCoordinador, &tam_paquete, sizeof(uint32_t), 0) < 0) return NULL; // Recibo el header
+
+	if (tam_paquete == CHEQUEO_INSTANCIA_ACTIVA) return NULL; // Esto lo usa el Coordinador para saber si estoy activa
 
 	char* paquete = (char*) malloc(sizeof(char) * tam_paquete);
-	if (recv(socketCoordinador, paquete, tam_paquete, 0) < 1) return NULL;
+	if (recv(socketCoordinador, paquete, tam_paquete, 0) < 1) {
+		log_error(logger, "Error de Comunicacion: se ha roto la conexion con el Coordinador, me aborto");
+		finalizar();
+		exit(-1);
+	}
 	log_info(logger, "Recibi un paquete que me envia el Coordinador");
 	log_debug(logger, "%s", paquete);
 
@@ -651,6 +670,11 @@ void finalizar() {
 	free(bloque_instancia);
 }
 
+void signalHandler(int senal) {
+	printf("ME CERRE\n");
+	exit(-1);
+}
+
 int main() {
 	error_config = false;
 
@@ -669,6 +693,8 @@ int main() {
 		finalizar();
 		return EXIT_FAILURE;
 	}
+
+	signal(SIGINT, signalHandler);
 
 	uint32_t handshake = INSTANCIA;
 	send(socketCoordinador, &handshake, sizeof(uint32_t), 0);
@@ -703,54 +729,52 @@ int main() {
 	actualizarCantidadEntradasLibres();
 
 	while (1) {
-		log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
-		log_debug(logger, "BLOQUE DE MEMORIA: %s", bloque_instancia);
-		//if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 		entrada_a_reemplazar = NULL;
 
 		t_instruccion* instruccion = recibirInstruccion(socketCoordinador);
-		if (!instruccion) {
-			log_error(logger, "Error de Comunicacion: se ha roto la conexion con el Coordinador, me aborto");
-			finalizar();
-			return EXIT_FAILURE;
-		}
+		if (instruccion != NULL) {
 
-		if (validarArgumentosInstruccion(instruccion) > 0) {
+			log_debug(logger, "Cantidad de entradas libres: %d", entradas_libres);
+			log_debug(logger, "BLOQUE DE MEMORIA: %s", bloque_instancia);
+			//if (list_size(tabla_entradas) > 0) imprimirTablaDeEntradas(tabla_entradas);
 
-			referencia_actual++;
+			if (validarArgumentosInstruccion(instruccion) > 0) {
 
-			pthread_mutex_lock(&mutexDumpeo);
-			int resultado = procesar(instruccion);
-			pthread_mutex_unlock(&mutexDumpeo);
+				referencia_actual++;
 
-			if (resultado > 0) {
-				log_info(logger, "Le aviso al Coordinador que se proceso la instruccion");
-				/*/char** para_imprimir = string_split(mapa_archivo, ";");
-				int i = 0;
-				while (para_imprimir[i] != NULL) {
-					printf("%s\n", para_imprimir[i]);
-					i++;
-				}*/
+				pthread_mutex_lock(&mutexDumpeo);
+				int resultado = procesar(instruccion);
+				pthread_mutex_unlock(&mutexDumpeo);
 
-				if (entrada_a_reemplazar != NULL) { // Le informo al Coordinador que clave fue reemplazada
-					uint32_t tam_clave_reemplazada = strlen(entrada_a_reemplazar->clave) + 1;
-					send(socketCoordinador, &tam_clave_reemplazada, sizeof(uint32_t), 0);
-					char* clave_reemplazada = string_new();
-					string_append(&clave_reemplazada, entrada_a_reemplazar->clave);
-					send(socketCoordinador, clave_reemplazada, tam_clave_reemplazada, 0);
+				if (resultado > 0) {
+					log_info(logger, "Le aviso al Coordinador que se proceso la instruccion");
+					/*/char** para_imprimir = string_split(mapa_archivo, ";");
+					int i = 0;
+					while (para_imprimir[i] != NULL) {
+						printf("%s\n", para_imprimir[i]);
+						i++;
+					}*/
+
+					if (entrada_a_reemplazar != NULL) { // Le informo al Coordinador que clave fue reemplazada
+						uint32_t tam_clave_reemplazada = strlen(entrada_a_reemplazar->clave) + 1;
+						send(socketCoordinador, &tam_clave_reemplazada, sizeof(uint32_t), 0);
+						char* clave_reemplazada = string_new();
+						string_append(&clave_reemplazada, entrada_a_reemplazar->clave);
+						send(socketCoordinador, clave_reemplazada, tam_clave_reemplazada, 0);
+					} else {
+						uint32_t sin_reemplazo = 0;
+						send(socketCoordinador, &sin_reemplazo, sizeof(uint32_t), 0);
+					}
+
+					send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
 				} else {
-					uint32_t sin_reemplazo = 0;
-					send(socketCoordinador, &sin_reemplazo, sizeof(uint32_t), 0);
+					log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");
+					send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
 				}
 
-				send(socketCoordinador, &entradas_libres, sizeof(uint32_t), 0);
-			} else {
-				log_error(logger, "Le aviso al Coordinador que no se pudo procesar la instrucción");
-				send(socketCoordinador, &PAQUETE_ERROR, sizeof(uint32_t), 0);
+				if (instruccion->operacion == 2) printf("\x1b[34m	INSTRUCCION:%d %s %s\x1b[0m\n", instruccion->operacion, instruccion->clave, instruccion->valor);
+				if (instruccion->operacion == 3) printf("\x1b[34m	INSTRUCCION:%d %s\x1b[0m\n", instruccion->operacion, instruccion->clave);
 			}
-
-			if (instruccion->operacion == 2) printf("\x1b[34m	INSTRUCCION:%d %s %s\x1b[0m\n", instruccion->operacion, instruccion->clave, instruccion->valor);
-			if (instruccion->operacion == 3) printf("\x1b[34m	INSTRUCCION:%d %s\x1b[0m\n", instruccion->operacion, instruccion->clave);
 		}
 	}
 	finalizar();

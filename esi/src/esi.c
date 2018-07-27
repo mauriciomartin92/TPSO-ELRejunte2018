@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) { // Recibe por parametro el path que se guarda
 
 	uint32_t orden;
 
-	while(!feof(fp)) {
+	while (!feof(fp)) {
 		log_info(logger, "Espero a que el Planificador me ordene parsear una instruccion");
 		if (recv(socketPlanificador, &orden, sizeof(uint32_t), 0) < 0) {
 			log_error(logger, "Error de Comunicacion: se ha roto la conexion con el Planificador, me aborto");
